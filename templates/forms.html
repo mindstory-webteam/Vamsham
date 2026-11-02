@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FamilyRoots – Login / Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sky:       #2699D2;
+      --sky-dk:    #1575a8;
+      --sky-lt:    #6ac8f0;
+      --sky-pale:  #e3f4fc;
+      --terra:     #c4642a;
+      --amber:     #d4900a;
+      --gold:      #e8c06e;
+      --paper:     #f9f4ec;
+      --paper-dk:  #efe6d5;
+      --paper-bdr: #ddd0b8;
+      --ink:       #1e1208;
+      --ink-md:    #4a3018;
+      --ink-lt:    #8a6840;
+      --fog:       #b0987a;
+      --white:     #ffffff;
+      --leaf-dk:   #2e5c3a;
+      --r-sm: 4px;
+      --t-fast: 0.18s ease;
+      --t-mid:  0.28s ease;
+      --t-slow: 0.45s cubic-bezier(0.22,1,0.36,1);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--paper);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow-x: hidden; position: relative;
+    }
+
+    /* ── Background ── */
+    .bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(-55deg, transparent, transparent 40px, rgba(196,100,42,0.022) 40px, rgba(196,100,42,0.022) 41px);
+    }
+    .bg-arch { position: absolute; border-radius: 50%; border: 1.5px solid rgba(196,100,42,0.12); }
+    .bg-arch-1 { width: 560px; height: 560px; top: -280px; left: -160px; }
+    .bg-arch-2 { width: 400px; height: 400px; bottom: -200px; right: -100px; }
+    .bg-arch-3 { width: 220px; height: 220px; top: -110px; right: 200px; border-color: rgba(38,153,210,0.08); }
+
+    /* ── Page / Frame ── */
+    .page {
+      position: relative; z-index: 1;
+      width: 100%; min-height: 100vh;
+      padding: clamp(16px, 4vw, 40px) clamp(12px, 3vw, 24px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .frame {
+      width: 100%; max-width: 1060px;
+      border: 1.5px solid var(--paper-bdr); border-radius: var(--r-sm);
+      position: relative;
+      animation: pageRise 0.6s cubic-bezier(0.22,1,0.36,1) both;
+      overflow: hidden;
+      box-shadow: 0 4px 40px rgba(30,18,8,0.08);
+    }
+    @keyframes pageRise {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .frame::before {
+      content: ''; position: absolute; inset: 5px;
+      border: 1px solid rgba(196,100,42,0.18); border-radius: 2px;
+      pointer-events: none; z-index: 10;
+    }
+
+    /* ── Header ── */
+    .header-band {
+      background: var(--sky-dk);
+      padding: clamp(14px, 2vw, 18px) clamp(20px, 4vw, 40px);
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+    .header-band::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, var(--sky-dk) 0%, var(--sky) 50%, var(--sky-lt) 100%);
+      opacity: 0.9;
+    }
+    .header-band::after {
+      content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 50%;
+      background: repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(255,255,255,0.04) 18px, rgba(255,255,255,0.04) 19px);
+    }
+    .header-brand { display: flex; align-items: center; gap: clamp(10px,1.5vw,14px); position: relative; z-index: 2; }
+    .header-icon {
+      width: clamp(34px,5vw,40px); height: clamp(34px,5vw,40px);
+      border-radius: var(--r-sm);
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.28);
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .header-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .header-brand-name { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(0.9rem,2vw,1.2rem); color: #fff; letter-spacing: 0.12em; text-transform: uppercase; }
+    .header-brand-sub  { font-size: clamp(0.5rem,1vw,0.58rem); font-weight: 300; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-top: 2px; }
+    .header-tree { position: relative; z-index: 2; opacity: 0.18; flex-shrink: 0; }
+    .header-tree svg { width: clamp(60px,8vw,90px); height: auto; }
+
+    /* ── Body grid ── */
+    .body-grid { display: grid; grid-template-columns: clamp(280px,33%,360px) 1fr; min-height: 560px; background: var(--white); }
+
+    /* ── Art panel ── */
+    .panel-art {
+      background: var(--paper); border-right: 1.5px solid var(--paper-bdr);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: clamp(28px,4vw,40px) clamp(24px,3vw,32px);
+      position: relative; overflow: hidden;
+    }
+    .art-arcs { position: absolute; inset: 0; pointer-events: none; }
+    .art-arcs svg { width: 100%; height: 100%; }
+    .art-tree { position: relative; z-index: 2; width: 100%; max-width: 280px; }
+    .art-tree svg { width: 100%; height: auto; }
+    .gen-labels { position: relative; z-index: 2; width: 100%; max-width: 280px; display: flex; justify-content: space-between; margin-top: 18px; }
+    .gen-label { font-family: 'Cinzel', serif; font-size: 0.52rem; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fog); text-align: center; }
+    .art-tagline { position: relative; z-index: 2; text-align: center; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--paper-bdr); width: 100%; }
+    .art-tagline-ornament { font-size: 0.75rem; color: var(--gold); letter-spacing: 8px; opacity: 0.7; margin-bottom: 8px; }
+    .art-tagline-text { font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fog); line-height: 1.7; }
+    .art-tagline-text em { font-style: italic; color: var(--sky); font-family: 'Jost', sans-serif; font-size: 0.75rem; }
+
+    /* ── Form panel ── */
+    .panel-form {
+      background: var(--white);
+      padding: clamp(28px,4vw,52px) clamp(24px,5vw,60px);
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative;
+    }
+    .panel-form::before {
+      content: ''; position: absolute; left: 0; top: 36px; bottom: 36px; width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--paper-bdr) 25%, var(--paper-bdr) 75%, transparent);
+    }
+
+    /* ── Django Messages ── */
+    .django-messages { margin-bottom: 16px; }
+    .django-messages .msg {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.77rem; padding: 10px 14px;
+      border-radius: var(--r-sm); margin-bottom: 6px;
+      line-height: 1.45; border-left: 3px solid var(--amber);
+      background: #fef5e8; color: var(--ink-md);
+    }
+    .django-messages .msg.success { background: #edf6ee; border-color: var(--leaf-dk); color: var(--leaf-dk); }
+    .django-messages .msg.error   { background: #fef0f0; border-color: #d94f4f; color: #8b1a1a; }
+    .django-messages .msg-icon { flex-shrink: 0; font-size: 0.9rem; margin-top: 1px; }
+
+    /* ── Tabs ── */
+    .tab-bar { display: flex; border-bottom: 1.5px solid var(--paper-bdr); margin-bottom: clamp(20px,3vw,32px); }
+    .tab-btn {
+      padding: clamp(8px,1vw,10px) clamp(14px,2.5vw,24px);
+      font-family: 'Cinzel', serif; font-weight: 600;
+      font-size: clamp(0.68rem,1.2vw,0.8rem); letter-spacing: 0.10em; text-transform: uppercase;
+      background: transparent; border: none; border-bottom: 2.5px solid transparent;
+      margin-bottom: -1.5px; color: var(--fog); cursor: pointer;
+      transition: color var(--t-fast), border-color var(--t-fast); white-space: nowrap;
+    }
+    .tab-btn.active { color: var(--sky-dk); border-bottom-color: var(--sky); }
+    .tab-btn:not(.active):hover { color: var(--ink-md); }
+
+    /* ── Form panels ── */
+    .form-panel { display: none; flex-direction: column; }
+    .form-panel.active { display: flex; }
+
+    .form-number {
+      font-family: 'Cinzel', serif; font-size: 0.58rem; font-weight: 400;
+      letter-spacing: 0.22em; text-transform: uppercase; color: var(--sky);
+      margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+    }
+    .form-number::after { content: ''; flex: 1; height: 1px; background: var(--sky-pale); max-width: 60px; }
+
+    .form-title { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(1.25rem,2.5vw,1.75rem); color: var(--ink); letter-spacing: 0.04em; line-height: 1.2; margin-bottom: 6px; }
+    .form-sub   { font-size: clamp(0.72rem,1.2vw,0.78rem); font-weight: 300; color: var(--fog); line-height: 1.65; margin-bottom: clamp(18px,3vw,26px); }
+
+    /* ── Inputs ── */
+    .input-row   { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px,1.5vw,14px); }
+    .input-group { margin-bottom: clamp(10px,1.5vw,14px); }
+    .input-label { display: block; font-family: 'Cinzel', serif; font-size: 0.60rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-lt); margin-bottom: 7px; }
+    .input-wrap  { position: relative; }
+    .input-wrap svg.icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px; stroke: var(--paper-bdr); pointer-events: none;
+      transition: stroke var(--t-fast);
+    }
+    .input-wrap input {
+      width: 100%;
+      padding: clamp(9px,1.5vw,11px) 14px clamp(9px,1.5vw,11px) 38px;
+      background: var(--paper); border: 1.5px solid var(--paper-bdr); border-radius: var(--r-sm);
+      font-family: 'Jost', sans-serif; font-size: clamp(0.84rem,1.4vw,0.9rem); color: var(--ink);
+      outline: none; transition: border-color var(--t-fast), background var(--t-fast);
+      -webkit-appearance: none;
+    }
+    .input-wrap input::placeholder { color: #c8b090; font-size: 0.84rem; }
+    .input-wrap input:focus { border-color: var(--sky); background: var(--sky-pale); }
+    .input-wrap input:focus ~ svg.icon { stroke: var(--sky); }
+
+    /* ── Password: extra right padding so text won't overlap eye button ── */
+    .input-wrap input[type="password"],
+    .input-wrap input[type="text"].pwd-field {
+      padding-right: 40px;
+    }
+
+    /* ── Eye toggle button ── */
+    .pwd-toggle {
+      position: absolute;
+      right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; padding: 4px;
+      cursor: pointer; line-height: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--paper-bdr);
+      transition: color var(--t-fast);
+      border-radius: 2px;
+      z-index: 2;
+    }
+    .pwd-toggle:hover  { color: var(--sky); }
+    .pwd-toggle:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+
+    /* SVG icons inside the toggle — only one visible at a time */
+    .pwd-toggle svg {
+      width: 16px; height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+      display: block;
+    }
+
+    /* FIX: Use CSS to control icon visibility — more reliable than inline styles */
+    .pwd-toggle .ico-open { display: block; }
+    .pwd-toggle .ico-shut { display: none; }
+    .pwd-toggle.showing .ico-open { display: none; }
+    .pwd-toggle.showing .ico-shut { display: block; }
+
+    /* ── Submit ── */
+    .btn-submit {
+      width: 100%; margin-top: 8px;
+      padding: clamp(11px,1.5vw,13px) 22px;
+      background: var(--sky-dk); color: #fff;
+      font-family: 'Cinzel', serif; font-weight: 600;
+      font-size: clamp(0.74rem,1.2vw,0.82rem); letter-spacing: 0.14em; text-transform: uppercase;
+      border: none; border-radius: var(--r-sm); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: background var(--t-fast), transform 0.15s, box-shadow var(--t-fast);
+      position: relative; overflow: hidden; touch-action: manipulation;
+    }
+    .btn-submit::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+      transform: translateX(-100%); transition: transform 0.5s ease;
+    }
+    .btn-submit:hover, .btn-submit:focus-visible {
+      background: var(--sky); transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(38,153,210,0.35); outline: none;
+    }
+    .btn-submit:hover::before { transform: translateX(100%); }
+    .btn-submit:active { transform: translateY(0); box-shadow: none; }
+    .btn-ico { font-size: 1rem; transition: transform 0.25s; }
+    .btn-submit:hover .btn-ico { transform: rotate(12deg) scale(1.12); }
+
+    /* ── Ornament / links ── */
+    .ornament {
+      display: flex; align-items: center; gap: 10px;
+      margin: clamp(10px,1.5vw,14px) 0 8px;
+      letter-spacing: 6px; color: var(--paper-bdr); font-size: 0.72rem;
+      user-select: none;
+    }
+    .ornament::before, .ornament::after { content: ''; flex: 1; height: 1px; background: var(--paper-bdr); }
+
+    .toggle-link {
+      text-align: center; font-size: 0.76rem; font-weight: 400; color: var(--fog);
+      cursor: pointer; line-height: 1.5; transition: color var(--t-fast);
+    }
+    .toggle-link strong { color: var(--sky-dk); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+    .toggle-link:hover { color: var(--ink); }
+
+    .back-link { text-align: center; font-size: 0.70rem; margin-top: 7px; color: var(--fog); }
+    .back-link a { color: var(--fog); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--t-fast), border-color var(--t-fast); }
+    .back-link a:hover { color: var(--leaf-dk); border-bottom-color: var(--leaf-dk); }
+
+    /* ── Footer ── */
+    .footer-band {
+      background: var(--paper); border-top: 1.5px solid var(--paper-bdr);
+      padding: clamp(8px,1.2vw,10px) clamp(20px,4vw,40px);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+    }
+    .footer-text { font-family: 'Cinzel', serif; font-size: clamp(0.48rem,0.9vw,0.52rem); letter-spacing: 0.18em; text-transform: uppercase; color: var(--fog); }
+    .footer-dots { display: flex; gap: 6px; }
+    .footer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper-bdr); }
+    .footer-dot:nth-child(2) { background: var(--sky); opacity: 0.5; }
+
+    /* ── Animations ── */
+    @keyframes riseUp {
+      from { opacity: 0; transform: translateY(11px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .form-panel.active .input-group,
+    .form-panel.active .input-row,
+    .form-panel.active .form-number,
+    .form-panel.active .form-title,
+    .form-panel.active .form-sub { animation: riseUp 0.34s cubic-bezier(0.22,1,0.36,1) both; }
+    .form-panel.active .form-number  { animation-delay: 0.02s; }
+    .form-panel.active .form-title   { animation-delay: 0.05s; }
+    .form-panel.active .form-sub     { animation-delay: 0.08s; }
+    .form-panel.active .input-group:nth-of-type(1),
+    .form-panel.active .input-row:nth-of-type(1) { animation-delay: 0.11s; }
+    .form-panel.active .input-group:nth-of-type(2),
+    .form-panel.active .input-row:nth-of-type(2) { animation-delay: 0.16s; }
+    .form-panel.active .input-group:nth-of-type(3),
+    .form-panel.active .input-row:nth-of-type(3) { animation-delay: 0.21s; }
+    .form-panel.active .input-group:nth-of-type(4) { animation-delay: 0.26s; }
+
+    /* ── Responsive ── */
+    @media (min-width: 1200px) {
+      .frame { max-width: 1100px; }
+      .body-grid { grid-template-columns: 380px 1fr; }
+      .art-tree { max-width: 300px; }
+    }
+    @media (max-width: 900px) {
+      .body-grid { grid-template-columns: 1fr; }
+      .panel-art { padding: clamp(20px,3vw,28px) clamp(24px,4vw,36px); border-right: none; border-bottom: 1.5px solid var(--paper-bdr); flex-direction: row; gap: clamp(16px,3vw,28px); justify-content: flex-start; align-items: center; }
+      .art-tree { max-width: clamp(120px,18vw,180px); flex-shrink: 0; }
+      .art-tagline { margin-top: 0; padding-top: 0; border-top: none; border-left: 1px solid var(--paper-bdr); padding-left: clamp(16px,3vw,24px); text-align: left; }
+      .gen-labels { display: none; }
+      .art-arcs { display: none; }
+    }
+    @media (max-width: 680px) {
+      body { align-items: flex-start; overflow-y: auto; }
+      .page { padding: 0; min-height: 100dvh; align-items: stretch; }
+      .frame { border: none; border-radius: 0; min-height: 100vh; box-shadow: none; }
+      .frame::before { display: none; }
+      .header-band { padding: 14px 20px; }
+      .header-tree { display: none; }
+      .panel-art { flex-direction: column; align-items: center; padding: clamp(18px,4vw,24px) 20px; }
+      .art-tree { max-width: 200px; }
+      .art-tagline { border-left: none; padding-left: 0; text-align: center; border-top: 1px solid var(--paper-bdr); padding-top: clamp(12px,2vw,18px); margin-top: clamp(12px,2vw,18px); }
+      .art-tagline-ornament { display: none; }
+      .panel-form { padding: clamp(22px,4vw,32px) clamp(18px,4vw,28px) clamp(36px,6vw,48px); }
+      .panel-form::before { display: none; }
+      .tab-btn { font-size: 0.65rem; padding: 9px clamp(12px,3vw,18px); letter-spacing: 0.06em; }
+    }
+    @media (max-width: 400px) {
+      .header-brand-sub { display: none; }
+      .input-row { grid-template-columns: 1fr; gap: 0; }
+      .form-title { font-size: 1.2rem; }
+      .art-tree { max-width: 160px; }
+    }
+    @media (max-width: 340px) {
+      .header-brand-name { font-size: 0.85rem; letter-spacing: 0.08em; }
+      .panel-form { padding: 18px 14px 36px; }
+    }
+    @media (max-height: 600px) and (orientation: landscape) {
+      .panel-art { display: none; }
+      .body-grid { grid-template-columns: 1fr; }
+      .frame::before { display: none; }
+      .panel-form { padding: 20px 36px; justify-content: flex-start; }
+      .form-sub { margin-bottom: 12px; }
+      .input-group { margin-bottom: 8px; }
+    }
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+      .frame, .frame::before { border-width: 0.75px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+    :focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+    input:focus-visible { outline: none; }
+  </style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-arch bg-arch-1"></div>
+  <div class="bg-arch bg-arch-2"></div>
+  <div class="bg-arch bg-arch-3"></div>
+</div>
+
+<div class="page">
+  <div class="frame" role="main">
+
+    <!-- ── HEADER ── -->
+    <header class="header-band">
+      <div class="header-brand">
+        <div class="header-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2C9 2 6 5 6 8c0 2.5 1.5 4.6 3.7 5.6L9 22h6l-.7-8.4C16.5 12.6 18 10.5 18 8c0-3-3-6-6-6z"/></svg>
+        </div>
+        <div>
+          <div class="header-brand-name">FamilyRoots</div>
+          <div class="header-brand-sub">Trace · Connect · Remember</div>
+        </div>
+      </div>
+      <div class="header-tree" aria-hidden="true">
+        <svg viewBox="0 0 120 70" fill="none">
+          <line x1="60" y1="65" x2="60" y2="44" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          <line x1="60" y1="52" x2="38" y2="36" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="60" y1="52" x2="82" y2="36" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="38" y1="36" x2="22" y2="20" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <line x1="38" y1="36" x2="48" y2="18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <line x1="82" y1="36" x2="98" y2="20" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <line x1="82" y1="36" x2="72" y2="18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="22" cy="16" r="8" fill="#fff" opacity="0.7"/>
+          <circle cx="48" cy="14" r="8" fill="#fff" opacity="0.7"/>
+          <circle cx="60" cy="40" r="7" fill="#fff" opacity="0.8"/>
+          <circle cx="72" cy="14" r="8" fill="#fff" opacity="0.7"/>
+          <circle cx="98" cy="16" r="8" fill="#fff" opacity="0.7"/>
+        </svg>
+      </div>
+    </header>
+
+    <!-- ── BODY GRID ── -->
+    <div class="body-grid">
+
+      <!-- LEFT — ART PANEL -->
+      <aside class="panel-art" aria-label="Family tree illustration">
+        <div class="art-arcs" aria-hidden="true">
+          <svg viewBox="0 0 340 560" fill="none" preserveAspectRatio="xMidYMid slice">
+            <circle cx="170" cy="280" r="240" stroke="rgba(196,100,42,0.06)" stroke-width="1"/>
+            <circle cx="170" cy="280" r="200" stroke="rgba(196,100,42,0.05)" stroke-width="1"/>
+            <circle cx="170" cy="280" r="160" stroke="rgba(38,153,210,0.05)" stroke-width="1"/>
+            <circle cx="170" cy="280" r="120" stroke="rgba(196,100,42,0.04)" stroke-width="1"/>
+            <path d="M20 20 L60 20 M20 20 L20 60" stroke="rgba(196,100,42,0.2)" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M320 20 L280 20 M320 20 L320 60" stroke="rgba(196,100,42,0.2)" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M20 540 L60 540 M20 540 L20 500" stroke="rgba(196,100,42,0.2)" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M320 540 L280 540 M320 540 L320 500" stroke="rgba(196,100,42,0.2)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="art-tree" aria-hidden="true">
+          <svg viewBox="0 0 280 340" fill="none">
+            <rect x="12"  y="10" width="36" height="36" rx="18" fill="var(--paper-dk)" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <rect x="68"  y="10" width="36" height="36" rx="18" fill="var(--paper-dk)" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <rect x="176" y="10" width="36" height="36" rx="18" fill="var(--paper-dk)" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <rect x="232" y="10" width="36" height="36" rx="18" fill="var(--paper-dk)" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <text x="30"  y="34" font-family="Cinzel,serif" font-size="10" fill="var(--fog)" text-anchor="middle">GG</text>
+            <text x="86"  y="34" font-family="Cinzel,serif" font-size="10" fill="var(--fog)" text-anchor="middle">GG</text>
+            <text x="194" y="34" font-family="Cinzel,serif" font-size="10" fill="var(--fog)" text-anchor="middle">GG</text>
+            <text x="250" y="34" font-family="Cinzel,serif" font-size="10" fill="var(--fog)" text-anchor="middle">GG</text>
+            <line x1="30"  y1="46" x2="30"  y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="86"  y1="46" x2="86"  y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="194" y1="46" x2="194" y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="250" y1="46" x2="250" y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="48"  y1="28" x2="68"  y2="28" stroke="var(--paper-bdr)" stroke-width="1.2" stroke-dasharray="3,3"/>
+            <line x1="212" y1="28" x2="232" y2="28" stroke="var(--paper-bdr)" stroke-width="1.2" stroke-dasharray="3,3"/>
+            <line x1="30"  y1="68" x2="58"  y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="86"  y1="68" x2="58"  y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="58"  y1="68" x2="58"  y2="88" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <line x1="194" y1="68" x2="222" y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="250" y1="68" x2="222" y2="68" stroke="var(--paper-bdr)" stroke-width="1.2"/>
+            <line x1="222" y1="68" x2="222" y2="88" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <rect x="36"  y="88" width="44" height="44" rx="22" fill="var(--paper-dk)" stroke="var(--amber)" stroke-width="1.5"/>
+            <rect x="200" y="88" width="44" height="44" rx="22" fill="var(--paper-dk)" stroke="var(--amber)" stroke-width="1.5"/>
+            <text x="58"  y="116" font-family="Cinzel,serif" font-size="11" fill="var(--ink-md)" text-anchor="middle">GP</text>
+            <text x="222" y="116" font-family="Cinzel,serif" font-size="11" fill="var(--ink-md)" text-anchor="middle">GP</text>
+            <line x1="80"  y1="110" x2="200" y2="110" stroke="var(--paper-bdr)" stroke-width="1.2" stroke-dasharray="4,4"/>
+            <line x1="58"  y1="132" x2="58"  y2="166" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <line x1="222" y1="132" x2="222" y2="166" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <rect x="30"  y="166" width="56" height="56" rx="28" fill="var(--sky-pale)" stroke="var(--sky)" stroke-width="2"/>
+            <rect x="194" y="166" width="56" height="56" rx="28" fill="var(--sky-pale)" stroke="var(--sky)" stroke-width="2"/>
+            <text x="58"  y="198" font-family="Cinzel,serif" font-size="12" fill="var(--sky-dk)" text-anchor="middle" font-weight="600">FA</text>
+            <text x="222" y="198" font-family="Cinzel,serif" font-size="12" fill="var(--sky-dk)" text-anchor="middle" font-weight="600">MA</text>
+            <line x1="86"  y1="194" x2="194" y2="194" stroke="var(--sky)" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.5"/>
+            <polygon points="140,184 148,194 140,204 132,194" fill="var(--sky)" opacity="0.25" stroke="var(--sky)" stroke-width="1"/>
+            <line x1="58"  y1="222" x2="58"  y2="248" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <line x1="222" y1="222" x2="222" y2="248" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <line x1="58"  y1="248" x2="222" y2="248" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <line x1="140" y1="248" x2="140" y2="266" stroke="var(--paper-bdr)" stroke-width="1.5"/>
+            <polygon points="140,266 163,279 163,305 140,318 117,305 117,279" fill="var(--sky-dk)" stroke="var(--sky-lt)" stroke-width="2"/>
+            <text x="140" y="296" font-family="Cinzel,serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">YOU</text>
+            <line x1="140" y1="318" x2="140" y2="335" stroke="var(--ink-lt)" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="gen-labels" aria-hidden="true">
+          <div class="gen-label">Great<br>Grands</div>
+          <div class="gen-label">Grand<br>parents</div>
+          <div class="gen-label">Parents</div>
+          <div class="gen-label">You</div>
+        </div>
+        <div class="art-tagline" aria-hidden="true">
+          <div class="art-tagline-ornament">✦ ✦ ✦</div>
+          <div class="art-tagline-text">
+            Every branch tells a story.<br>
+            Every root holds <em>memory</em>.
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT — FORM PANEL -->
+      <section class="panel-form">
+
+        {% if messages %}
+        <div class="django-messages" role="alert" aria-live="polite">
+          {% for message in messages %}
+            <div class="msg {{ message.tags }}">
+              <span class="msg-icon">
+                {% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}
+              </span>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ── Tabs ── -->
+        <nav class="tab-bar" role="tablist" aria-label="Authentication options">
+          <button class="tab-btn active" id="tab-login"    role="tab" aria-selected="true"  aria-controls="panel-login"    onclick="showTab('login')">Sign In</button>
+          <button class="tab-btn"        id="tab-register" role="tab" aria-selected="false" aria-controls="panel-register" onclick="showTab('register')">Join the Tree</button>
+        </nav>
+
+        <!-- ══════════════════════════════════════
+             LOGIN FORM
+        ══════════════════════════════════════ -->
+        <div class="form-panel active" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+          <div class="form-number">&nbsp;Welcome back</div>
+          <h1 class="form-title">Return to Your Roots</h1>
+          <p class="form-sub">Sign in to continue building your family legacy.</p>
+
+          <form method="POST" action="/login/" novalidate>
+            {% csrf_token %}
+
+            <div class="input-group">
+              <label class="input-label" for="login-username">Username or Email</label>
+              <div class="input-wrap">
+                <input type="text" id="login-username" name="username"
+                       placeholder="your@email.com" required autocomplete="username"
+                       aria-required="true" value="{{ request.POST.username }}"/>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="login-password">Password</label>
+              <div class="input-wrap">
+                <input type="password" id="login-password" name="password"
+                       placeholder="••••••••" required autocomplete="current-password"
+                       aria-required="true"/>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <button type="button" class="pwd-toggle" aria-label="Show password"
+                        onclick="togglePwd(this)">
+                  <svg class="ico-open" viewBox="0 0 24 24">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="ico-shut" viewBox="0 0 24 24">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <span class="btn-ico" aria-hidden="true"></span> Login Now
+            </button>
+          </form>
+
+          <div class="ornament" aria-hidden="true">✦ ✦ ✦</div>
+          <div class="toggle-link" onclick="showTab('register')" role="button" tabindex="0"
+               onkeydown="if(event.key==='Enter')showTab('register')">
+            Don't have an account? <strong>Join the Tree</strong>
+          </div>
+          <div class="back-link"><a href="/">← Return to Home</a></div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             REGISTER FORM
+        ══════════════════════════════════════ -->
+        <div class="form-panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register">
+          <div class="form-number">&nbsp;New branch</div>
+          <h1 class="form-title">Plant Your Legacy</h1>
+          <p class="form-sub">Create your account and start building your family tree.</p>
+
+          <form method="POST" action="/register/" novalidate>
+            {% csrf_token %}
+
+            <div class="input-row">
+              <div class="input-group">
+                <label class="input-label" for="reg-name">Full Name</label>
+                <div class="input-wrap">
+                  <input type="text" id="reg-name" name="first_name"
+                         placeholder="Jane Doe" required autocomplete="name"
+                         aria-required="true"/>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="input-group">
+                <label class="input-label" for="reg-phone">Phone</label>
+                <div class="input-wrap">
+                  <input type="tel" id="reg-phone" name="phone"
+                         placeholder="+1 555 0000" required autocomplete="tel"
+                         aria-required="true"/>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12 19.79 19.79 0 0 1 1.08 3.38 2 2 0 0 1 3.06 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 16.92z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="reg-email">Email Address</label>
+              <div class="input-wrap">
+                <input type="email" id="reg-email" name="email"
+                       placeholder="your@email.com" required autocomplete="email"
+                       aria-required="true"/>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group">
+                <label class="input-label" for="reg-pass1">Password</label>
+                <div class="input-wrap">
+                  <input type="password" id="reg-pass1" name="password1"
+                         placeholder="••••••••" required autocomplete="new-password"
+                         aria-required="true"/>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <button type="button" class="pwd-toggle" aria-label="Show password"
+                          onclick="togglePwd(this)">
+                    <svg class="ico-open" viewBox="0 0 24 24">
+                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="ico-shut" viewBox="0 0 24 24">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="input-group">
+                <label class="input-label" for="reg-pass2">Confirm</label>
+                <div class="input-wrap">
+                  <input type="password" id="reg-pass2" name="password2"
+                         placeholder="••••••••" required autocomplete="new-password"
+                         aria-required="true"/>
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  <button type="button" class="pwd-toggle" aria-label="Show password"
+                          onclick="togglePwd(this)">
+                    <svg class="ico-open" viewBox="0 0 24 24">
+                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg class="ico-shut" viewBox="0 0 24 24">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <span class="btn-ico" aria-hidden="true"></span> Register Now
+            </button>
+          </form>
+
+          <div class="ornament" aria-hidden="true">✦ ✦ ✦</div>
+          <div class="toggle-link" onclick="showTab('login')" role="button" tabindex="0"
+               onkeydown="if(event.key==='Enter')showTab('login')">
+            Already have an account? <strong>Sign In</strong>
+          </div>
+          <div class="back-link"><a href="/">← Return to Home</a></div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <footer class="footer-band">
+      <div class="footer-text">FamilyRoots &nbsp;·&nbsp; Trace · Connect · Remember</div>
+      <div class="footer-dots" aria-hidden="true">
+        <div class="footer-dot"></div>
+        <div class="footer-dot"></div>
+        <div class="footer-dot"></div>
+      </div>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+  /* ──────────────────────────────────────────────────────────
+   * togglePwd — show / hide password
+   *
+   * FIX: Icon visibility is now controlled entirely via CSS
+   * using the .showing class on the button. No inline styles
+   * are used, eliminating the dual-icon bug.
+   *
+   * CSS rules:
+   *   .pwd-toggle .ico-open  { display: block; }   ← default
+   *   .pwd-toggle .ico-shut  { display: none;  }   ← default
+   *   .pwd-toggle.showing .ico-open { display: none;  }
+   *   .pwd-toggle.showing .ico-shut { display: block; }
+   * ────────────────────────────────────────────────────────── */
+  function togglePwd(btn) {
+    var wrap    = btn.closest('.input-wrap');
+    var input   = wrap.querySelector('input');
+    var showing = btn.classList.contains('showing');
+
+    /* Flip input type */
+    input.type = showing ? 'password' : 'text';
+
+    /* Ensure right padding stays for text type */
+    input.style.paddingRight = '40px';
+
+    /* Toggle class — CSS handles icon swap */
+    btn.classList.toggle('showing', !showing);
+
+    /* Accessible label */
+    btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  }
+
+  /* ──────────────────────────────────────────────────────────
+   * Tab switching
+   * ────────────────────────────────────────────────────────── */
+  function showTab(tab) {
+    ['login', 'register'].forEach(function(t) {
+      document.getElementById('panel-' + t).classList.remove('active');
+      var b = document.getElementById('tab-' + t);
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+
+    var activePanel = document.getElementById('panel-' + tab);
+    var activeBtn   = document.getElementById('tab-' + tab);
+    activePanel.classList.add('active');
+    activeBtn.classList.add('active');
+    activeBtn.setAttribute('aria-selected', 'true');
+
+    /* Re-trigger stagger animations */
+    activePanel.querySelectorAll('.input-group, .input-row, .form-number, .form-title, .form-sub')
+      .forEach(function(el, i) {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = '';
+        el.style.animationDelay = (i * 0.055 + 0.02) + 's';
+      });
+
+    /* Focus first input */
+    var firstInput = activePanel.querySelector('input');
+    if (firstInput) setTimeout(function() { firstInput.focus(); }, 80);
+
+    /* Reset password toggles when switching tabs */
+    activePanel.querySelectorAll('.pwd-toggle').forEach(function(btn) {
+      var wrap  = btn.closest('.input-wrap');
+      var input = wrap.querySelector('input');
+      if (btn.classList.contains('showing')) {
+        input.type = 'password';
+        input.style.paddingRight = '40px';
+        btn.classList.remove('showing');
+        btn.setAttribute('aria-label', 'Show password');
+      }
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────────
+   * Auto-open correct tab from URL path
+   * ────────────────────────────────────────────────────────── */
+  (function() {
+    if (window.location.pathname.indexOf('/register') !== -1) {
+      showTab('register');
+    }
+  })();
+
+  /* ──────────────────────────────────────────────────────────
+   * Keyboard: Arrow keys navigate between tabs
+   * ────────────────────────────────────────────────────────── */
+  document.querySelectorAll('.tab-btn').forEach(function(btn, idx, all) {
+    btn.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        var next = e.key === 'ArrowRight' ? all[idx + 1] : all[idx - 1];
+        if (next) { next.click(); next.focus(); }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

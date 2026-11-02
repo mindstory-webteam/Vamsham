@@ -1,0 +1,485 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+    {% include 'head.html' %}
+
+<body>
+<div class="page-wrapper">
+
+    {% include 'navbar.html' %}
+
+    <!-- Title Bar -->
+    <div class="pbmit-title-bar-wrapper" style="margin: 0px 10px 0;">
+        <div class="container">
+            <div class="pbmit-title-bar-content">
+                <div class="pbmit-title-bar-content-inner">
+                    <div class="pbmit-tbar">
+                        <div class="pbmit-tbar-inner container">
+                            <h1 class="pbmit-tbar-title">Member Search</h1>
+                        </div>
+                    </div>
+                    <div class="pbmit-breadcrumb">
+                        <div class="pbmit-breadcrumb-inner">
+                            <span><a href="#" class="home"><span>Vamsham Family</span></a></span>
+                            <span class="sep"><i class="pbmit-base-icon-angle-right"></i></span>
+                            <span><span class="post-root current-item">Search Results</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Title Bar End -->
+
+    <div class="page-content">
+        <section class="mf-search-page">
+            <div class="container">
+
+                <!-- ── Search Form ── -->
+                <form class="mf-search-wrap" action="{% url 'global-search' %}" method="GET" role="search">
+                    <div class="mf-search-box">
+                        <svg class="mf-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input
+                            type="text"
+                            name="q"
+                            id="mfSearchInput"
+                            value="{{ query|default:'' }}"
+                            placeholder="Search any member by name…"
+                            autocomplete="off"
+                            autocorrect="off"
+                            spellcheck="false"
+                            autofocus
+                        />
+                        {% if query %}
+                        <a href="{% url 'global-search' %}" class="mf-clear-btn" title="Clear search">&#x2715;</a>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="mf-search-submit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        Search
+                    </button>
+                </form>
+
+                <!-- ── Results Summary ── -->
+                {% if query %}
+                <div class="mf-results-summary">
+                    {% if result_count > 0 %}
+                        <span class="mf-results-count">{{ result_count }} member{{ result_count|pluralize }} found</span>
+                        for &ldquo;<strong>{{ query }}</strong>&rdquo;
+                        <a href="{% url 'global-search' %}" class="mf-clear-link">Clear</a>
+                    {% else %}
+                        <span class="mf-results-count mf-no-match">No members found</span>
+                        for &ldquo;<strong>{{ query }}</strong>&rdquo;
+                        <a href="{% url 'global-search' %}" class="mf-clear-link">Clear</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- ── Results Grid ── -->
+                {% if results %}
+                <div class="mf-results-grid">
+                    {% for item in results %}
+                    <div class="mf-result-card">
+
+                        <!-- Photo / Avatar -->
+                        <div class="mf-result-photo">
+                            {% if item.photo %}
+                                <img src="{{ item.member.photo.url }}" alt="{{ item.full_name }}">
+                            {% else %}
+                                <div class="mf-result-avatar">
+                                    {% if item.gender == 'F' %}
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                                    {% else %}
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Info -->
+                        <div class="mf-result-info">
+                            <div class="mf-result-branch">
+                                <span class="mf-branch-dot"></span>
+                                {{ item.branch_name }}
+                            </div>
+                            <h3 class="mf-result-name">{{ item.full_name }}</h3>
+                            <div class="mf-result-meta">
+                                {% if item.dob %}
+                                <span>
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="3" width="14" height="12" rx="2"/><line x1="5" y1="1" x2="5" y2="5"/><line x1="11" y1="1" x2="11" y2="5"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
+                                    {{ item.dob|date:"d M Y" }}
+                                </span>
+                                {% endif %}
+                                <span class="mf-membership-badge mf-badge-{{ item.member.membership_category|lower }}">
+                                    {{ item.membership }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Action -->
+                        <div class="mf-result-action">
+                            {% if item.member_id %}
+                                <a href="{% url item.detail_url_name item.member_id %}" class="mf-view-btn">
+                                    View Tree
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+                                </a>
+                            {% else %}
+                                <a href="{% url item.detail_url_name %}" class="mf-view-btn">
+                                    View Branch
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+                                </a>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- ── No Results ── -->
+                {% elif query %}
+                <div class="mf-empty-state">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="22" cy="22" r="16"/>
+                        <line x1="38" y1="38" x2="33" y2="33"/>
+                        <line x1="16" y1="22" x2="28" y2="22"/>
+                    </svg>
+                    <h3>No member found for &ldquo;{{ query }}&rdquo;</h3>
+                    <p>Try a different spelling, or use just the first name or last name.</p>
+                    <a href="{% url 'global-search' %}" class="mf-search-submit" style="text-decoration:none; margin-top:8px;">Search Again</a>
+                </div>
+
+                {% else %}
+                <!-- ── Initial state (no query yet) ── -->
+                <div class="mf-empty-state mf-empty-initial">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="22" cy="22" r="16"/>
+                        <line x1="38" y1="38" x2="33" y2="33"/>
+                    </svg>
+                    <h3>Find any family member</h3>
+                    <p>Type a first name or last name above to search across all 9 branches of the family.</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </section>
+
+        {% include "footer.html" %}
+    </div>
+
+</div>
+</body>
+</html>
+
+<style>
+
+/* ── Page layout ─────────────────────────── */
+.mf-search-page {
+    padding: 56px 0 100px;
+    background: #fff;
+    min-height: 60vh;
+}
+
+/* ── Search form ─────────────────────────── */
+.mf-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.mf-search-box {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+    max-width: 580px;
+    display: flex;
+    align-items: center;
+}
+
+.mf-search-icon {
+    position: absolute;
+    left: 16px;
+    width: 18px;
+    height: 18px;
+    color: #2699d2;
+    pointer-events: none;
+}
+
+#mfSearchInput {
+    width: 100%;
+    padding: 14px 44px 14px 46px;
+    border: 2px solid #c8e8f5;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a3345;
+    background: #f0f9fe;
+    outline: none;
+    transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+    font-family: inherit;
+}
+
+#mfSearchInput::placeholder { color: #9dc4d8; font-weight: 500; }
+
+#mfSearchInput:focus {
+    border-color: #2699d2;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(38,153,210,0.12);
+}
+
+.mf-clear-btn {
+    position: absolute;
+    right: 14px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #c8e8f5;
+    color: #2699d2;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+}
+.mf-clear-btn:hover { background: #2699d2; color: #fff; }
+
+.mf-search-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 50px;
+    border: none;
+    background: #2699d2;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.22s, box-shadow 0.22s, transform 0.15s;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+.mf-search-submit svg { width: 16px; height: 16px; }
+.mf-search-submit:hover {
+    background: #1a7fb0;
+    box-shadow: 0 4px 14px rgba(38,153,210,0.30);
+    transform: translateY(-1px);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* ── Results summary bar ─────────────────── */
+.mf-results-summary {
+    font-size: 14px;
+    color: #7aabb8;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.mf-results-count {
+    font-size: 14px;
+    font-weight: 800;
+    color: #2699d2;
+    background: #e8f5fc;
+    padding: 3px 12px;
+    border-radius: 50px;
+}
+.mf-results-count.mf-no-match { color: #e05c5c; background: #fdf0f0; }
+.mf-results-summary strong { color: #1a3345; }
+.mf-clear-link {
+    color: #9dc4d8;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-left: 4px;
+    border: 1px solid #c8e8f5;
+    padding: 2px 10px;
+    border-radius: 50px;
+    transition: all 0.2s;
+}
+.mf-clear-link:hover { color: #2699d2; border-color: #2699d2; }
+
+/* ── Results grid ────────────────────────── */
+.mf-results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Result card ─────────────────────────── */
+.mf-result-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    background: #f8fbfd;
+    border: 1.5px solid #daedf7;
+    border-radius: 14px;
+    transition: all 0.22s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.mf-result-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: #2699d2;
+    opacity: 0;
+    transition: opacity 0.22s;
+    border-radius: 14px 0 0 14px;
+}
+
+.mf-result-card:hover {
+    background: #fff;
+    border-color: #2699d2;
+    box-shadow: 0 4px 20px rgba(38,153,210,0.12);
+    transform: translateX(4px);
+}
+
+.mf-result-card:hover::before { opacity: 1; }
+
+/* Photo / avatar */
+.mf-result-photo {
+    flex-shrink: 0;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e8f5fc;
+    border: 2px solid #c8e8f5;
+}
+.mf-result-photo img { width: 100%; height: 100%; object-fit: cover; }
+.mf-result-avatar {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #9dc4d8;
+}
+.mf-result-avatar svg { width: 28px; height: 28px; }
+
+/* Info */
+.mf-result-info { flex: 1; min-width: 0; }
+
+.mf-result-branch {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: #2699d2;
+    margin-bottom: 4px;
+}
+
+.mf-branch-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #2699d2;
+    flex-shrink: 0;
+}
+
+.mf-result-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a3345;
+    margin: 0 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mf-result-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #7aabb8;
+    font-weight: 500;
+}
+
+.mf-result-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Membership badges */
+.mf-membership-badge {
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.mf-badge-lm { background: #e6f9ee; color: #1a9748; }
+.mf-badge-pm { background: #e8f5fc; color: #2699d2; }
+.mf-badge-nm { background: #f4f4f4; color: #9aabbf; }
+
+/* Action button */
+.mf-result-action { flex-shrink: 0; }
+
+.mf-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 50px;
+    background: #fff;
+    border: 1.5px solid #c8e8f5;
+    color: #2699d2;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.22s;
+}
+.mf-view-btn:hover {
+    background: #2699d2;
+    border-color: #2699d2;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* ── Empty / initial state ───────────────── */
+.mf-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 60px 20px;
+    text-align: center;
+}
+.mf-empty-state svg { color: #c8e8f5; width: 56px; height: 56px; }
+.mf-empty-state h3 { font-size: 20px; font-weight: 700; color: #5a8fa0; margin: 0; }
+.mf-empty-state p  { font-size: 14px; color: #9dc4d8; max-width: 360px; margin: 0; line-height: 1.65; }
+.mf-empty-initial svg { color: #daedf7; }
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 700px) {
+    .mf-result-card   { padding: 16px 18px; gap: 14px; }
+    .mf-result-name   { font-size: 15px; }
+    .mf-result-photo  { width: 44px; height: 44px; }
+    .mf-view-btn      { padding: 8px 14px; font-size: 12px; }
+}
+
+@media (max-width: 500px) {
+    .mf-search-wrap   { flex-direction: column; align-items: stretch; }
+    .mf-search-submit { justify-content: center; }
+    .mf-result-action { display: none; }   /* hide button; tap the card instead */
+    .mf-result-card   { cursor: pointer; }
+}
+
+</style>

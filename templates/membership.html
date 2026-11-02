@@ -1,0 +1,603 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+	{% include 'head.html' %}
+
+   <body>
+	<div class="page-wrapper">
+
+		{% include 'navbar.html' %}
+
+		<!-- Title Bar -->
+		<div class="pbmit-title-bar-wrapper" style="margin: 0px 10px 0;">
+			<div class="container">
+				<div class="pbmit-title-bar-content">
+					<div class="pbmit-title-bar-content-inner">
+						<div class="pbmit-tbar">
+							<div class="pbmit-tbar-inner container">
+								<h1 class="pbmit-tbar-title">Pillars of Our Family</h1>
+							</div>
+						</div>
+						<div class="pbmit-breadcrumb">
+							<div class="pbmit-breadcrumb-inner">
+								<span><a title="" href="#" class="home"><span>Vamsham Family</span></a></span>
+								<span class="sep"><i class="pbmit-base-icon-angle-right"></i></span>
+								<span><span class="post-root post post-post current-item">Pillars of Our Family</span></span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Title Bar End -->
+
+		<div class="page-content">
+			<section class="mf-pillars-section">
+				<div class="container">
+
+					<!-- Section header -->
+					<div class="mf-section-header">
+						<span class="mf-label">Vamsham Family</span>
+						<p class="mf-section-sub">Search any member by name across all 9 family branches</p>
+					</div>
+
+					<!-- ░░ GLOBAL SEARCH BAR ░░ -->
+					<div class="gs-wrapper">
+						<div class="gs-bar">
+							<div class="gs-input-wrap">
+								<i class="fas fa-search gs-icon"></i>
+								<input type="text" id="gsInput" class="gs-input"
+									   placeholder="Search any member by name across all 9 family branches…"
+									   autocomplete="off" />
+								<button class="gs-clear" id="gsClear" style="display:none" title="Clear">
+									<i class="fas fa-times"></i>
+								</button>
+							</div>
+							<button class="gs-btn" id="gsSearchBtn">
+								<i class="fas fa-search"></i>
+								<span class="gs-btn-text"> Search</span>
+							</button>
+						</div>
+						<div class="gs-dropdown" id="gsDropdown"></div>
+						<div class="gs-results-panel" id="gsResultsPanel" style="display:none"></div>
+					</div>
+					<!-- ░░ END GLOBAL SEARCH ░░ -->
+
+					<!-- Family branches grid -->
+					<div class="mf-family-grid">
+
+						<!-- 01 -->
+						<a href="{% url 'lonappan-family' %}" class="mf-family-card">
+							<div class="mf-card-index">01</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Lonappan Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 02 -->
+						<a href="{% url 'aipu-family' %}" class="mf-family-card">
+							<div class="mf-card-index">02</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Sr. Aipu Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 03 -->
+						<a href="{% url 'francis-family' %}" class="mf-family-card">
+							<div class="mf-card-index">03</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Fr. Francis Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 04 -->
+						<a href="{% url 'varunny-family' %}" class="mf-family-card">
+							<div class="mf-card-index">04</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Varunny Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 05 -->
+						<a href="{% url 'thoma-family' %}" class="mf-family-card">
+							<div class="mf-card-index">05</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Thoma Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 06 -->
+						<a href="{% url 'chakoru-family' %}" class="mf-family-card">
+							<div class="mf-card-index">06</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Chakoru Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 07 -->
+						<a href="{% url 'kochuvareed-family' %}" class="mf-family-card">
+							<div class="mf-card-index">07</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Kochuvareed Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 08 -->
+						<a href="{% url 'porinchu-family' %}" class="mf-family-card">
+							<div class="mf-card-index">08</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Porinchu Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+						<!-- 09 -->
+						<a href="{% url 'other_members_tree' %}" class="mf-family-card">
+							<div class="mf-card-index">09</div>
+							<div class="mf-card-body">
+								<div class="mf-card-label">Vamsham Family</div>
+								<h3 class="mf-card-name">Other Family</h3>
+							</div>
+							<div class="mf-card-arrow"><i class="fas fa-arrow-right"></i></div>
+						</a>
+
+					</div><!-- End Grid -->
+
+				</div>
+			</section>
+
+			{% include "footer.html" %}
+		</div>
+
+   </body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GLOBAL FAMILY SEARCH — JavaScript
+═══════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+    'use strict';
+
+    var input     = document.getElementById('gsInput');
+    var clearBtn  = document.getElementById('gsClear');
+    var searchBtn = document.getElementById('gsSearchBtn');
+    var dropdown  = document.getElementById('gsDropdown');
+    var panel     = document.getElementById('gsResultsPanel');
+    var timer     = null;
+
+    /* ── Helpers ── */
+    function esc(s) {
+        var d = document.createElement('div');
+        d.textContent = String(s || '');
+        return d.innerHTML;
+    }
+    function hl(text, q) {
+        if (!q || !text) return esc(text);
+        var re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        return esc(text).replace(re, '<mark>$1</mark>');
+    }
+    function getCookie(name) {
+        var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : '';
+    }
+    function avatarHtml(m, size) {
+        var ini = ((m.first_name || '').charAt(0) + (m.last_name || '').charAt(0)).toUpperCase() || '?';
+        var cls = size === 'lg' ? 'gs-av gs-av-lg' : 'gs-av gs-av-sm';
+        if (m.photo) return '<div class="' + cls + '"><img src="' + esc(m.photo) + '" alt=""></div>';
+        return '<div class="' + cls + '"><span>' + esc(ini) + '</span></div>';
+    }
+
+    /* ── API fetch ── */
+    function fetchResults(q, full) {
+        if (!q || q.length < 2) { hideDD(); return; }
+        if (full) {
+            panel.innerHTML = '<div class="gs-loading"><span class="gs-spin"></span> Searching all 9 family branches…</div>';
+            panel.style.display = 'block';
+        }
+        fetch('/global-search/?q=' + encodeURIComponent(q), {
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(function (r) {
+            if (r.redirected || r.status === 302 || r.status === 403) {
+                showMsg(full, '⚠️ Please <a href="/login/">log in</a> to search members.');
+                return null;
+            }
+            if (!r.ok) { showMsg(full, '❌ Server error ' + r.status + '. Please try again.'); return null; }
+            return r.json();
+        })
+        .then(function (data) {
+            if (!data) return;
+            if (data.error) { showMsg(full, '❌ ' + esc(data.error)); return; }
+            full ? renderPanel(data, q) : renderDropdown(data, q);
+        })
+        .catch(function (err) {
+            showMsg(full, '❌ Network error. Please check your connection.');
+            console.error('Search error:', err);
+        });
+    }
+
+    function showMsg(full, html) {
+        var target = full ? panel : dropdown;
+        target.innerHTML = '<div class="gs-msg">' + html + '</div>';
+        target.style.display = 'block';
+    }
+
+    /* ── Dropdown ── */
+    function renderDropdown(data, q) {
+        var res = data.results || [];
+        dropdown.innerHTML = '';
+        if (!res.length) {
+            dropdown.innerHTML = '<div class="gs-msg gs-msg-empty"><i class="fas fa-search"></i><span>No members found for <strong>' + esc(q) + '</strong></span></div>';
+            dropdown.style.display = 'block'; return;
+        }
+        var frag = document.createDocumentFragment();
+        res.slice(0, 8).forEach(function (m) {
+            var item = document.createElement('div');
+            item.className = 'gs-dd-item';
+            item.innerHTML =
+                avatarHtml(m, 'sm') +
+                '<div class="gs-dd-info">' +
+                  '<div class="gs-dd-name">' + hl(m.name, q) + (m.date_of_death ? ' <span class="gs-cross">✝</span>' : '') + '</div>' +
+                  '<div class="gs-dd-sub">' + esc(m.branch) +
+                    (m.blood_group ? ' · 🩸' + esc(m.blood_group) : '') +
+                    (m.mobile ? ' · ' + esc(m.mobile) : '') +
+                  '</div>' +
+                '</div>' +
+                '<i class="fas fa-chevron-right gs-dd-arrow"></i>';
+            item.addEventListener('click', function () { hideDD(); openModal(m); });
+            frag.appendChild(item);
+        });
+        if (res.length > 8) {
+            var more = document.createElement('div');
+            more.className = 'gs-dd-more';
+            more.innerHTML = '<i class="fas fa-list"></i> View all <strong>' + res.length + '</strong> results for <strong>' + esc(q) + '</strong>';
+            more.addEventListener('click', function () { doSearch(q); });
+            frag.appendChild(more);
+        }
+        dropdown.appendChild(frag);
+        dropdown.style.display = 'block';
+    }
+
+    /* ── Full results panel ── */
+    function renderPanel(data, q) {
+        var res = data.results || [];
+        if (!res.length) {
+            panel.innerHTML =
+                '<div class="gs-empty">' +
+                  '<i class="fas fa-user-slash"></i>' +
+                  '<p>No members found for <strong>' + esc(q) + '</strong></p>' +
+                  '<p class="gs-empty-hint">Try a different name, blood group, or mobile number.</p>' +
+                '</div>';
+            panel.style.display = 'block'; return;
+        }
+        /* Group by branch */
+        var byBranch = {};
+        res.forEach(function (m) {
+            if (!byBranch[m.branch]) byBranch[m.branch] = [];
+            byBranch[m.branch].push(m);
+        });
+
+        var html =
+            '<div class="gs-panel-hdr">' +
+              '<div class="gs-panel-hdr-l">' +
+                '<strong>' + res.length + '</strong> member' + (res.length !== 1 ? 's' : '') +
+                ' &nbsp;<span class="gs-panel-q">for &ldquo;' + esc(q) + '&rdquo;</span>' +
+              '</div>' +
+              '<button class="gs-panel-close" onclick="document.getElementById(\'gsResultsPanel\').style.display=\'none\'"><i class="fas fa-times"></i></button>' +
+            '</div><div class="gs-panel-body">';
+
+        Object.keys(byBranch).forEach(function (branch) {
+            var members = byBranch[branch];
+            html += '<div class="gs-branch">' +
+                '<div class="gs-branch-hdr"><i class="fas fa-sitemap"></i> ' + esc(branch) +
+                ' <span class="gs-branch-n">' + members.length + '</span></div>' +
+                '<div class="gs-cards">';
+            members.forEach(function (m) {
+                var dead = !!m.date_of_death;
+                html +=
+                    '<div class="gs-card' + (dead ? ' gs-card-dead' : '') + '" onclick=\'openMM(' + JSON.stringify(JSON.stringify(m)) + ')\'>' +
+                      avatarHtml(m, 'sm') +
+                      '<div class="gs-card-info">' +
+                        '<div class="gs-card-name">' + hl(m.name, q) + (dead ? ' <span class="gs-cross">✝</span>' : '') + '</div>' +
+                        '<div class="gs-card-branch">' + esc(m.branch) + '</div>' +
+                        '<div class="gs-chips">' +
+                          (m.gender ? '<span class="gs-chip gs-chip-' + (m.gender_code || '').toLowerCase() + '">' + esc(m.gender) + '</span>' : '') +
+                          (m.blood_group ? '<span class="gs-chip">🩸 ' + esc(m.blood_group) + '</span>' : '') +
+                          (m.membership_category ? '<span class="gs-chip">' + esc(m.membership_category) + '</span>' : '') +
+                        '</div>' +
+                        (m.mobile ? '<div class="gs-card-row"><i class="fas fa-phone"></i> ' + esc(m.mobile) + '</div>' : '') +
+                        (m.place_of_birth ? '<div class="gs-card-row"><i class="fas fa-map-marker-alt"></i> ' + esc(m.place_of_birth) + '</div>' : '') +
+                      '</div>' +
+                    '</div>';
+            });
+            html += '</div></div>';
+        });
+        html += '</div>';
+        panel.innerHTML = html;
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* ── Member modal ── */
+    window.openMM = function (s) { openModal(JSON.parse(s)); };
+
+    function openModal(m) {
+        var el = document.getElementById('gsMM');
+        if (el) el.remove();
+        var dead = !!m.date_of_death;
+        var fields = [
+            ['Branch',        m.branch,            'fas fa-code-branch'],
+            ['Gender',        m.gender,             'fas fa-venus-mars'],
+            ['Date of Birth', m.date_of_birth,      'fas fa-birthday-cake'],
+            ['Place of Birth',m.place_of_birth,     'fas fa-map-marker-alt'],
+            ['Blood Group',   m.blood_group,        'fas fa-tint'],
+            ['Mobile',        m.mobile,             'fas fa-phone'],
+            ['Email',         m.email,              'fas fa-envelope'],
+            ['Education',     m.education,          'fas fa-graduation-cap'],
+            ['Employment',    m.employed,           'fas fa-briefcase'],
+            ['Membership',    m.membership_category + (m.membership_number ? ' — ' + m.membership_number : ''), 'fas fa-id-card'],
+            ['Baptism Date',  m.baptism_date,       'fas fa-church'],
+            ['Baptism Place', m.baptism_place,      'fas fa-church'],
+            ['Communion',     m.communion_date,     'fas fa-cross'],
+            ['Marriage Date', m.marriage_date,      'fas fa-heart'],
+            ['Marriage Place',m.marriage_place,     'fas fa-heart'],
+            ['Date of Death', m.date_of_death,      'fas fa-cross'],
+            ['Place of Death',m.place_of_death,     'fas fa-cross'],
+            ['Burial Place',  m.burial_place,       'fas fa-cross'],
+            ['Cause of Death',m.cause_of_death,     'fas fa-cross'],
+        ].filter(function (f) { return f[1] && String(f[1]).trim(); });
+
+        var overlay = document.createElement('div');
+        overlay.id = 'gsMM';
+        overlay.className = 'gs-overlay';
+        overlay.innerHTML =
+            '<div class="gs-modal' + (dead ? ' gs-modal-dead' : '') + '">' +
+              '<button class="gs-modal-x" onclick="document.getElementById(\'gsMM\').remove()"><i class="fas fa-times"></i></button>' +
+              '<div class="gs-modal-top">' +
+                avatarHtml(m, 'lg') +
+                '<div class="gs-modal-meta">' +
+                  '<h2 class="gs-modal-name">' + esc(m.name) + (dead ? ' <span class="gs-cross">✝</span>' : '') + '</h2>' +
+                  '<div class="gs-modal-branch"><i class="fas fa-code-branch"></i> ' + esc(m.branch) + '</div>' +
+                  '<div class="gs-modal-tags">' +
+                    (m.gender_code === 'M' ? '<span class="gs-tag gs-tag-m">♂ Male</span>' : m.gender_code === 'F' ? '<span class="gs-tag gs-tag-f">♀ Female</span>' : '') +
+                    (m.blood_group ? '<span class="gs-tag">🩸 ' + esc(m.blood_group) + '</span>' : '') +
+                    (m.membership_category ? '<span class="gs-tag">' + esc(m.membership_category) + '</span>' : '') +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="gs-modal-fields">' +
+                fields.map(function (f) {
+                    return '<div class="gs-mf"><span class="gs-mf-l"><i class="' + esc(f[2]) + '"></i> ' + esc(f[0]) + '</span><span class="gs-mf-v">' + esc(f[1]) + '</span></div>';
+                }).join('') +
+              '</div>' +
+              '<a href="' + esc(m.branch_url) + '" class="gs-tree-btn"><i class="fas fa-sitemap"></i> View in Family Tree</a>' +
+            '</div>';
+
+        overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+        document.body.appendChild(overlay);
+    }
+
+    /* ── Actions ── */
+    function doSearch(q) {
+        if (!q || q.length < 2) return;
+        hideDD();
+        fetchResults(q, true);
+    }
+    function hideDD() { dropdown.style.display = 'none'; }
+
+    /* ── Events ── */
+    input.addEventListener('input', function () {
+        var q = input.value.trim();
+        clearBtn.style.display = q ? 'flex' : 'none';
+        clearTimeout(timer);
+        if (q.length < 2) { hideDD(); return; }
+        timer = setTimeout(function () { fetchResults(q, false); }, 300);
+    });
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); doSearch(input.value.trim()); }
+        if (e.key === 'Escape') { hideDD(); panel.style.display = 'none'; input.value = ''; clearBtn.style.display = 'none'; }
+    });
+    searchBtn.addEventListener('click', function () { doSearch(input.value.trim()); });
+    clearBtn.addEventListener('click', function () {
+        input.value = ''; clearBtn.style.display = 'none';
+        hideDD(); panel.style.display = 'none';
+    });
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.gs-wrapper')) hideDD();
+    });
+})();
+</script>
+
+<style>
+/* ══════════════════════════════════════════════════════
+   ORIGINAL CARD DESIGN — preserved exactly
+══════════════════════════════════════════════════════ */
+.mf-pillars-section{padding:72px 0 100px;background:#ffffff;}
+.mf-section-header{text-align:center;margin-bottom:52px;}
+.mf-label{display:inline-block;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#2699d2;margin-bottom:12px;padding:6px 20px;background:#e8f5fc;border-radius:50px;}
+.mf-section-title{font-size:clamp(26px,4vw,42px);font-weight:800;color:#0d1f2d;margin:0 0 10px;line-height:1.2;letter-spacing:-0.5px;}
+.mf-section-sub{font-size:14px;color:#94a8b6;margin:0;line-height:1.65;}
+.mf-family-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.mf-family-card{display:flex;align-items:center;gap:20px;padding:30px 26px;min-height:100px;background:#f5fafd;border:1.5px solid #daedf7;border-radius:14px;text-decoration:none;color:inherit;transition:all .26s ease;position:relative;overflow:hidden;box-sizing:border-box;}
+.mf-family-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:#2699d2;transform:scaleX(0);transform-origin:left;transition:transform .3s ease;border-radius:0 0 14px 14px;}
+.mf-family-card:hover{background:#ffffff;border-color:#2699d2;box-shadow:0 8px 28px rgba(38,153,210,.14);transform:translateY(-4px);text-decoration:none;color:inherit;}
+.mf-family-card:hover::after{transform:scaleX(1);}
+.mf-card-index{font-size:28px;font-weight:800;color:#cde5f3;line-height:1;min-width:40px;letter-spacing:-1px;transition:color .26s ease;user-select:none;flex-shrink:0;}
+.mf-family-card:hover .mf-card-index{color:#2699d2;}
+.mf-card-body{flex:1;min-width:0;}
+.mf-card-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9dc4d8;margin-bottom:5px;}
+.mf-card-name{font-size:17px;font-weight:700;color:#1a3345;margin:0;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .26s ease;}
+.mf-family-card:hover .mf-card-name{color:#2699d2;}
+.mf-card-arrow{width:40px;height:40px;border-radius:50%;background:#fff;border:1.5px solid #cde5f3;display:flex;align-items:center;justify-content:center;color:#2699d2;font-size:13px;flex-shrink:0;transition:all .26s ease;}
+.mf-family-card:hover .mf-card-arrow{background:#2699d2;border-color:#2699d2;color:#fff;transform:translateX(4px);}
+
+/* ══════════════════════════════════════════════════════
+   GLOBAL SEARCH STYLES
+══════════════════════════════════════════════════════ */
+
+/* Search wrapper */
+.gs-wrapper{position:relative;max-width:780px;margin:0 auto 48px;z-index:200;}
+
+/* Search bar */
+.gs-bar{display:flex;gap:8px;align-items:center;background:#fff;border:2px solid #cde5f3;border-radius:60px;padding:6px 6px 6px 22px;box-shadow:0 4px 20px rgba(38,153,210,.10);transition:border-color .2s,box-shadow .2s;}
+.gs-bar:focus-within{border-color:#2699d2;box-shadow:0 6px 32px rgba(38,153,210,.20);}
+.gs-input-wrap{flex:1;display:flex;align-items:center;gap:10px;min-width:0;}
+.gs-icon{color:#2699d2;font-size:15px;flex-shrink:0;}
+.gs-input{flex:1;border:none;outline:none;font-size:15px;color:#1a2e3d;background:transparent;min-width:0;}
+.gs-input::placeholder{color:#aac4d4;}
+.gs-clear{background:none;border:none;cursor:pointer;color:#94a8b6;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;font-size:12px;}
+.gs-clear:hover{background:#f0f6fa;color:#e74c3c;}
+.gs-btn{background:#2699d2;color:#fff;border:none;border-radius:50px;padding:10px 26px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s,transform .15s;flex-shrink:0;display:flex;align-items:center;gap:6px;}
+.gs-btn:hover{background:#1a7ab0;transform:translateY(-1px);}
+
+/* Avatar */
+.gs-av{border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#e0f0fa,#c5e0f0);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.gs-av img{width:100%;height:100%;object-fit:cover;}
+.gs-av span{font-weight:700;color:#2699d2;}
+.gs-av-sm{width:40px;height:40px;}
+.gs-av-sm span{font-size:14px;}
+.gs-av-lg{width:64px;height:64px;}
+.gs-av-lg span{font-size:22px;}
+
+/* Dropdown */
+.gs-dropdown{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border:1.5px solid #cde5f3;border-radius:16px;box-shadow:0 10px 40px rgba(38,153,210,.15);overflow:hidden;z-index:500;}
+.gs-dd-item{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;border-bottom:1px solid #f0f7fb;transition:background .15s;}
+.gs-dd-item:hover{background:#f4fafd;}
+.gs-dd-info{flex:1;min-width:0;}
+.gs-dd-name{font-size:14px;font-weight:600;color:#1a2e3d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gs-dd-name mark{background:#d4ecf7;color:#1a2e3d;border-radius:2px;padding:0 2px;}
+.gs-dd-sub{font-size:11px;color:#94a8b6;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gs-dd-arrow{color:#cde5f3;font-size:11px;flex-shrink:0;}
+.gs-dd-item:hover .gs-dd-arrow{color:#2699d2;}
+.gs-dd-more{padding:11px 20px;font-size:12px;color:#2699d2;font-weight:600;text-align:center;cursor:pointer;background:#f7fbfe;border-top:1px solid #e0f0fa;}
+.gs-dd-more:hover{background:#e0f0fa;}
+.gs-msg{padding:18px 20px;font-size:13px;color:#94a8b6;text-align:center;}
+.gs-msg a{color:#2699d2;}
+.gs-msg-empty{display:flex;align-items:center;justify-content:center;gap:8px;}
+
+/* Results panel */
+.gs-results-panel{margin-top:14px;background:#f7fbfe;border:1.5px solid #cde5f3;border-radius:20px;overflow:hidden;}
+.gs-loading{padding:36px;text-align:center;color:#2699d2;font-size:14px;display:flex;align-items:center;justify-content:center;gap:10px;}
+.gs-spin{width:18px;height:18px;border:2px solid #cde5f3;border-top-color:#2699d2;border-radius:50%;animation:gsSpin .7s linear infinite;flex-shrink:0;}
+@keyframes gsSpin{to{transform:rotate(360deg);}}
+.gs-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#fff;border-bottom:1.5px solid #cde5f3;gap:12px;flex-wrap:wrap;}
+.gs-panel-hdr-l{font-size:14px;color:#1a2e3d;}
+.gs-panel-q{font-size:13px;color:#94a8b6;}
+.gs-panel-q em{font-style:normal;color:#2699d2;font-weight:600;}
+.gs-panel-close{background:none;border:none;cursor:pointer;color:#94a8b6;font-size:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+.gs-panel-close:hover{background:#fef0f0;color:#e74c3c;}
+.gs-empty{padding:48px 24px;text-align:center;color:#94a8b6;}
+.gs-empty i{font-size:36px;margin-bottom:14px;display:block;opacity:.4;}
+.gs-empty p{margin:4px 0;}
+.gs-empty-hint{font-size:12px;color:#b8c8d4 !important;}
+
+/* Branch group */
+.gs-branch{padding:20px 20px 6px;border-bottom:1px solid #edf5fb;}
+.gs-branch:last-child{border-bottom:none;}
+.gs-branch-hdr{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#2699d2;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.gs-branch-n{background:#e0f0fa;color:#2699d2;border-radius:50px;padding:1px 10px;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;}
+
+/* Member cards */
+.gs-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:14px;}
+.gs-card{background:#fff;border:1.5px solid #cde5f3;border-radius:14px;padding:14px;display:flex;gap:12px;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .15s;align-items:flex-start;}
+.gs-card:hover{border-color:#2699d2;box-shadow:0 6px 20px rgba(38,153,210,.13);transform:translateY(-2px);}
+.gs-card-dead{opacity:.72;}
+.gs-card-info{flex:1;min-width:0;}
+.gs-card-name{font-size:13px;font-weight:700;color:#1a2e3d;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gs-card-name mark{background:#d4ecf7;color:#1a2e3d;border-radius:2px;}
+.gs-card-branch{font-size:11px;color:#2699d2;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gs-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;}
+.gs-chip{font-size:10px;background:#f0f7fb;border-radius:4px;padding:2px 7px;color:#5a7a8a;white-space:nowrap;}
+.gs-chip-m{background:#e8f1fc;color:#1a5fa0;}
+.gs-chip-f{background:#fce8f1;color:#a0305f;}
+.gs-card-row{font-size:11px;color:#7a9ab0;margin-top:3px;display:flex;align-items:center;gap:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gs-card-row i{width:11px;flex-shrink:0;color:#aac4d4;}
+.gs-cross{color:#aaa;font-size:.75em;}
+
+/* Modal */
+.gs-overlay{position:fixed;inset:0;background:rgba(0,20,40,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;backdrop-filter:blur(2px);}
+.gs-modal{background:#fff;border-radius:20px;max-width:540px;width:100%;max-height:92vh;overflow-y:auto;padding:28px;position:relative;box-shadow:0 24px 80px rgba(0,40,80,.24);}
+.gs-modal-dead{border-top:4px solid #bbb;}
+.gs-modal-x{position:absolute;top:14px;right:14px;background:#f0f7fb;border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;color:#94a8b6;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;}
+.gs-modal-x:hover{background:#fef0f0;color:#e74c3c;}
+.gs-modal-top{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.gs-modal-meta{flex:1;min-width:0;}
+.gs-modal-name{font-size:19px;font-weight:800;color:#1a2e3d;margin:0 0 4px;line-height:1.25;}
+.gs-modal-branch{font-size:12px;color:#2699d2;margin-bottom:8px;}
+.gs-modal-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.gs-tag{display:inline-block;font-size:11px;border-radius:4px;padding:3px 9px;font-weight:600;background:#e0f0fa;color:#2699d2;}
+.gs-tag-m{background:#e8f1fc;color:#1a5fa0;}
+.gs-tag-f{background:#fce8f1;color:#a0305f;}
+.gs-modal-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0;}
+.gs-mf{background:#f7fbfe;border-radius:10px;padding:10px 12px;}
+.gs-mf-l{display:block;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#94a8b6;margin-bottom:3px;}
+.gs-mf-l i{margin-right:4px;width:12px;}
+.gs-mf-v{font-size:13px;color:#1a2e3d;font-weight:600;word-break:break-word;}
+.gs-tree-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#2699d2;color:#fff;text-decoration:none;border-radius:50px;padding:12px 24px;font-weight:700;font-size:14px;transition:background .2s,transform .15s;margin-top:6px;}
+.gs-tree-btn:hover{background:#1a7ab0;color:#fff;transform:translateY(-1px);}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE — card grid + search
+══════════════════════════════════════════════════════ */
+
+/* 3 columns */
+@media (max-width:1200px){
+    .mf-family-grid{grid-template-columns:repeat(3,1fr);}
+}
+/* 2 columns — tablet */
+@media (max-width:860px){
+    .mf-family-grid{grid-template-columns:repeat(2,1fr);}
+    .mf-family-card{padding:26px 22px;min-height:90px;}
+    .mf-card-index{font-size:24px;min-width:36px;}
+    .mf-card-name{font-size:16px;}
+    .mf-card-arrow{width:36px;height:36px;}
+    .gs-wrapper{margin:0 0 36px;}
+    .gs-cards{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+    .gs-modal{padding:22px;}
+    .gs-modal-fields{grid-template-columns:1fr 1fr;}
+}
+/* Mobile */
+@media (max-width:576px){
+    .mf-family-grid{grid-template-columns:repeat(2,1fr);gap:12px;}
+    .mf-family-card{padding:18px 14px;min-height:80px;gap:12px;}
+    .mf-card-index{font-size:20px;min-width:28px;}
+    .mf-card-name{font-size:14px;white-space:normal;}
+    .mf-card-arrow{width:32px;height:32px;font-size:11px;}
+    .mf-pillars-section{padding:48px 0 72px;}
+    .gs-bar{padding:4px 4px 4px 14px;border-radius:50px;gap:6px;}
+    .gs-input{font-size:13px;}
+    .gs-input::placeholder{font-size:12px;}
+    .gs-btn-text{display:none;}
+    .gs-btn{padding:9px 14px;border-radius:50%;}
+    .gs-cards{grid-template-columns:1fr;}
+    .gs-modal{padding:20px;border-radius:16px;max-height:88vh;}
+    .gs-modal-fields{grid-template-columns:1fr;}
+    .gs-modal-top{gap:12px;}
+    .gs-av-lg{width:50px;height:50px;}
+    .gs-av-lg span{font-size:18px;}
+    .gs-modal-name{font-size:16px;}
+    .gs-tree-btn{padding:11px 20px;font-size:13px;}
+}
+/* 1 column — very small */
+@media (max-width:400px){
+    .mf-family-grid{grid-template-columns:1fr;}
+    .gs-modal{padding:16px;}
+}
+</style>
+</html>

@@ -1,0 +1,359 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+	{% include 'head.html' %}
+   <body>
+      <!-- Page Wrapper -->
+      <div class="page-wrapper">
+
+        <!-- Header Main Area -->
+        {% include 'navbar.html' %}
+        <!-- Header Main Area End Here -->
+
+        <!-- Title Bar -->
+    <div class="pbmit-title-bar-wrapper" style="margin: 0px 10px 0;">
+			<div class="container">
+				<div class="pbmit-title-bar-content">
+					<div class="pbmit-title-bar-content-inner">
+						<div class="pbmit-tbar">
+							<div class="pbmit-tbar-inner container">
+								<h1 class="pbmit-tbar-title"> Our History</h1>
+							</div>
+						</div>
+						<div class="pbmit-breadcrumb">
+							<div class="pbmit-breadcrumb-inner">
+								<span><a title="" href="#" class="home"><span>Vamsham Family</span></a></span>
+								<span class="sep">
+									<i class="pbmit-base-icon-angle-right"></i>
+								</span>
+								<span><span class="post-root post post-post current-item"> Our History</span></span>
+							</div>
+						</div>
+					</div>
+				</div> 
+			</div> 
+		</div>
+        <!-- Title Bar End-->
+
+        <!-- Page Content -->
+        <div class="page-content">
+			{% load static %}
+
+<section class="history-section">
+  <div class="history-card">
+    <!-- Left Image with Overlay -->
+    <div class="history-image">
+      <div class="overlay"></div>
+    </div>
+
+    <!-- Right Content -->
+    <div class="history-content">
+      <h2>മേലേടത്ത് 'കുടുംബ ഡയറക്‌ടറി'</h2>
+      <p>
+        വെളിച്ചം കാണുകയാണ്. ഈചരിത്രരേഖയ്ക്കുവേണ്ടിയുള്ള പരിശ്രമങ്ങൾ പലകാലഘട്ടങ്ങളിലും നടന്നിട്ടുണ്ടെങ്കിലും, നമ്മുടെയും, പൂർവ്വീകരുടെയും ചിരകാലാഭിലാക്ഷം പൂവണിയാൻ സാധിച്ചതിൽ ഏറെ സന്തോഷമുണ്ട്. മേലേടത്ത് ഫാമിലി അസോസ്സിയേഷൻ രൂപംകൊടുത്ത് മൂന്നുവർഷത്തിനുള്ളിൽ തന്നെ ഡയറക്ടറി ഇറക്കാൻ സാധിച്ചതിൽ ദൈവത്തിനു നന്ദി.
+      </p>
+      <p>
+        നമ്മുടെ തറവാടിൻ്റെ ആരംഭം ചാലക്കുടിയിലെ മേലേടത്ത് മനയിൽ നിന്നാണ്. വാസുദേൻ എന്ന പേരുള്ള ഒരു നമ്പൂതിരി ചാലക്കുടിയിൽ തന്നെ 'ഉള്ളാട്ടിക്കുളം' എന്ന തറവാട്ടിലെ ഒരു ക്രിസ്‌ത്യൻ പെണ്ണിനെ വേളികഴിക്കുകയും പിന്നീട് ക്രിസ്‌തുമത വിശ്വാസിയായതായി ഐതിഹ്യം...
+      </p>
+      <p>
+        മഹത്തായ ക്രിസ്‌തീയ പാരമ്പര്യമുള്ള നമ്മുടെ തറവാട് ഭാഗം ചെയ്തപ്പോൾ ഒരു ഭാഗം റോമിലേക്ക് നൽകുകയും പ്രത്യുപകാരമായി ഒരു മംഗളപത്രം മാർപ്പാപ്പയുടെ പക്കൽ നിന്ന് ലഭിക്കുകയും ചെയ്തിട്ടുണ്ട്.
+      </p>
+      <p>
+        ഈ ഡയറക്ടറിയുടെ പൂർത്തീകരണത്തിനായി ആശ്രാന്തം പരിശ്രമിച്ച എല്ലാവരോടും കമ്മറ്റിയുടെ നന്ദി അറിയിക്കുന്നതോടൊപ്പം ചെറിയ തെറ്റുകൾ എന്തെങ്കിലും പറ്റിയിട്ടുണ്ടെങ്കിൽ സദയം ക്ഷമിക്കണമെന്ന് അഭ്യർത്ഥിച്ചുകൊണ്ട്...
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+/* Section Base */
+.history-section {
+  padding: 60px 15px;
+  background: #f0f4f1;
+  font-family: 'Noto Serif Malayalam', serif;
+}
+
+/* Card Container */
+.history-card {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  flex-wrap: wrap;
+}
+
+/* Left Image */
+.history-image {
+  flex: 1;
+  min-height: 450px;
+  background: url("{% static 'images/bg/sunny-new.jpg' %}") no-repeat center center/cover;
+  position: relative;
+}
+
+{% comment %} .history-image .overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom right, rgba(46,125,50,0.5), rgba(0,0,0,0.3));
+} {% endcomment %}
+
+/* Right Content */
+.history-content {
+  flex: 1;
+  padding: 40px;
+  color: #333;
+}
+
+.history-content h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #2699D2;
+  position: relative;
+}
+
+.history-content h2::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #2699D2;
+  margin-top: 8px;
+}
+
+.history-content p {
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .history-card {
+    flex-direction: column;
+  }
+  .history-image {
+    min-height: 300px;
+  }
+  .history-content {
+    padding: 25px;
+  }
+}
+
+@media (max-width: 576px) {
+  .history-image {
+    min-height: 200px;
+  }
+  .history-content h2 {
+    font-size: 22px;
+  }
+  .history-content p {
+    font-size: 15px;
+  }
+}
+</style>
+
+
+			
+
+
+
+			<!-- Our History --> 
+			{% comment %} <section class="section-lgb">
+				<div class="pbmit-timeline">
+					<div class="container-fluid p-0">
+						<div class="swiper-slider pbmit-column-five pbmit-timeline-style-1" data-loop="false" data-autoplay="false" data-dots="false" data-arrows="false" data-columns="5" data-margin="30" data-effect="slide">
+							<div class="swiper-wrapper">
+								<div class="pbmit-timeline-wrapper pbmit-slide-odd swiper-slide">
+									<div class="pbmit-same-height steps-media pbmit-feature-image">
+									   <img src="{% static 'images/history/timeline-01.jpg' %}" class="img-fluid" alt="Our Beginning">									
+									</div>
+									<div class="steps-dot">
+										<i class="steps-dot-line"></i>
+										<span class="dot"></span>
+									</div>
+									<div class="pbmit-same-height steps-content_wrap">
+									   <p class="pbmit-timeline-year">2015</p>
+									   <h3 class="pbmit-timeline-title">Our Beginning</h3>
+									   <p class="pbmit-timeline-desc">We demonstrate love through compassionate service.</p>
+									</div>
+								</div>
+								<div class="pbmit-timeline-wrapper swiper-slide">
+									<div class="pbmit-same-height steps-media pbmit-feature-image">
+										<img src="{% static 'images/history/timeline-02.jpg' %}" class="img-fluid" alt="Church History">									
+									</div>
+									<div class="steps-dot">
+										<i class="steps-dot-line"></i>
+										<span class="dot"></span>
+									</div>
+									<div class="pbmit-same-height steps-content_wrap">
+										<p class="pbmit-timeline-year">2017</p>
+										<h3 class="pbmit-timeline-title">Church History</h3>
+										<p class="pbmit-timeline-desc">We demonstrate love through compassionate service.</p>
+									</div>
+								</div>
+								<div class="pbmit-timeline-wrapper pbmit-slide-odd swiper-slide">
+									<div class="pbmit-same-height steps-media pbmit-feature-image">
+										<img src="{% static 'images/history/timeline-03.jpg' %}" class="img-fluid" alt="Christian studies">									
+									</div>
+									<div class="steps-dot">
+										<i class="steps-dot-line"></i>
+										<span class="dot"></span>
+									</div>
+									<div class="pbmit-same-height steps-content_wrap">
+										<p class="pbmit-timeline-year">2019</p>
+										<h3 class="pbmit-timeline-title">Christian studies</h3>
+										<p class="pbmit-timeline-desc">We demonstrate love through compassionate service.</p>
+									</div>
+								</div>
+								<div class="pbmit-timeline-wrapper swiper-slide">
+									<div class="pbmit-same-height steps-media pbmit-feature-image">
+										<img src="{% static 'images/history/timeline-04.jpg' %}" class="img-fluid" alt="Core teachings">									
+									</div>
+									<div class="steps-dot">
+										<i class="steps-dot-line"></i>
+										<span class="dot"></span>
+									</div>
+									<div class="pbmit-same-height steps-content_wrap">
+										<p class="pbmit-timeline-year">2021</p>
+										<h3 class="pbmit-timeline-title">Core teachings</h3>
+										<p class="pbmit-timeline-desc">We demonstrate love through compassionate service.</p>
+									</div>
+								</div>
+								<div class="pbmit-timeline-wrapper pbmit-slide-odd swiper-slide">
+									<div class="pbmit-same-height steps-media pbmit-feature-image">
+										<img src="{% static 'images/history/timeline-05.jpg' %}" class="img-fluid" alt="Social Media">									
+									</div>
+									<div class="steps-dot">
+										<i class="steps-dot-line"></i>
+										<span class="dot"></span>
+									</div>
+									<div class="pbmit-same-height steps-content_wrap">
+										<p class="pbmit-timeline-year">2022</p>
+										<h3 class="pbmit-timeline-title">Social Media</h3>
+										<p class="pbmit-timeline-desc">We demonstrate love through compassionate service.</p>
+									</div>
+								</div>
+								<div class="pbmit-timeline-wrapper swiper-slide">
+									<div class="pbmit-same-height steps-media pbmit-feature-image">
+									   <img src="{% static 'images/history/timeline-06.jpg' %}" class="img-fluid" alt="Result">									
+									</div>
+									<div class="steps-dot">
+										<i class="steps-dot-line"></i>
+										<span class="dot"></span>
+									</div>
+									<div class="pbmit-same-height steps-content_wrap">
+									   <p class="pbmit-timeline-year">2023</p>
+									   <h3 class="pbmit-timeline-title">Result</h3>
+									   <p class="pbmit-timeline-desc">We demonstrate love through compassionate service.</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section> {% endcomment %}
+			<!-- Our History End -->
+
+			<!-- Life Members Section -->
+
+<!-- Life Members Section -->
+<!-- Life Members Section -->
+<section class="life-members-section">
+  <h2>Life Members</h2>
+  <div class="table-container">
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Receipt No.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+        <tr>
+          <td>{{ member.name }}</td>
+          <td>{{ member.receipt_no|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="2">No Life Members Found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+.life-members-section {
+  margin: 40px auto;
+  width: 85%;
+  max-width: 900px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  text-align: center;
+}
+
+.life-members-section h2 {
+  margin-bottom: 25px;
+  color: #2699D2;
+  font-size: 28px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.styled-table thead {
+  background-color: #2699D2;
+  color: #fff;
+}
+
+.styled-table th, 
+.styled-table td {
+  padding: 14px 18px;
+  text-align: center;
+  border: 1px solid #ddd;
+  font-size: 16px;
+}
+
+.styled-table tbody tr:nth-child(even) {
+  background-color: #f4f9f4;
+}
+
+.styled-table tbody tr:hover {
+  background-color: #e8f5e9;
+  transition: 0.3s;
+}
+</style>
+ 
+
+
+
+
+
+        </div>
+        <!-- Page Content End -->
+
+		{% include 'footer.html' %}
+         
+    </div>
+    <!-- Page Wrapper End -->
+
+	
+   </body>
+</html>

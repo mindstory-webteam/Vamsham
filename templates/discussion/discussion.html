@@ -1,0 +1,298 @@
+<style>
+  /* ── Shared button base ── */
+  .fab-btn {
+    position: fixed;
+    right: 22px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 1000;
+    text-decoration: none;
+  }
+
+  .fab-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+  }
+
+  /* Chat button */
+  .chat-icon {
+    bottom: 22px;
+    background: #2196F3;
+    color: #fff;
+  }
+
+  /* PDF button — sits exactly above chat button */
+  .pdf-download-btn {
+    bottom: 88px; /* 22 + 54 + 12 gap */
+    background: #e53935;
+    color: #fff;
+  }
+
+  /* ── Discussion popup ── */
+  .discussion-container {
+    display: none;
+    position: fixed;
+    bottom: 88px;
+    right: 86px;
+    width: min(360px, calc(100vw - 100px));
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+    padding: 18px;
+    z-index: 999;
+    border: 1px solid #ececec;
+    animation: slideUp 0.25s ease;
+    box-sizing: border-box;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .discussion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .discussion-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #222;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #999;
+    line-height: 1;
+    padding: 0 2px;
+  }
+
+  .close-btn:hover { color: #333; }
+
+  .comment-list {
+    max-height: 220px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    scrollbar-width: thin;
+  }
+
+  .comment-item {
+    background: #f7f7f7;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 0.88rem;
+    word-wrap: break-word;
+    border-left: 3px solid #ddd;
+    line-height: 1.5;
+  }
+
+  .comment-item strong { color: #222; }
+
+  .comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .comment-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    resize: none;
+    min-height: 62px;
+    font-size: 0.93rem;
+    background: #fafafa;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .comment-form textarea:focus {
+    outline: none;
+    border-color: #2196F3;
+  }
+
+  .comment-form .post-btn {
+    background: #2196F3;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    align-self: flex-end;
+    transition: background 0.2s;
+  }
+
+  .comment-form .post-btn:hover { background: #1976D2; }
+
+  .no-topics-message {
+    background: #e8f4fd;
+    color: #1565c0;
+    padding: 16px;
+    border: 1px solid #b3d4f5;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .login-msg {
+    text-align: center;
+    font-size: 0.88rem;
+    color: #777;
+    padding: 4px 0;
+  }
+
+  .login-msg a {
+    color: #2196F3;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .fab-btn {
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      right: 16px;
+    }
+
+    .chat-icon    { bottom: 16px; }
+    .pdf-download-btn { bottom: 78px; } /* 16 + 50 + 12 */
+
+    .discussion-container {
+      bottom: 78px;
+      right: 0;
+      left: 0;
+      margin: 0 10px;
+      width: auto;
+      border-radius: 14px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .fab-btn {
+      width: 46px;
+      height: 46px;
+      font-size: 18px;
+      right: 12px;
+    }
+
+    .chat-icon    { bottom: 14px; }
+    .pdf-download-btn { bottom: 72px; } /* 14 + 46 + 12 */
+
+    .discussion-container {
+      bottom: 72px;
+      margin: 0 8px;
+    }
+  }
+</style>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- PDF Download Button -->
+<a class="fab-btn pdf-download-btn" href="" title="Download PDF" download>
+  <i class="fa-solid fa-file-pdf"></i>
+</a>
+
+<!-- Chat Button -->
+<button class="fab-btn chat-icon" onclick="toggleDiscussion()" title="Family Discussion">
+  <i class="fa-solid fa-message"></i>
+</button>
+
+<!-- Family Discussion Popup -->
+<div class="discussion-container" id="discussionBox">
+  <div class="discussion-header">
+    <h3>Family Discussion</h3>
+    <button class="close-btn" onclick="toggleDiscussion()">×</button>
+  </div>
+
+  <div class="comment-list" id="commentList">
+    {% if topic %}
+      <div class="comment-item"><strong>Topic:</strong> {{ topic.title }}</div>
+      {% for comment in comments %}
+        <div class="comment-item">
+          <strong>{{ comment.user.username }}</strong> ({{ comment.posted_at|date:"M d, Y" }}):<br>
+          {{ comment.content }}
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="no-topics-message">
+        No further topics at the moment.<br>Please stand by.
+      </div>
+    {% endif %}
+  </div>
+
+  {% if request.user.is_authenticated %}
+  <div class="comment-form">
+    <textarea id="commentInput" placeholder="Write your message..."></textarea>
+    <button class="post-btn" onclick="addComment()">Post</button>
+  </div>
+  {% else %}
+  <div class="login-msg">
+    Please <a href="/login/">login</a> to post comments.
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function toggleDiscussion(show = null) {
+    const box = document.getElementById('discussionBox');
+    if (show === true)       { box.style.display = 'block'; }
+    else if (show === false) { box.style.display = 'none';  }
+    else {
+      box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
+    }
+  }
+
+  function addComment() {
+    const content = document.getElementById('commentInput').value;
+    if (!content.trim()) return;
+
+    fetch("{% url 'post_comment' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: new URLSearchParams({ content })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const list = document.getElementById('commentList');
+        list.innerHTML = `
+          <div class="comment-item"><strong>Topic:</strong> {{ topic.title }}</div>
+          <div class="comment-item">
+            <strong>${data.username}</strong> (${data.timestamp}):<br>${data.content}
+          </div>
+        `;
+        document.getElementById('commentInput').value = '';
+        toggleDiscussion(false);
+      } else {
+        alert(data.error || 'Error posting comment');
+      }
+    });
+  }
+</script>

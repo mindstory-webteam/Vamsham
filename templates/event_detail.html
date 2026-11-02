@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ event.title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .gallery-img {
+            cursor: pointer;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.2s;
+        }
+        .gallery-img:hover { transform: scale(1.03); }
+        .modal-img { width: 100%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <a href="{% url 'event_list' %}" class="btn btn-outline-secondary mb-4">&larr; Back to Events</a>
+
+    <!-- Event Header -->
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <img src="{{ event.thumbnail.url }}" class="img-fluid rounded shadow" alt="{{ event.title }}">
+        </div>
+        <div class="col-md-6 d-flex flex-column justify-content-center">
+            <span class="badge bg-primary mb-2" style="width:fit-content">{{ event.category.name }}</span>
+            <h2>{{ event.title }}</h2>
+            <p class="text-muted">{{ event.date|date:"F j, Y" }}</p>
+            <p>{{ event.description }}</p>
+        </div>
+    </div>
+
+    <!-- Image Gallery -->
+    {% if images %}
+    <h4 class="mb-3">Event Gallery</h4>
+    <div class="row g-3">
+        {% for img in images %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <img 
+                src="{{ img.image.url }}" 
+                class="img-fluid rounded gallery-img w-100"
+                alt="{{ img.caption }}"
+                data-bs-toggle="modal"
+                data-bs-target="#imgModal"
+                data-src="{{ img.image.url }}"
+                data-caption="{{ img.caption }}"
+            >
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">No gallery images uploaded for this event.</p>
+    {% endif %}
+</div>
+
+<!-- Lightbox Modal -->
+<div class="modal fade" id="imgModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-2">
+                <img src="" class="modal-img" id="modalImage" alt="">
+                <p class="text-white mt-2" id="modalCaption"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Lightbox: set image src on modal open
+    document.getElementById('imgModal').addEventListener('show.bs.modal', function (e) {
+        const trigger = e.relatedTarget;
+        document.getElementById('modalImage').src = trigger.getAttribute('data-src');
+        document.getElementById('modalCaption').textContent = trigger.getAttribute('data-caption');
+    });
+</script>
+</body>
+</html>

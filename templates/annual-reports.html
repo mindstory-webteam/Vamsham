@@ -1,0 +1,390 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+	{% include 'head.html' %}
+</head>
+
+<body>
+    <style>
+        .annual-reports-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        .annual-reports-container {
+            display: grid;
+            gap: 12px;
+            max-height: 900px;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .annual-reports-container.show-all-reports {
+            max-height: none;
+        }
+
+        .yearly-report-card.initially-hidden {
+            display: none;
+        }
+
+        .annual-reports-container.show-all-reports .yearly-report-card.initially-hidden {
+            display: block;
+        }
+
+        /* Compact Card */
+        .yearly-report-card {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(38, 153, 210, 0.1);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border-left: 3px solid #2699d2;
+        }
+
+        .yearly-report-card:hover {
+            box-shadow: 0 4px 12px rgba(38, 153, 210, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* Compact Header */
+        .report-card-header {
+            background: linear-gradient(135deg, #2699d2 0%, #1e7ba8 100%);
+            padding: 10px 16px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-fiscal-year {
+            font-size: 0.7em;
+            opacity: 0.85;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            white-space: nowrap;
+            background: rgba(255,255,255,0.15);
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        .report-heading {
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+
+        /* Compact Body */
+        .report-card-body {
+            padding: 10px 16px 12px;
+        }
+
+        .document-files-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .pdf-document-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
+            justify-content: space-between;
+        }
+
+        .pdf-document-item:hover {
+            background: #eef5fa;
+            border-color: #2699d2;
+        }
+
+        .document-type-icon {
+            width: 28px;
+            height: 28px;
+            background: #2699d2;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+
+        .document-type-icon::before {
+            content: "📄";
+            font-size: 14px;
+        }
+
+        .document-info-block {
+            flex: 1;
+        }
+
+        .pdf-filename {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.85em;
+            margin-bottom: 1px;
+        }
+
+        .document-filesize {
+            font-size: 0.75em;
+            color: #90a4ae;
+        }
+
+        .document-action-buttons {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            min-width: 70px;
+        }
+
+        .view-pdf-button {
+            background: linear-gradient(135deg, #2699d2 0%, #1e7ba8 100%);
+            color: white;
+            box-shadow: 0 1px 4px rgba(38, 153, 210, 0.2);
+        }
+
+        .view-pdf-button:hover {
+            background: linear-gradient(135deg, #1e7ba8 0%, #165f82 100%);
+            box-shadow: 0 3px 8px rgba(38, 153, 210, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .download-pdf-button {
+            background: white;
+            color: #2699d2;
+            border: 1.5px solid #2699d2;
+        }
+
+        .download-pdf-button:hover {
+            background: #2699d2;
+            color: white;
+            box-shadow: 0 3px 8px rgba(38, 153, 210, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .total-files-counter {
+            padding-top: 8px;
+            margin-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.78em;
+            color: #546e7a;
+            font-weight: 500;
+        }
+
+        .total-files-counter span {
+            color: #2699d2;
+            font-weight: 700;
+        }
+
+        /* Expand Button */
+        .expand-reports-button {
+            width: 100%;
+            padding: 11px 24px;
+            margin-top: 16px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #2699d2 0%, #1e7ba8 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 10px rgba(38, 153, 210, 0.2);
+        }
+
+        .expand-reports-button:hover {
+            background: linear-gradient(135deg, #1e7ba8 0%, #165f82 100%);
+            box-shadow: 0 4px 14px rgba(38, 153, 210, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .expand-reports-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(38, 153, 210, 0.25);
+        }
+
+        .expand-reports-button.hidden {
+            display: none;
+        }
+
+        /* No Reports */
+        .no-reports-message {
+            text-align: center;
+            padding: 40px 24px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(38, 153, 210, 0.1);
+        }
+
+        .no-reports-icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+        }
+
+        .no-reports-message h2 {
+            color: #2699d2;
+            font-size: 1.1em;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .no-reports-message p {
+            color: #90a4ae;
+            font-size: 0.9em;
+            font-weight: 300;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .report-card-header {
+                padding: 8px 12px;
+                flex-wrap: wrap;
+            }
+
+            .report-card-body {
+                padding: 8px 12px 10px;
+            }
+
+            .pdf-document-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .document-action-buttons {
+                width: 100%;
+                margin-top: 8px;
+            }
+
+            .action-button {
+                flex: 1;
+            }
+
+            .expand-reports-button {
+                padding: 10px 18px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+
+	<!-- Page Wrapper -->
+	<div class="page-wrapper">
+
+		{% include 'navbar.html' %}
+
+		<!-- Title Bar -->
+		<div class="pbmit-title-bar-wrapper" style="margin: 0px 0px 0;">
+			<div class="container">
+				<div class="pbmit-title-bar-content">
+					<div class="pbmit-title-bar-content-inner">
+						<div class="pbmit-tbar">
+							<div class="pbmit-tbar-inner container">
+								<h1 class="pbmit-tbar-title">Association Annual Reports</h1>
+							</div>
+						</div>
+						<div class="pbmit-breadcrumb">
+							<div class="pbmit-breadcrumb-inner">
+								<span><a title="" href="#" class="home"><span>Vamsham Family</span></a></span>
+								<span class="sep">
+									<i class="pbmit-base-icon-angle-right"></i>
+								</span>
+								<span><span class="post-root post post-post current-item">Annual Reports</span></span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="annual-reports-wrapper">
+			<div class="annual-reports-container" id="annualReportsContainer">
+				{% for report in reports %}
+					<div class="yearly-report-card {% if forloop.counter > 3 %}initially-hidden{% endif %}">
+						<div class="report-card-header">
+							<div class="report-fiscal-year">{{ report.year }}</div>
+							<div class="report-heading">{{ report.title }}</div>
+						</div>
+						<div class="report-card-body">
+							<div class="document-files-list">
+								{% for pdf in report.pdfs.all %}
+									<div class="pdf-document-item">
+										<div style="display: flex; align-items: center; flex: 1;">
+											<div class="document-type-icon"></div>
+											<div class="document-info-block">
+												<div class="pdf-filename">{{ pdf.title }}</div>
+												<div class="document-filesize">{{ pdf.pdf.size|filesizeformat }}</div>
+											</div>
+										</div>
+										<div class="document-action-buttons">
+											<a href="{{ pdf.pdf.url }}" target="_blank" class="action-button view-pdf-button">View</a>
+											<a href="{{ pdf.pdf.url }}" download class="action-button download-pdf-button">Download</a>
+										</div>
+									</div>
+								{% endfor %}
+							</div>
+							<div class="total-files-counter">
+								<span>{{ report.pdfs.all|length }}</span> file{% if report.pdfs.all|length != 1 %}s{% endif %}
+							</div>
+						</div>
+					</div>
+				{% empty %}
+					<div class="no-reports-message">
+						<div class="no-reports-icon">📋</div>
+						<h2>No Annual Reports Available</h2>
+						<p>Check back later for updates</p>
+					</div>
+				{% endfor %}
+			</div>
+
+			{% if reports|length > 3 %}
+				<button class="expand-reports-button" onclick="toggleAllReports(event)">
+					View More Reports ({{ reports|length|add:"-3" }} more)
+				</button>
+			{% endif %}
+		</div>
+
+		{% include 'footer.html' %}
+	</div>
+
+	<script>
+		function toggleAllReports(event) {
+			const reportsContainer = document.getElementById('annualReportsContainer');
+			const button = event.target;
+
+			reportsContainer.classList.toggle('show-all-reports');
+
+			if (reportsContainer.classList.contains('show-all-reports')) {
+				button.textContent = 'View Less Reports';
+			} else {
+				const moreCount = document.querySelectorAll('.initially-hidden').length;
+				button.textContent = `View More Reports (${moreCount} more)`;
+			}
+		}
+	</script>
+
+</body>
+</html>

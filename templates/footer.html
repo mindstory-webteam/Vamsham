@@ -1,0 +1,378 @@
+{% load static%}
+
+<!-- footer -->
+<footer class="compact-footer">
+  <div class="footer-content">
+    <!-- Logo Section -->
+    <div class="footer-section">
+      <img src="{% static 'images/logo/logofooter.png' %}" alt="Vamsham Family" class="footer-logo">
+      <p class="footer-tagline">Connecting Generations</p>
+    </div>
+    <!-- Quick Links -->
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <div class="footer-links">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'history' %}">Family History</a>
+        <a href="{% url 'events' %}">Events</a>
+        <!-- Annual Reports Button -->
+        <a href="" class="annual-report-btn">
+          <i class="fas fa-file-alt"></i> Our Book 
+        </a>
+      </div>
+    </div>
+    
+    <!-- Family Links -->
+    <div class="footer-section">
+      <h4>Family</h4>
+      <div class="footer-links">
+        <a href="{% url 'team' %}">Office Bearers</a>
+        <a href="{% url 'register' %}">Family Tree</a>
+      </div>
+
+      <!-- Annual Reports Button -->
+      <a href="{% url 'annual_reports' %}" class="annual-report-btn">
+        <i class="fas fa-file-alt"></i> Annual Reports
+      </a>
+      
+      <div class="social-links">
+        <a href="#" class="social-icon">f</a>
+        <a href="#" class="social-icon">t</a>
+        <a href="#" class="social-icon">in</a>
+      </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="footer-section">
+      <h4>Contact Us</h4>
+
+      <!-- Phone -->
+      <div class="contact-item">
+        <i class="fas fa-phone-alt icon" style="color:#fff;"></i>
+        <div>
+          <p>+ (91) 9447052450</p>
+          <p>+ (91) 7025048830</p>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="contact-item">
+        <i class="fas fa-envelope icon" style="color:#fff;"></i>
+        <p>mfathrissur@gmail.com</p>
+      </div>
+
+      <!-- Address -->
+      <div class="contact-item">
+        <i class="fas fa-location-dot icon" style="color:#fff;"></i>
+        <p>
+          Meledeth House, Christopher Nagar P.O Anchery,<br>
+          Thrissur 680006
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer Bottom -->
+  <div class="footer-bottom">
+    <p>© 2026 Vamsham Family. All rights reserved.</p>
+    <div class="design-credit">
+      <span>Powered by: </span> 
+      <a href="https://mindstory.in/" target="_blank" rel="noopener noreferrer">
+        <img src="{% static 'images/logo/devlogo.png' %}" alt="Mindstory Logo" class="mindstory-logo">
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .compact-footer {
+    background: #2699D2;
+    color: white;
+    padding: 30px 0 15px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+  }
+
+  .footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .footer-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer-logo {
+    max-width: 120px;
+    height: auto;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    filter: brightness(0) invert(1);
+  }
+
+  .footer-tagline {
+    font-style: italic;
+    opacity: 0.9;
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .footer-section h4 {
+    color: #fff;
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 8px;
+  }
+
+  .footer-section h4::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 25px;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .contact-item .icon {
+    font-size: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .contact-item p {
+    margin: 0;
+    line-height: 1.4;
+    font-size: 13.5px;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-links a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 13.5px;
+  }
+
+  .footer-links a:hover {
+    color: white;
+    transform: translateX(3px);
+  }
+
+  /* ── Annual Reports Button ── */
+  .annual-report-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    padding: 7px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    width: fit-content;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .annual-report-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: #fff;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+  .annual-report-btn i {
+    font-size: 13px;
+  }
+
+  .social-links {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 13px;
+    transition: all 0.2s ease;
+  }
+
+  .social-icon:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1000px;
+    margin: 20px auto 0;
+    padding: 15px 20px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 13px;
+  }
+
+  .footer-bottom p {
+    margin: 0;
+    opacity: 0.9;
+  }
+
+  .design-credit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  .mindstory-logo {
+    height: 20px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    transition: filter 0.3s ease;
+  }
+
+  .design-credit a:hover .mindstory-logo {
+    filter: brightness(0) saturate(100%) invert(70%) sepia(98%) saturate(1500%) hue-rotate(0deg) brightness(100%) contrast(101%);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .footer-section {
+      align-items: center;
+    }
+    .footer-content {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: 30px;
+    }
+    .footer-section h4::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .contact-item {
+      justify-content: center;
+    }
+    .social-links {
+      justify-content: center;
+    }
+    .annual-report-btn {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .footer-bottom {
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .compact-footer {
+      padding: 25px 0 15px;
+    }
+    .footer-content {
+      gap: 25px;
+    }
+    .design-credit {
+      flex-direction: column;
+      gap: 5px;
+    }
+  }
+</style>
+<!-- footer End -->
+
+</div>
+<!-- page wrapper End -->
+
+<!-- Search Box Start Here -->
+<div class="pbmit-search-overlay">
+<div class="pbmit-icon-close">
+    <svg class="qodef-svg--close qodef-m" xmlns="http://www.w3.org/2000/svg" width="28.163" height="28.163" viewBox="0 0 26.163 26.163">
+        <rect width="36" height="1" transform="translate(0.707) rotate(45)"></rect>
+        <rect width="36" height="1" transform="translate(0 25.456) rotate(-45)"></rect>
+    </svg>
+</div>
+<div class="pbmit-search-outer"> 
+    <form class="pbmit-site-searchform">
+        <input type="search" class="form-control field searchform-s" name="s" placeholder="Search …">
+        <button type="submit"></button>
+    </form>
+</div>
+</div>
+<!-- Search Box End Here -->
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Scroll To Top -->
+<!-- <div class="pbmit-progress-wrap">
+<svg class="pbmit-progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+    <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"></path>
+</svg>	
+</div> -->
+<!-- Scroll To Top End -->
+
+<!-- JS ============================================ -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/popper.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/jquery.waypoints.min.js' %}"></script>
+<script src="{% static 'js/jquery.appear.js' %}"></script>
+<script src="{% static 'js/numinate.min.js' %}"></script>
+<script src="{% static 'js/swiper.min.js' %}"></script>
+<script src="{% static 'js/jquery.magnific-popup.min.js' %}"></script>
+<script src="{% static 'js/circle-progress.js' %}"></script>
+<script src="{% static 'js/jquery.countdown.min.js' %}"></script>
+<script src="{% static 'js/aos.js' %}"></script>
+<script src="{% static 'js/gsap.js' %}"></script>
+<script src="{% static 'js/ScrollTrigger.js' %}"></script>
+<script src="{% static 'js/SplitText.js' %}"></script>
+<script src="{% static 'js/magnetic.js' %}"></script>
+<script src="{% static 'js/gsap-animation.js' %}"></script>
+<script src="{% static 'js/scripts.js' %}"></script>
+
+<!-- Favicon -->
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+<!-- CSS ============================================ -->
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/fontawesome.css' %}">
+<link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
+<link rel="stylesheet" href="{% static 'css/pbminfotech-base-icons.css' %}">
+<link rel="stylesheet" href="{% static 'css/themify-icons.css' %}">
+<link rel="stylesheet" href="{% static 'css/swiper.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}">
+<link rel="stylesheet" href="{% static 'css/aos.css' %}">
+<link rel="stylesheet" href="{% static 'css/shortcode.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">

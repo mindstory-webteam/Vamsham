@@ -1,0 +1,30 @@
+/* Vamsham — light & teal look for Django admin (Jazzmin), same as the dashboard. */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+:root { --v-royal:#0E6B73; --v-sun:#F2B33D; --v-mint:#4FB3A9; --v-pink:#E2674A; --v-navy:#10262B; --v-page:#F3F6F7; --v-line:#E3E9EB; --v-muted:#5E7378; }
+body, .content-wrapper, .main-footer { font-family: "Space Grotesk", system-ui, sans-serif; background: var(--v-page) !important; color: var(--v-navy); }
+h1, h2, h3, h4, .card-title, .brand-text { font-weight: 600 !important; }
+.main-sidebar, .main-sidebar .brand-link { background: #fff !important; border-right: 1px solid var(--v-line); }
+.main-sidebar .brand-text { color: var(--v-navy) !important; }
+.main-sidebar .brand-link { border-bottom: 1px solid var(--v-line) !important; }
+.nav-sidebar .nav-link { color: var(--v-muted) !important; border-radius: 10px !important; margin: 2px 8px; }
+.nav-sidebar .nav-link i { color: var(--v-muted) !important; }
+.nav-sidebar .nav-link.active, .nav-sidebar .nav-link:hover { background: #E0F0F1 !important; color: var(--v-royal) !important; }
+.nav-sidebar .nav-link.active i, .nav-sidebar .nav-link:hover i { color: var(--v-royal) !important; }
+.nav-header { color: #8FA2A6 !important; font-weight: 600; letter-spacing: .08em; }
+.main-header { background: #fff !important; border-bottom: 1px solid var(--v-line) !important; }
+.card { border-radius: 14px !important; border: 1px solid var(--v-line) !important; box-shadow: none !important; overflow: hidden; }
+.card-header { background: #fff !important; border-bottom: 1px solid var(--v-line) !important; }
+.btn { border-radius: 10px !important; font-weight: 600 !important; }
+.btn-primary, .btn-outline-primary:hover, .btn-success { background: var(--v-royal) !important; border-color: var(--v-royal) !important; color: #fff !important; }
+.btn-outline-primary { color: var(--v-royal) !important; border-color: var(--v-royal) !important; }
+.btn-warning { background: var(--v-sun) !important; border-color: var(--v-sun) !important; color: var(--v-navy) !important; }
+.btn-danger { background: #C0442C !important; border-color: #C0442C !important; }
+a, .text-primary { color: var(--v-royal); }
+.table thead th { background: #FAFCFC; color: #8FA2A6; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--v-line) !important; }
+.table td { border-top: 1px solid #EEF3F4 !important; }
+.form-control, .select2-selection { border-radius: 10px !important; border-color: var(--v-line) !important; }
+.form-control:focus { border-color: var(--v-royal) !important; box-shadow: 0 0 0 3px #E0F0F1 !important; }
+.badge-primary { background: var(--v-royal); } .badge-success { background: #1C8656; color: #fff; } .badge-warning { background: var(--v-sun); color: var(--v-navy); }
+.login-box .card { border: none !important; }
+.small-box.bg-info, .small-box.bg-primary { background: var(--v-royal) !important; } .small-box.bg-success { background: var(--v-mint) !important; color: #fff !important; }
+.small-box.bg-warning { background: var(--v-sun) !important; } .small-box.bg-danger { background: var(--v-pink) !important; }

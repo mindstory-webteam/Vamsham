@@ -1,0 +1,1901 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+	{% include 'head.html' %}
+	
+	<body>
+
+	<!-- page wrapper -->
+	<div class="page-wrapper">
+
+		<!-- Header Main Area -->
+		<!-- Header Main Area -->
+
+		{% include 'navbar.html' %}
+
+		<div class="pbmit-slider-area pbmit-slider-one" style="margin: 0px 10px 0;">
+			<div class="swiper-slider" data-autoplay="true" data-loop="true" data-dots="true" data-arrows="false" data-columns="1" data-margin="0" data-effect="fade">
+				<div class="swiper-wrapper">
+					<!-- Slide1 -->
+					<div class="swiper-slide">
+						<div class="pbmit-slider-item">
+							<div class="pbmit-slider-bg" style="background-image: url('{% static 'images/banner-slider/banner-1-new.webp' %}');">
+  							<div class="pbmit-slider-overlay"></div>
+						</div>
+							<div class="container">
+								<div class="pbmit-slider-content text-center">
+									<div class="row justify-content-center">
+										<div class="col-md-12 col-lg-8">
+											{% comment %} <h5 class="pbmit-sub-title transform-delay-1">Vamsham Family</h5> {% endcomment %}
+											<h5 class="pbmit-title transform-top transform-delay-2">Faith in Action<br> Every Day</h5>
+											<div class="pbmit-desc transform-scale transform-delay-3">
+												Welcome to the Vamsham Family Association a place where love, prayer, and faith come alive in our daily lives. Here, we stand together as one family in Christ, worshipping Him and supporting each other with grace and compassion.
+											</div>
+											<div class="pbmit-button transform-center transform-delay-4">
+												<a href="{% url 'register' %}" class="pbmit-btn pbmit-btn-outline">
+													<span class="pbmit-button-content-wrapper">
+														<span class="pbmit-button-text">
+															Know More
+														</span>
+													</span>
+												</a>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Slide2 -->
+					<div class="swiper-slide">
+						<div class="pbmit-slider-item">
+							<div class="pbmit-slider-bg" style="background-image: url('{% static 'images/banner-slider/banner-1-new.webp' %}');"></div>
+							<div class="pbmit-slider-overlay"></div>
+							<div class="container">
+								<div class="pbmit-slider-content text-center">
+									<div class="row justify-content-center">
+										<div class="col-md-12 col-lg-8">
+											{% comment %} <h5 class="pbmit-sub-title transform-delay-1">Vamsham Family</h5> {% endcomment %}
+											<h5 class="pbmit-title transform-top transform-delay-2">Faith in Action<br> Every Day</h5>
+											<div class="pbmit-desc transform-scale transform-delay-3">
+												Welcome to the Vamsham Family Association a place where love, prayer, and faith come alive in our daily lives. Here, we stand together as one family in Christ, worshipping Him and supporting each other with grace and compassion.
+											</div>
+											<div class="pbmit-button transform-center transform-delay-4">
+												<a href="{% url 'register' %}" class="pbmit-btn pbmit-btn-outline">
+													<span class="pbmit-button-content-wrapper">
+														<span class="pbmit-button-text">
+															Know More
+														</span>
+													</span>
+												</a>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Slide3 -->
+					<div class="swiper-slide">
+						<div class="pbmit-slider-item">
+							<div class="pbmit-slider-bg" style="background-image: url('{% static 'images/banner-slider/banner-1-new.webp' %}');"></div>
+							<div class="pbmit-slider-overlay"></div>
+							<div class="container">
+								<div class="pbmit-slider-content text-center">
+									<div class="row justify-content-center">
+										<div class="col-md-12 col-lg-8">
+											{% comment %} <h5 class="pbmit-sub-title transform-delay-1">Vamsham Family</h5> {% endcomment %}
+											<h5 class="pbmit-title transform-top transform-delay-2">Faith in Action<br> Every Day</h5>
+											<div class="pbmit-desc transform-scale transform-delay-3">
+												Welcome to the Vamsham Family Association a place where love, prayer, and faith come alive in our daily lives. Here, we stand together as one family in Christ, worshipping Him and supporting each other with grace and compassion.
+											</div>
+											<div class="pbmit-button transform-center transform-delay-4">
+												<a href="{% url 'register' %}" class="pbmit-btn pbmit-btn-outline">
+													<span class="pbmit-button-content-wrapper">
+														<span class="pbmit-button-text">
+															Know More
+														</span>
+													</span>
+												</a>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Header Main Area End Here -->
+
+		
+
+		<!-- page content -->
+		<div class="page-content">
+
+			<style>
+		
+				.pbmit-slider-bg {
+					position: relative;
+					/* Ensure parent has dimensions */
+					width: 100%;
+					height: 100%;
+				}
+				
+				.pbmit-slider-overlay {
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					background: rgba(0, 0, 0, 0.5); /* Black with 50% opacity */
+					z-index: 1;
+				}
+
+				.chat-icon {
+				  position: fixed;
+				  bottom: 25px;
+				  right: 25px;
+				  background: #2699D2;
+				  color: white;
+				  font-size: 26px;
+				  border: none;
+				  border-radius: 50%;
+				  width: 60px;
+				  height: 60px;
+				  cursor: pointer;
+				  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+				  display: flex;
+				  align-items: center;
+				  justify-content: center;
+				  z-index: 1000;
+				}
+			
+				.discussion-container {
+				  display: none;
+				  position: fixed;
+				  bottom: 100px;
+				  right: 30px;
+				  width: 90%;
+				  max-width: 420px;
+				  background: #fff;
+				  border-radius: 15px;
+				  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+				  padding: 20px;
+				  z-index: 999;
+				  animation: slideUp 0.3s ease;
+				}
+			
+				@keyframes slideUp {
+				  from {
+					transform: translateY(50px);
+					opacity: 0;
+				  }
+				  to {
+					transform: translateY(0);
+					opacity: 1;
+				  }
+				}
+			
+				.discussion-header {
+				  display: flex;
+				  justify-content: space-between;
+				  align-items: center;
+				  margin-bottom: 15px;
+				}
+			
+				.discussion-header h3 {
+				  margin: 0;
+				  font-size: 1.2rem;
+				}
+			
+				.close-btn {
+				  background: none;
+				  border: none;
+				  font-size: 22px;
+				  cursor: pointer;
+				  color: #888;
+				}
+			
+				.comment-list {
+				  max-height: 240px;
+				  overflow-y: auto;
+				  margin-bottom: 15px;
+				  scrollbar-width: thin;
+				}
+			
+				.comment-item {
+				  background: #f1f1f1;
+				  border-radius: 10px;
+				  padding: 10px 12px;
+				  margin-bottom: 8px;
+				  font-size: 0.95rem;
+				  word-wrap: break-word;
+				}
+			
+				.comment-item strong {
+				  color: #333;
+				}
+			
+				.comment-form {
+				  display: flex;
+				  flex-direction: column;
+				}
+			
+				.comment-form textarea {
+				  width: 100%;
+				  padding: 10px;
+				  border-radius: 8px;
+				  border: 1px solid #ccc;
+				  resize: none;
+				  min-height: 60px;
+				  font-size: 0.95rem;
+				}
+			
+				.comment-form button {
+				  margin-top: 10px;
+				  background-color: #2699D2;
+				  color: white;
+				  border: none;
+				  padding: 10px 16px;
+				  border-radius: 8px;
+				  cursor: pointer;
+				  font-size: 1rem;
+				  align-self: flex-end;
+				}
+			
+				.comment-form button:hover {
+				  background-color: #2699D2;
+				}
+			
+				@media screen and (max-width: 500px) {
+				  .discussion-container {
+					width: 95%;
+					right: 10px;
+					bottom: 80px;
+					padding: 15px;
+				  }
+			
+				  .chat-icon {
+					width: 55px;
+					height: 55px;
+					font-size: 24px;
+					bottom: 20px;
+					right: 20px;
+				  }
+			
+				  .comment-form button {
+					width: 100%;
+					align-self: stretch;
+				  }
+				}
+			  </style>
+			
+			  {% include 'discussion/discussion.html' %}
+
+			<!----------- Service --> 
+			<section class="section-xl">
+				<div class="container">
+					<div class="pbmit-heading-subheading pbmit-heading-subheading-style-2 animation-style4">
+						<div class="pbmit-hs-left">
+							{% comment %} <h4 class="pbmit-subtitle">Vamsham Family</h4> {% endcomment %}
+							<h2 class="pbmit-title">Begin a New Journey<br>  with God’s Grace</h2>
+						</div>
+						<div class="pbmit-hs-right">
+							<div class="pbmit-heading-desc">
+								At Vamsham Family Association, we believe that every person is called to walk closely with God and their family. Our gatherings and fellowship help you strengthen your faith, understand His Word
+deeply, and grow as a united Christian family rooted in prayer and love.
+
+							</div>
+						</div>
+					</div>
+					<div class="swiper-slider" data-loop="true" data-autoplay="false" data-dots="false" data-arrows="false" data-columns="3" data-margin="30" data-effect="slide">
+						 <div class="swiper-wrapper">
+							<!-- Slide4 -->
+							 {% for event in premium_events %}
+							<article class="pbmit-service-style-2 swiper-slide">
+								<div class="pbminfotech-post-item">
+									<div class="pbminfotech-box-content">
+										<div class="pbmit-service-image-wrapper">
+											<div class="pbmit-featured-img-wrapper">
+												<div class="pbmit-featured-wrapper">
+													<img src="{{ event.image.url }}" alt="{{ event.title }}" class="img-fluid" >
+												</div>
+											</div>
+										</div>
+										<div class="pbmit-service-icon">
+											<svg id="prayer_x5F_hands" enable-background="new 0 0 300 300" height="512" viewBox="0 0 300 300" width="512" xmlns="http://www.w3.org/2000/svg">
+												<path d="m256.964 184.88-2.833-4.161c-6.41-9.416-10.395-20.4-11.521-31.765-1.712-17.286-9.368-33.572-21.561-45.858l-5.354-5.396c-.076-.09-.138-.188-.223-.273l-6.266-6.266-20.418-20.575c-.223-.225-.469-.408-.726-.569l-.875-.875c-3.399-3.399-7.92-5.272-12.728-5.272-4.809 0-9.328 1.873-12.728 5.272-2.556 2.556-4.247 5.745-4.93 9.213l-27.597-27.598c-6.238-6.237-16.389-6.237-22.627 0-2.051 2.051-3.458 4.565-4.163 7.301-6.276-5.018-15.481-4.627-21.293 1.184-2.188 2.188-3.592 4.862-4.245 7.675l-4.402-4.402c-3.021-3.022-7.039-4.687-11.313-4.687-4.273 0-8.291 1.665-11.312 4.686-3.022 3.022-4.687 7.04-4.687 11.314s1.664 8.292 4.687 11.314l4.359 4.359c-2.634.699-5.126 2.065-7.188 4.127-6.238 6.238-6.238 16.388 0 22.627l21.813 21.813c-2.634.699-5.126 2.064-7.188 4.125-6.238 6.239-6.238 16.389 0 22.628l56.086 56.086c.963.963 16.091 13.187 24.266 16.708 3.002 1.293 5.683 3.133 7.969 5.467l9.434 9.634c.748.763 1.77 1.195 2.837 1.201h.021c1.061 0 2.078-.421 2.828-1.171l14.805-14.804c.773.626 1.524 1.284 2.226 2.005l9.411 9.686c.748.77 1.774 1.207 2.848 1.212h.021c1.065 0 2.088-.425 2.839-1.183l59.259-59.717c1.351-1.356 1.547-3.481.469-5.065zm-201.457-116.707c1.511-1.511 3.52-2.343 5.656-2.343 2.138 0 4.146.832 5.657 2.343l18.188 18.188c-2.47.737-4.798 2.079-6.747 4.028-2.128 2.127-3.568 4.751-4.25 7.603l-18.504-18.505c-3.119-3.119-3.119-8.194 0-11.314zm-2.829 31.113c3.119-3.119 8.195-3.119 11.314 0 .001.001.002.001.003.002l23.952 23.952c-2.712.765-5.201 2.215-7.229 4.288-1.961 2.004-3.337 4.423-4.065 7.045l-23.974-23.973c-3.12-3.119-3.12-8.195-.001-11.314zm109.612 144.947-6.606-6.746c-3.018-3.082-6.557-5.51-10.52-7.217-6.689-2.881-20.591-13.931-21.775-15.018l-56.085-56.085c-3.119-3.119-3.119-8.194 0-11.313 3.104-3.104 8.145-3.119 11.268-.046l.832.894c.433.555.892 1.094 1.403 1.595l36.774 36.193 31.651 31.895c.898.906 2.014 1.929 3.313 3.038 5.509 4.705 12.135 8.76 20.178 12.379zm32.139-3.094-6.573-6.765c-3.012-3.1-6.544-5.542-10.499-7.258-7.972-3.46-14.389-7.312-19.617-11.778-1.133-.967-2.084-1.837-2.829-2.588l-21.682-21.849c-.179-.314-.386-.616-.656-.882l-9.397-9.248-4.95-4.988c-.204-.206-.427-.382-.661-.534l-30.06-29.585-2.015-2.166c-.93-1.316-1.437-2.888-1.441-4.552-.004-2.177.843-4.245 2.386-5.821s3.591-2.467 5.769-2.509c2.118-.039 4.17.753 5.689 2.239l28.178 27.58c1.579 1.546 4.111 1.52 5.656-.061 1.546-1.579 1.519-4.111-.061-5.656l-28.178-27.58c-.645-.631-1.342-1.188-2.068-1.693-.069-.081-.125-.17-.201-.246l-16.441-16.442c-.195-.497-.49-.964-.892-1.366-1.509-1.509-2.338-3.519-2.334-5.659.005-2.146.845-4.166 2.366-5.687 3.137-3.136 8.224-3.152 11.344-.036l45.259 45.258c.78.781 1.805 1.171 2.828 1.171s2.048-.391 2.828-1.171c1.562-1.562 1.562-4.095 0-5.657l-45.253-45.253c-.001-.001-.001-.001-.002-.002s-.003-.002-.004-.003l-14.139-14.138c-3.119-3.119-3.119-8.194 0-11.313s8.195-3.119 11.314 0l59.396 59.397c1.562 1.562 4.096 1.562 5.656 0 1.562-1.562 1.562-4.095 0-5.657l-50.911-50.911c-1.511-1.511-2.343-3.52-2.343-5.657s.832-4.146 2.343-5.657c3.119-3.119 8.195-3.119 11.314 0l38.436 38.437c.001.001.002.001.003.002l28.03 28.03c.78.781 1.805 1.171 2.828 1.171s2.048-.391 2.828-1.171c1.562-1.562 1.562-4.095 0-5.657l-28.283-28.286c-1.889-1.889-2.929-4.4-2.929-7.071s1.04-5.183 2.929-7.072 4.4-2.929 7.071-2.929 5.183 1.041 7.071 2.929l22.124 22.124 11.716 11.807c10.9 10.985 17.746 25.55 19.277 41.012 1.258 12.693 5.708 24.961 12.868 35.479l.977 1.434z"/>
+											</svg>
+										</div>
+										<div class="pbmit-content-box">
+											<div class="pbmit-serv-cat"></div>
+											<h3 class="pbmit-service-title">
+												<a href="{% url 'premium_event_detail' slug=event.slug %}">{{ event.title }}</a>
+											</h3>
+											<div class="pbmit-service-description">
+												 <p>{{ event.description|truncatewords:20 }}</p>
+											</div>
+										</div>
+									</div>
+								</div>
+							</article>
+							{% endfor %}
+						</div>
+					</div> 
+					</div>
+				</div>
+
+				</div>
+			</section> 
+			<!-- Service end --> 
+
+			<!-- Fid -->
+			{% comment %} <section>
+				<div class="container">
+					<div class="fid-two-area">
+						<div class="row">
+							<div class="col-md-6 col-xl-4">
+								<div class="pbminfotech-ele-fid-style-2">
+									<div class="pbmit-fld-contents">
+										<div class="pbmit-fld-wrap">
+											<div class="pbmit-fid-icon-title">
+												<span class="pbmit-fid-title">Lives <br> Touched </span>
+											</div>
+											<h4 class="pbmit-fid-inner">
+												<span class="pbmit-fid-before"></span>
+												<span class="pbmit-number-rotate numinate" data-appear-animation="animateDigits" data-from="0" data-to="1" data-interval="1" data-before="" data-before-style="" data-after="" data-after-style="">1000</span>
+												<span class="pbmit-fid"><span>k+</span></span>
+											</h4>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6 col-xl-4 pt-md-0 pt-4">
+								<div class="pbminfotech-ele-fid-style-2">
+									<div class="pbmit-fld-contents">
+										<div class="pbmit-fld-wrap">
+											<div class="pbmit-fid-icon-title">
+												<span class="pbmit-fid-title">Legacy of<br> Love</span>
+											</div>
+											<h4 class="pbmit-fid-inner">
+												<span class="pbmit-fid-before"></span>
+												<span class="pbmit-number-rotate numinate" data-appear-animation="animateDigits" data-from="0" data-to="16" data-interval="5" data-before="" data-before-style="" data-after="" data-after-style="">16</span>
+												<span class="pbmit-fid"><span>+</span></span>
+											</h4>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6 col-xl-4 pt-xl-0 pt-4">
+								<div class="pbminfotech-ele-fid-style-2">
+									<div class="pbmit-fld-contents">
+										<div class="pbmit-fld-wrap">
+											<div class="pbmit-fid-icon-title">
+												<span class="pbmit-fid-title">United In<br> Faith</span>
+											</div>
+											<h4 class="pbmit-fid-inner">
+												<span class="pbmit-fid-before"></span>
+												<span class="pbmit-number-rotate numinate" data-appear-animation="animateDigits" data-from="0" data-to="250" data-interval="5" data-before="" data-before-style="" data-after="" data-after-style="">250+</span>
+												<span class="pbmit-fid"><span>+</span></span>
+											</h4>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section> {% endcomment %}
+			<!-- Fid end -->
+
+			<!-- Accordion Start -->
+			<!-- <section>
+				<div class="container-fluid p-0">
+					<div class="row g-0">
+						<div class="col-md-12 col-xl-6">
+							<div class="accordion-two-left-bg"></div>
+						</div>
+						<div class="col-md-12 col-xl-6">
+							<div class="accordion-two-right-box pbmit-bg-color-light">
+								<div class="pbmit-heading-subheading animation-style2">
+									<h4 class="pbmit-subtitle">Donations</h4>
+									<h2 class="pbmit-title">Start a Whole New Life With God's Help</h2>
+									<div class="pbmit-heading-desc">
+										We believe it’s important to have a new members’ class at every church These classes are supposed to be designed. to give you a greater understanding of the principles and spiritual guidelines that a community follows.
+									</div>
+								</div>
+								<div class="accordion" id="accordionExample">
+									<div class="accordion-item active">
+										<h2 class="accordion-header" id="headingOne">
+											<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+											data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+											<span class="pbmit-accordion-icon pbmit-accordion-icon-right">
+												<span class="pbmit-accordion-icon-closed">
+													<i class="ti-arrow-down"></i>
+												</span>
+												<span class="pbmit-accordion-icon-opened">
+													<i class="ti-arrow-up"></i>
+												</span>
+											</span>
+											<span class="pbmit-accordion-title">
+												Sunrise Prayer
+											</span>
+											</button>
+										</h2>
+										<div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+											<div class="accordion-body">
+												In the spirit of love, hospitality and social justiceserve the people of the greater Cypress area We believe that through the faith.
+											</div>
+										</div>
+									</div>
+									<div class="accordion-item">
+										<h2 class="accordion-header" id="headingTwo">
+											<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+											data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+												<span class="pbmit-accordion-icon pbmit-accordion-icon-right">
+													<span class="pbmit-accordion-icon-closed">
+														<i class="ti-arrow-down"></i>
+													</span>
+													<span class="pbmit-accordion-icon-opened">
+														<i class="ti-arrow-up"></i>
+													</span>
+												</span>
+												<span class="pbmit-accordion-title">
+													Life and Faith
+												</span>
+											</button>
+										</h2>
+										<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" 
+										data-bs-parent="#accordionExample">
+											<div class="accordion-body">
+												In the spirit of love, hospitality and social justiceserve the people of the greater Cypress area We believe that through the faith.
+											</div>
+										</div>
+									</div>
+									<div class="accordion-item">
+										<h2 class="accordion-header" id="headingThree">
+											<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+											data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+												<span class="pbmit-accordion-icon pbmit-accordion-icon-right">
+													<span class="pbmit-accordion-icon-closed">
+														<i class="ti-arrow-down"></i>
+													</span>
+													<span class="pbmit-accordion-icon-opened">
+														<i class="ti-arrow-up"></i>
+													</span>
+												</span>
+												<span class="pbmit-accordion-title">
+													Weekend Services
+												</span>
+											</button>
+										</h2> 
+										<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" 
+										data-bs-parent="#accordionExample">
+											<div class="accordion-body">
+												In the spirit of love, hospitality and social justiceserve the people of the greater Cypress area We believe that through the faith.
+											</div>
+										</div>                         
+									</div>          
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section> -->
+			<!-- Accordion End -->
+
+
+
+			<!-- About Start -->
+
+
+			<section class="about-two-bg pbmit-textimonial-bg-move pbmit-bg-color-global" id="donation">
+  <div class="container">
+    <div class="faith-history-wrapper">
+      
+      <!-- Text Section -->
+      <div class="faith-history-text">
+        <div class="faith-history-quote">
+          <span class="quote-icon">❝</span>
+          <div class="quote-content">
+            <p>
+              നമ്മുടെ കുടുംബ ഡയറക്‌ടറിയുടെ ആമുഖത്തിൽ കൊടുത്തിരിക്കുന്ന കുടുംബ ചരിത്രം വളരെ സംക്ഷിപ്‌തമായാണ് കാണുന്നത്. 
+              അതിനോടു കൂട്ടിച്ചേർത്ത് മറ്റു ചില കാര്യങ്ങൾ അറിയിക്കുന്നു. 
+              ചാലക്കുടിയിൽ നിന്നും ഒല്ലൂരിൽ വന്ന വംശ പരമ്പരയിൽ നമുക്ക് അറിവു കിട്ടിയിട്ടുള്ള എഴ് മക്കളിൽ ഒരാൾ ഫ്രാൻസിസ് സ്കോസ് കത്തനാരായിരുന്നു. 
+              അച്ഛൻ്റെ പേര് ഫ്രാൻസിസ് സ്കോസ് ആയിരുന്നു എന്നതിന്റെ തെളിവ് കാണാം. 
+              C.M.C യിലുള്ള അമ്മായി (Sr. ഇസബെല്ല) വഴി അറിഞ്ഞിട്ടുണ്ട്. 
+              Sr. ഇസബെല്ല അമ്മായി പൊറിഞ്ചു അപ്പാപ്പൻ്റെ പെങ്ങളുടെ മകളായിരുന്നു. 
+              (പൊറിഞ്ചു അപ്പാപ്പൻ എൻ്റെ അപ്പാപ്പൻ ഐപ്പുവിൻ്റെ അപ്പനായിരുന്നു.) 
+              C.M.C യിലുണ്ടായിരുന്ന Sr. ഇസബെല്ല അമ്മായി നമ്മുടെ വീട്ടിൽ നിന്നാണ് പഠിച്ചത്.
+            </p>
+
+            <p>
+              ബഹുമാനപ്പെട്ട ഫ്രാൻസിസ് സ്കോസ് അച്ചൻ്റെ ഒരു ഡയറി കുറിപ്പ് 'സത്യ നാഥ കാഹളം' എന്ന ഒരു മാഗസിൻ്റെ ശേഖരണത്തിൽ ഉണ്ടായിരുന്നു. 
+              അതിൽ നമ്മുടെ കുടുംബചരിത്രം കുറച്ചൊക്കെ രേഖപ്പെടുത്തിയിരുന്നു. 
+              ഈ രേഖകൾ തൃക്കൂറുള്ള കൊച്ചു മിഖായേലിൻ്റെ കൈവശമായിരുന്നു സൂക്ഷിച്ചിരുന്നത്. 
+              അത് കാണുവാനും, വായിക്കുവാനും എനിക്ക് സാധിച്ചു. 
+              അത് തിരികെ കൊടുത്തതിനുശേഷം പിന്നീടുള്ള അന്വേഷണത്തിൽ കണ്ടുകിട്ടിയില്ല.
+            </p>
+
+            <div class="more-content" style="display: none;">
+              <p>
+                Fr. ഫ്രാൻസിസ് സ്കോസ് അച്ചൻ്റെ ബംഗ്ലാവ് ഒല്ലൂർ പനംകുറ്റിച്ചിറ C.M.C ഇരിക്കുന്ന ചാലക്കുടിയിൽ നിന്നും വന്ന കാരണവർ മേലേടത്ത് മനയിലെ വാസുദേവൻ നമ്പൂതിരി പോഴത്ത് നായന്മാരുടെ കയ്യിൽ നിന്നും വാങ്ങി താമസമാക്കിയതും 
+                നമ്മുടെ വംശപരമ്പര ആരംഭിച്ചതും, അങ്ങനെയാണ് പോഴത്ത്-പോഴൻ എന്ന ആ വിളിപ്പേര് കിട്ടിയത്. 
+                1900-ത്തിൽ ഫ്രാൻസിസ് സ്കോസ് അച്ചൻ മരിച്ചപ്പോൾ രൂപത ആ സ്ഥലം ഏറ്റെടുക്കുകയും 
+                C.M.C കർമ്മലീത്ത സമൂഹത്തിന് രൂപതയുടെ ആദ്യത്തെ കോൺവെൻ്റായി തുടങ്ങാൻ കൈമാറുകയും ചെയ്തു. 
+                ഇതേ വർഷത്തിലാണ് ഒല്ലൂർ C.M.C കർമ്മലീത്ത മഠം ആരംഭിച്ചത്.
+              </p>
+
+              <p>
+                ഒല്ലൂർ പള്ളിയുടെ സെമിത്തേരിയ്ക്കടുത്തുള്ള കിണറ്റിൽ നിന്നും കിട്ടിയ ചെമ്പുകൂടത്തിൽ 'ഫ്രാൻസിസ് സ്കോസ് കത്തനാർ വക്' എന്ന് രേഖപ്പെടുത്തിയുണ്ടായിരുന്നു. 
+                അത് എൻ്റെ അപ്പൻ കണ്ടിരുന്നു. പക്ഷേ അത് സ്വന്തമാക്കാൻ അപ്പനു കഴിഞ്ഞില്ല. 
+                അച്ചൻ്റെ കൈവശം ഉണ്ടായിരുന്ന നാല് കാലുള്ള പെട്ടിയാണ് ബഹുമാനപ്പെട്ട Sr. ഇസബെല്ല അമ്മായി മഠത്തിൽ ചേർന്നപ്പോൾ കൊണ്ടുപോയത്. 
+                കാഞ്ഞൂർ മഠത്തിൽ വെച്ച് എനിക്ക് ആ പെട്ടി കാണുവാൻ സാധിച്ചിട്ടുണ്ട്.
+              </p>
+
+              <p>
+                1900-ത്തിൽ നിര്യാതനായ നമ്മുടെ അച്ഛനെ ഒല്ലൂർ പള്ളിയിലാണ് അടക്കം ചെയ്തിരിക്കുന്നത്.
+              </p>
+            </div>
+          </div>
+          
+          <div class="view-more-container">
+            <a id="viewMoreBtn" class="view-more-btn">View More</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Section -->
+      <div class="faith-history-image">
+        <div class="history-img-frame">
+          <img src="{% static 'images/homepage-2/bg/about-1.jpg' %}" alt="Community gathering" class="faith-img">
+        </div>
+        <div class="author-box" style="justify-content: center;border-top:none; ">
+          <img src="{% static 'images/bg/signature.png' %}" alt="Signature" class="signature-img">
+          <div class="author-info">
+            <h6 class="author-name">Fr. James</h6>
+            {% comment %} <small class="author-role">Family Member</small> {% endcomment %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .faith-history-section {
+    padding: 80px 0;
+    background: #fafafa;
+    position: relative;
+  }
+
+  .faith-history-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .faith-history-text {
+    flex: 1;
+    min-width: 320px;
+  }
+
+  .faith-history-image {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  .history-img-frame {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+  }
+  .history-img-frame:hover {
+    transform: scale(1.03);
+  }
+  .faith-img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Subtitle */
+  .section-subtitle {
+    font-size: 14px;
+    color: #00796b;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: 1.2px;
+  }
+
+  /* Title */
+  .section-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 25px;
+    line-height: 1.3;
+  }
+
+  /* Quote */
+  .faith-history-quote {
+    position: relative;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 25px 20px 45px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  }
+  .quote-icon {
+    font-size: 40px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #00796b;
+    opacity: 0.2;
+  }
+  .faith-history-quote p {
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+    color: #444;
+  }
+
+  /* View More Button */
+  .view-more-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .view-more-btn {
+   
+    color: #2699D2;
+    
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+  
+  /* Author Box */
+  .author-box {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+  }
+  .signature-img {
+    width: 100px;
+    height: auto;
+  }
+  .author-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .author-name {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .author-role {
+    font-size: 14px;
+    color: #fff;
+  }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .faith-history-wrapper {
+      flex-direction: column-reverse;
+    }
+    .section-title {
+      font-size: 26px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const viewMoreBtn = document.getElementById('viewMoreBtn');
+    const moreContent = document.querySelector('.more-content');
+    
+    viewMoreBtn.addEventListener('click', function() {
+      if (moreContent.style.display === 'none') {
+        moreContent.style.display = 'block';
+        viewMoreBtn.textContent = 'View Less';
+      } else {
+        moreContent.style.display = 'none';
+        viewMoreBtn.textContent = 'View More';
+      }
+    });
+  });
+</script>
+
+			
+
+
+
+
+
+<section class="elegant-messages" style=" background: #f1ede4;">
+    <div class="container">
+        <div class="section-header">
+            <span class="subtitle">Spiritual Messages</span>
+            <h2>Words From Our Community</h2>
+            <div class="divider"></div>
+        </div>
+
+        <div class="messages-carousel">
+            <!-- Message 1 -->
+            <div class="message-card">
+                <div class="quote-icon">"</div>
+                <div class="message-content">
+                    <p class="message-text" style="te">I am very happy to know that the Vamsham Family Association, a group of Tharavat members, is publishing a family directory. I believe that this will be a historical record for the members of this Tharavat.In this era when the joint family system later evolved into the nuclear family, and relationships and life became a dull family, such associations are proof that the concept of 'family' continues to have a meaning and scope. The words "When you gather in my name, I will be in your midst" become relevant through such activities.This directory that you are publishing should be a record of mutual recognition and relationships. I extend my warmest greetings and blessings to the office bearers and members of the Vamsham Family Association who have worked towards this.<br>"May the good God bless you"</p>
+                    <div class="blessing-rating">
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                    </div>
+                </div>
+                <div class="message-author">
+                    <div class="author-image">
+                       <img src="{% static 'images/fathers-message-img/MEL_images_21-7-25 (29)70x70.png' %}" alt="Sarah Johnson">
+                        <div class="image-border"></div>
+                    </div>
+                    <div class="author-info">
+                        <h4>Andrews Thazhath</h4>
+                        <span>Mar Andrews Thazhath, Bishop of the Archdiocese of Thrissur</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message 2 -->
+            <div class="message-card">
+                <div class="quote-icon">"</div>
+                <div class="message-content">
+                    <p class="message-text">The Archdiocese of Thrissur is celebrating its 125th Jubilee Year as a Year of Communion. In this context, the fact that the family is publishing a family directory is proof that you, along with the Archdiocese, are making the Year of Communion meaningful.The Directory is a book that tells the story of relationships. May it help family members get to know each other better, rekindle their love for each other, and above all, pass on the depth and breadth of our faith heritage to new generations.I heartily congratulate all those who have worked tirelessly for this directory. I pray that the Almighty God will bless you abundantly as your community grows stronger and stronger, standing firm in faith.<br>Your loving Father in Jesus</p>
+                    <div class="blessing-rating">
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                        <span class="cross">✝</span>
+                    </div>
+                </div>
+                <div class="message-author">
+                    <div class="author-image">
+                        <img src="{% static 'images/fathers-message-img/MEL_images_21-7-25 (30)70x70.png' %}" alt="Mar Raphael Thattil-img">
+                        <div class="image-border"></div>
+                    </div>
+                    <div class="author-info">
+                        <h4>Mar Raphael Thattil</h4>
+                        <span>Auxiliary Bishop of the Archdiocese of Thrissur</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Dots -->
+            <div class="carousel-dots"></div>
+        </div>
+    </div>
+</section>
+<style>
+    /* Elegant Messages CSS */
+    .elegant-messages {
+        padding: 80px 0;
+        background: #f1ede4;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .elegant-messages::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.03;
+        z-index: 0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .section-header .subtitle {
+        display: inline-block;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .section-header h2 {
+        font-size: 42px;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+
+    .section-header .divider {
+        width: 80px;
+        height: 3px;
+        margin: 0 auto;
+    }
+
+    .messages-carousel {
+        position: relative;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .message-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+        transition: all 0.5s ease;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        transform: translateX(50px);
+    }
+
+    .message-card.active {
+        opacity: 1;
+        transform: translateX(0);
+        position: relative;
+    }
+
+    .quote-icon {
+        font-size: 80px;
+        color: #f0e6ee;
+        line-height: 0.8;
+        margin-bottom: 20px;
+        font-family: Georgia, serif;
+    }
+
+    .message-content {
+        margin-bottom: 30px;
+    }
+
+    .message-text {
+        font-size: 18px;
+        line-height: 1.8;
+        color: #555;
+        margin-bottom: 25px;
+        font-style: italic;
+    }
+
+    .blessing-rating {
+        display: flex;
+        gap: 10px;
+    }
+
+    .cross {
+        font-size: 20px;
+        opacity: 0.7;
+        transition: all 0.3s ease;
+    }
+
+    .message-card.active .cross {
+        animation: crossGlow 0.5s ease forwards;
+        animation-delay: calc(var(--i) * 0.1s);
+    }
+
+    @keyframes crossGlow {
+        to {
+            opacity: 1;
+            color: #2699d2;
+            text-shadow: 0 0 5px #2699d2;
+        }
+    }
+
+    .message-author {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .author-image {
+        position: relative;
+        width: 70px;
+        height: 70px;
+    }
+
+    .author-image img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .image-border {
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border: 2px solid #f0e6ee;
+        border-radius: 50%;
+        z-index: -1;
+    }
+
+    .author-info h4 {
+        font-size: 18px;
+        color: #2a1a2a;
+        margin-bottom: 5px;
+    }
+
+    .author-info span {
+        font-size: 14px;
+        color: #8e6c88;
+        font-style: italic;
+    }
+
+    .carousel-dots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 40px;
+    }
+
+    .carousel-dots .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #a8d5eb;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .carousel-dots .dot.active {
+        background: #2699d2;
+        transform: scale(1.2);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = document.querySelectorAll('.message-card');
+    const dotsContainer = document.querySelector('.carousel-dots');
+    let currentIndex = 0;
+    let interval;
+
+    // Create dots
+    messages.forEach((_, index) => {
+        const dot = document.createElement('span');
+        dot.classList.add('dot');
+        dot.dataset.index = index;
+        dotsContainer.appendChild(dot);
+    });
+
+    const dots = document.querySelectorAll('.dot');
+
+    // Show message
+    function showMessage(index) {
+        messages.forEach(message => message.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        messages[index].classList.add('active');
+        dots[index].classList.add('active');
+        currentIndex = index;
+        
+        // Animate crosses
+        const crosses = messages[index].querySelectorAll('.cross');
+        crosses.forEach((cross, i) => {
+            cross.style.setProperty('--i', i);
+        });
+    }
+
+    // Next message
+    function nextMessage() {
+        currentIndex = (currentIndex + 1) % messages.length;
+        showMessage(currentIndex);
+    }
+
+    // Start autoplay
+    function startAutoplay() {
+        interval = setInterval(nextMessage, 5000);
+    }
+
+    // Pause on hover
+    const carousel = document.querySelector('.messages-carousel');
+    carousel.addEventListener('mouseenter', () => clearInterval(interval));
+    carousel.addEventListener('mouseleave', startAutoplay);
+
+    // Dot click event
+    dots.forEach(dot => {
+        dot.addEventListener('click', function() {
+            clearInterval(interval);
+            showMessage(parseInt(this.dataset.index));
+            startAutoplay();
+        });
+    });
+
+    // Initialize
+    showMessage(0);
+    startAutoplay();
+});
+</script>
+
+			<!-- Ihbox Start --> 
+			<section>
+				<div class="container">
+					<div class="ihbox-two-area">
+						<div class="row">
+							<article class="pbmit-miconheading-style-8 col-md-4">
+								<div class="pbmit-ihbox-style-8">
+									<div class="pbmit-ihbox-box d-flex">
+										<div class="pbmit-ihbox-icon">
+											<div class="pbmit-ihbox-icon-wrapper pbmit-icon-type-icon">
+												<svg id="hand_x5F_on_x5F_bible" enable-background="new 0 0 300 300" height="512" viewBox="0 0 300 300" width="512" xmlns="http://www.w3.org/2000/svg">
+													<path d="m255.994 82c0-1.047-.403-2.092-1.215-2.877-5.351-5.169-7.971-9.962-7.787-14.247.167-3.887 2.7-7.847 7.53-11.772 1.314-1.068 1.813-2.847 1.247-4.443s-2.076-2.661-3.769-2.661h-156c-11.028 0-20 8.972-20 20 0 2.021.301 4.016.895 5.93.087.282.207.543.346.79-.787 1.595-1.241 3.384-1.241 5.28v4.7c-1.253-.445-2.596-.7-4-.7-6.617 0-12 5.383-12 12v.7c-1.253-.445-2.596-.7-4-.7-6.617 0-12 5.383-12 12v28 18.337 35.019c0 6.224 1.116 11.786 3.317 16.532 5.311 11.448 15.539 18.92 28.683 21.271v12.906c0 8.787 7.148 15.935 15.934 15.935h148.131c8.786 0 15.935-7.148 15.935-15.935v-156.065zm-159.994-28h146.729c-2.324 3.376-3.574 6.898-3.729 10.534-.19 4.431 1.273 8.938 4.342 13.466h-143.342c0-6.617-5.383-12-12-12-1.395 0-2.729.251-3.974.691-.013-.23-.026-.46-.026-.691 0-6.617 5.383-12 12-12zm-41.425 146.522c-1.709-3.684-2.575-8.113-2.575-13.166v-35.019-18.337-28c0-2.206 1.794-4 4-4s4 1.794 4 4v42.095c0 2.209 1.791 4 4 4s4-1.791 4-4v-54.095c0-2.206 1.794-4 4-4s4 1.794 4 4v54.095c0 2.209 1.791 4 4 4s4-1.791 4-4v-70.095c0-2.206 1.794-4 4-4s4 1.794 4 4v70.095c0 2.209 1.791 4 4 4s4-1.791 4-4v-54.095c0-2.206 1.794-4 4-4s4 1.794 4 4v67.832c0 1.68 1.05 3.182 2.629 3.758 1.58.576 3.351.105 4.431-1.182l20.523-24.374c1.194-1.417 3.282-1.645 4.751-.523 1.399 1.067 1.776 3.012.877 4.524-.124.209-.229.43-.313.658l-16.548 44.815c-6.31 17.085-22.049 28.462-39.283 28.461-.181 0-.364-.001-.545-.004-19.14-.266-26.978-11.043-29.947-17.443zm185.49 45.478h-148.131c-4.375 0-7.935-3.56-7.935-7.935v-12.118c.138.003.271.016.41.018.22.003.437.005.656.005 20.571-.001 39.319-13.468 46.787-33.69l16.435-44.508c2.715-4.952 1.42-11.173-3.102-14.622-4.869-3.714-11.776-2.957-15.723 1.731l-13.462 15.99v-56.871c0-3.075-1.172-5.874-3.081-8h135.081v152.065c0 4.375-3.56 7.935-7.935 7.935z"></path>
+													<path d="m216 130h-12v-8c0-6.617-5.383-12-12-12s-12 5.383-12 12v8h-12c-6.617 0-12 5.383-12 12s5.383 12 12 12h12v52c0 6.617 5.383 12 12 12s12-5.383 12-12v-52h12c6.617 0 12-5.383 12-12s-5.383-12-12-12zm0 16h-16c-2.209 0-4 1.791-4 4v56c0 2.206-1.794 4-4 4s-4-1.794-4-4v-56c0-2.209-1.791-4-4-4h-16c-2.206 0-4-1.794-4-4s1.794-4 4-4h16c2.209 0 4-1.791 4-4v-12c0-2.206 1.794-4 4-4s4 1.794 4 4v12c0 2.209 1.791 4 4 4h16c2.206 0 4 1.794 4 4s-1.794 4-4 4z"></path>
+												</svg>
+											</div>
+										</div>
+										<div class="pbmit-ihbox-contents">
+											<h2 class="pbmit-element-title">
+												Family of Faith
+											</h2>
+											<div class="pbmit-heading-desc" style="text-align: justify;">Experience the warmth of belonging to a family rooted in prayer, love, and togetherness, guided by God’s grace every day. </div>
+										</div>
+									</div>
+								</div>
+							</article>
+							<article class="pbmit-miconheading-style-8 col-md-4">
+								<div class="pbmit-ihbox-style-8">
+									<div class="pbmit-ihbox-box d-flex">
+										<div class="pbmit-ihbox-icon">
+											<div class="pbmit-ihbox-icon-wrapper pbmit-icon-type-icon">
+												<svg id="church2" enable-background="new 0 0 300 300" height="512" viewBox="0 0 300 300" width="512" xmlns="http://www.w3.org/2000/svg">
+													<path d="m136 156.17h28c2.209 0 4-1.791 4-4v-30.17c0-9.925-8.075-18-18-18s-18 8.075-18 18v30.17c0 2.209 1.791 4 4 4zm4-34.17c0-5.514 4.486-10 10-10s10 4.486 10 10v26.17h-20z"></path>
+													<path d="m263.458 166.024.015-.008-16-28c-.712-1.246-2.037-2.016-3.473-2.016h-40v-26.639c0-1.164-.507-2.271-1.389-3.03l-46.611-40.165v-18.166h5.605c2.209 0 4-1.791 4-4s-1.791-4-4-4h-5.605v-8c0-2.209-1.791-4-4-4s-4 1.791-4 4v8h-5.605c-2.209 0-4 1.791-4 4s1.791 4 4 4h5.605v18.126l-46.561 38.801c-.912.761-1.439 1.885-1.439 3.073v28h-36c-1.168 0-2.277.511-3.037 1.396l-24 28 .014.012c-.6.7-.977 1.598-.977 2.592v100c0 2.209 1.791 4 4 4h36 184c2.209 0 4-1.791 4-4v-100c0-.723-.207-1.391-.542-1.976zm-21.779-22.024 11.429 20h-27.892l-21.216-14.22v-5.78zm-133.679 8v-42.127l43.957-36.63 44.043 37.951v40.721c0 1.334.665 2.58 1.773 3.322l22.227 14.898v93.865h-48v-50c0-12.131-9.869-22-22-22s-22 9.869-22 22v50h-48.327l.319-93.674 25.992-14.854c1.246-.711 2.016-2.036 2.016-3.472zm-42.16-8h34.16v5.679l-25.062 14.321h-26.241zm-21.84 28h27.986l-.313 92h-27.673zm92 92v-50c0-7.72 6.28-14 14-14s14 6.28 14 14v50zm120 0h-28v-92h28z"></path>
+												</svg>
+											</div>
+										</div>
+										<div class="pbmit-ihbox-contents">
+											<h2 class="pbmit-element-title">
+												Growing Together
+											</h2>
+											<div class="pbmit-heading-desc" style="text-align: justify;">Be part of our community as we worship, learn, and support each other through life’s journey with faith and hope.</div>
+										</div>
+									</div>
+								</div>
+							</article>
+							<article class="pbmit-miconheading-style-8 col-md-4">
+								<div class="pbmit-ihbox-style-8">
+									<div class="pbmit-ihbox-box d-flex">
+										<div class="pbmit-ihbox-icon">
+											<div class="pbmit-ihbox-icon-wrapper pbmit-icon-type-icon">
+												<svg id="ressurection" enable-background="new 0 0 300 300" height="512" viewBox="0 0 300 300" width="512" xmlns="http://www.w3.org/2000/svg">
+													<path d="m200 106c-25.586 0-49.465 13.763-62.319 35.916-.053.091-.083.188-.128.282-11.146.914-21.344 5.218-29.553 11.89v-20.088h8c2.209 0 4-1.791 4-4s-1.791-4-4-4h-8v-8c0-2.209-1.791-4-4-4s-4 1.791-4 4v8h-8c-2.209 0-4 1.791-4 4s1.791 4 4 4h8v28c0 .034.009.065.01.099-3.856 4.767-6.914 10.2-8.981 16.099-5.202.374-10.232 1.317-15.029 2.779v-82.977h16c2.209 0 4-1.791 4-4s-1.791-4-4-4h-16v-20c0-2.209-1.791-4-4-4s-4 1.791-4 4v20h-16c-2.209 0-4 1.791-4 4s1.791 4 4 4h16v85.973c-7.506 3.373-14.262 8.066-20 13.777v-43.75h8c2.209 0 4-1.791 4-4s-1.791-4-4-4h-8v-8c0-2.209-1.791-4-4-4s-4 1.791-4 4v8h-8c-2.209 0-4 1.791-4 4s1.791 4 4 4h8v53.328c-7.573 10.98-12 24.299-12 38.672 0 2.209 1.791 4 4 4h232c2.209 0 4-1.791 4-4 0-10.334-2.261-20.262-6.719-29.505-.067-.138-.156-.257-.236-.384 6.931-11.062 10.955-24.122 10.955-38.111 0-39.701-32.299-72-72-72zm0 8c35.29 0 64 28.71 64 64s-28.71 64-64 64c-8.175 0-16.056-1.522-23.515-4.481 11.914-9.914 19.515-24.844 19.515-41.519 0-28.116-21.603-51.271-49.079-53.766 11.839-17.517 31.794-28.234 53.079-28.234zm-58 36c25.364 0 46 20.636 46 46s-20.636 46-46 46-46-20.636-46-46 20.636-46 46-46zm-105.87 92c1.885-28.907 24.054-52.201 52.736-55.567-.559 3.108-.866 6.301-.866 9.567 0 19.427 10.316 36.485 25.754 46zm223.741 0h-26.95c8.783-4.536 16.526-10.813 22.747-18.393 2.372 5.877 3.79 12.034 4.203 18.393z"></path>
+													<path d="m155.172 198.828c.78.781 1.805 1.172 2.828 1.172s2.048-.391 2.828-1.172c1.562-1.562 1.562-4.095 0-5.656l-18-18c-1.561-1.562-4.096-1.562-5.656 0-1.562 1.562-1.562 4.095 0 5.656z"></path><path d="m147.018 222.667c.791.883 1.885 1.333 2.982 1.333.95 0 1.903-.336 2.666-1.019 1.646-1.474 1.787-4.002.314-5.648l-34-38c-1.476-1.647-4.005-1.785-5.648-.314-1.646 1.474-1.787 4.002-.314 5.648z"></path><path d="m208 90c2.209 0 4-1.791 4-4v-32c0-2.209-1.791-4-4-4s-4 1.791-4 4v32c0 2.209 1.791 4 4 4z"></path><path d="m229.781 93.328c.682.455 1.452.672 2.215.672 1.293 0 2.562-.625 3.332-1.781l16-24c1.226-1.838.729-4.321-1.109-5.547-1.836-1.226-4.321-.729-5.547 1.109l-16 24c-1.226 1.838-.729 4.322 1.109 5.547z"></path><path d="m176.422 87.789c.701 1.401 2.114 2.212 3.581 2.212.602 0 1.212-.136 1.786-.423 1.976-.988 2.776-3.391 1.789-5.367l-12-24c-.989-1.977-3.394-2.777-5.367-1.789-1.976.988-2.776 3.391-1.789 5.367z"></path><path d="m148.8 96.4c.786 1.048 1.987 1.6 3.203 1.6.835 0 1.678-.261 2.397-.8 1.767-1.325 2.125-3.833.8-5.601l-12-16c-1.325-1.767-3.831-2.123-5.601-.8-1.767 1.325-2.125 3.833-.8 5.601z"></path><path d="m252.672 104.219c.771 1.156 2.039 1.781 3.332 1.781.762 0 1.533-.217 2.215-.672l12-8c1.838-1.226 2.335-3.709 1.109-5.547-1.225-1.838-3.709-2.337-5.547-1.109l-12 8c-1.838 1.225-2.335 3.709-1.109 5.547z"></path>
+												</svg>
+											</div>
+										</div>
+										<div class="pbmit-ihbox-contents">
+											<h2 class="pbmit-element-title">
+												Our Christian Values
+											</h2>
+											<div class="pbmit-heading-desc" style="text-align: justify;">We stand united in Christ, upholding values of love, respect, forgiveness, and service in everything we do as a family.</div>
+										</div>
+									</div>
+								</div>
+							</article>
+						</div>
+					</div>
+				</div>
+			</section>
+			<!-- Ihbox End --> 
+
+				<!-- Team Start -->
+				<section class="section-xl" style="background: linear-gradient(135deg, #e8e0d5 0%, #f1ede4 50%, #e4ddd4 100%);">
+					<div class="container">
+						<div class="d-md-flex justify-content-between">
+							<div class="pbmit-heading-subheading animation-style2">
+								<h2 class="pbmit-title">In Loving Memories</h2>
+							</div>
+						</div>
+						<div class="swiper-slider" data-loop="true" data-autoplay="true" data-dots="false" data-arrows="false" data-columns="4" data-margin="30" data-effect="slide">
+							<div class="swiper-wrapper">
+								{% for memory in memories %}
+								<article class="pbmit-service-style-1 swiper-slide" style="
+									background: #ffffff;
+									border-top: 1px solid rgba(255, 255, 255, 0.85);
+									border-left: 1px solid rgba(255, 255, 255, 0.85);
+									border-right: 1px solid rgba(200, 200, 200, 0.5);
+									border-bottom: 1px solid rgba(200, 200, 200, 0.5);
+									border-radius: 20px;
+									box-shadow:
+										inset 0 1px 0 rgba(255,255,255,1),
+										0 8px 40px rgba(0, 0, 0, 0.10),
+										0 2px 8px rgba(0, 0, 0, 0.06);
+									overflow: hidden;
+									position: relative;
+									
+								"
+								onmouseover="this.style.transform='translateY(-8px) scale(1.02)';this.style.boxShadow='0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08)'"
+								onmouseout="this.style.transform='translateY(0) scale(1)';this.style.boxShadow='inset 0 1px 0 rgba(255,255,255,1), 0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)'">
+
+									<!-- Top shine line -->
+									<div style="
+										position: absolute;
+										top: 0; left: 10%; right: 10%;
+										height: 1px;
+										background: linear-gradient(90deg, transparent, rgba(255,255,255,1), transparent);
+										border-radius: 100%;
+									"></div>
+
+									<div class="pbminfotech-post-item">
+										<div class="pbmit-box-content-wrap">
+
+											<!-- Fixed 220x220 Image -->
+											<div style="
+												width: 100%;
+												display: flex;
+												justify-content: center;
+												align-items: center;
+												padding: 20px 20px 0 20px;
+											">
+												<div style="
+													width: 220px;
+													height: 220px;
+													border-radius: 14px;
+													overflow: hidden;
+													border: 1px solid rgba(220, 220, 220, 0.8);
+													box-shadow:
+														0 4px 20px rgba(0,0,0,0.10),
+														inset 0 1px 0 rgba(255,255,255,0.9);
+													flex-shrink: 0;
+												">
+													<a href="{% url 'memory_detail' memory.id %}" target="_blank">
+														<img src="{{ memory.image.url }}"
+															alt="{{ memory.name }}"
+															style="
+																width: 220px;
+																height: 220px;
+																object-fit: cover;
+																object-position: center top;
+																display: block;
+															">
+													</a>
+												</div>
+											</div>
+
+											<div class="pbmit-service-icon">
+												<!-- Optional SVG here -->
+											</div>
+
+											<!-- Content Area -->
+											<div style="
+												padding: 16px 18px 20px 18px;
+												background: #ffffff;
+												border-top: 1px solid rgba(220, 220, 220, 0.5);
+												margin-top: 16px;
+											">
+												<div class="pbmit-content-box">
+													<div class="pbmit-serv-cat"></div>
+
+													<h3 class="pbmit-service-title" style="
+														font-size: 16px;
+														font-weight: 700;
+														margin-bottom: 10px;
+														color: #1a1a1a;
+														letter-spacing: 0.4px;
+													">
+														<a href="{% url 'memory_detail' memory.id %}" style="
+															color: #1a1a1a;
+															text-decoration: none;
+														">{{ memory.name }}</a>
+													</h3>
+
+													<div class="pbmit-service-description" style="overflow: hidden;">
+														<p style="
+															margin: 4px 0;
+															font-size: 12.5px;
+															color: #3a3a3a;
+														">
+															<strong>Born:</strong> {{ memory.birth_date }}
+														</p>
+														<p style="
+															margin: 4px 0;
+															font-size: 12.5px;
+															color: #3a3a3a;
+														">
+															<strong>Passed Away:</strong> {{ memory.death_date }}
+														</p>
+														<p style="
+															text-align: justify;
+															font-size: 12.5px;
+															color: #555;
+															margin-top: 8px;
+														">
+															{% comment %} {{ memory.description|truncatewords:15 }} {% endcomment %}
+														</p>
+													</div>
+												</div>
+											</div>
+
+										</div>
+									</div>
+								</article>
+								{% endfor %}
+							</div>
+						</div>
+					</div>
+				</section>
+				<!-- Team End -->
+
+			<!-- Contact Start --> 
+				<!-- ===== ADVERTISING PARTNERS — HERO STACK BANNER ===== -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,800;0,900;1,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+
+<!-- ══ LIGHTBOX ══ -->
+<div class="lx" id="lx">
+  <div class="lx-bg" id="lxBg"></div>
+  <button class="lx-close" id="lxClose" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button class="lx-nav lx-nav--l" id="lxPrev">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="lx-frame">
+    <div class="lx-loader" id="lxLoader"></div>
+    <img id="lxImg" class="lx-img" src="" alt="">
+  </div>
+  <button class="lx-nav lx-nav--r" id="lxNext">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+  <div class="lx-caption">
+    <span id="lxTitle"></span>
+    <span class="lx-caption__sep">|</span>
+    <span id="lxCount" style="opacity:.4;font-size:.75rem"></span>
+    <a id="lxVisit" class="lx-caption__link" href="#" target="_blank" rel="noopener">Visit ↗</a>
+  </div>
+</div>
+
+<!-- ══ SECTION ══ -->
+<section class="hs">
+	
+  <!-- Section header -->
+  <div class="hs-header">
+    <div class="hs-header__text">
+      <span class="hs-header__sup">Trusted & Featured</span>
+      <h2 class="hs-header__title">Our Advertising <span>Partners</span></h2>
+    </div>
+    <div class="hs-header__controls">
+      <button class="hs-ctrl hs-ctrl--prev hs-prev" aria-label="Previous">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="hs-ticker" id="hsTicker">
+        <span class="hs-ticker__n" id="hsCur">01</span>
+        <span class="hs-ticker__of">/</span>
+        <span class="hs-ticker__t" id="hsTot">06</span>
+      </div>
+      <button class="hs-ctrl hs-ctrl--next hs-next" aria-label="Next">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Banner swiper -->
+  <div class="hs-stage">
+    <div class="swiper hs-swiper">
+      <div class="swiper-wrapper">
+        {% for ad in advertisements %}
+        <div class="swiper-slide hs-slide">
+          <article class="hs-card"
+               data-img="{{ ad.image.url }}"
+               data-title="{{ ad.title }}"
+               data-link="{% if ad.link %}{{ ad.link }}{% endif %}"
+               data-index="{{ forloop.counter0 }}"
+               tabindex="0" role="button" aria-label="View {{ ad.title }}">
+
+            <!-- Full image -->
+            <div class="hs-card__photo">
+              <img src="{{ ad.image.url }}" alt="{{ ad.title }}" loading="lazy">
+              <div class="hs-card__vignette"></div>
+            </div>
+
+            <!-- Top meta row -->
+            <div class="hs-card__top">
+              <span class="hs-card__index">{{ forloop.counter|stringformat:"02d" }}</span>
+              <span class="hs-card__chip">
+                <span class="hs-card__chip-dot"></span>Partner
+              </span>
+            </div>
+
+            <!-- Bottom content -->
+            <div class="hs-card__bottom">
+              <div class="hs-card__bottom-inner">
+                <h3 class="hs-card__name">{{ ad.title }}</h3>
+                <div class="hs-card__row">
+                  <span class="hs-card__zoom-hint">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                    Click to view full
+                  </span>
+                  {% if ad.link %}
+                  <a href="{{ ad.link }}" target="_blank" rel="noopener"
+                     class="hs-card__cta" onclick="event.stopPropagation()">
+                    Visit Site
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+                      <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+                    </svg>
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+          </article>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Side stacked ghost cards (decoration) -->
+    <div class="hs-stack hs-stack--a"></div>
+    <div class="hs-stack hs-stack--b"></div>
+  </div>
+
+  <!-- Progress bar + dots -->
+  <div class="hs-footer">
+    <div class="hs-progress">
+      <div class="hs-progress__fill" id="hsFill"></div>
+    </div>
+    <div class="hs-dots" id="hsDots"></div>
+  </div>
+
+</section>
+
+<!-- ════ STYLES ════ -->
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:    #2699D2;
+  --blue2:   #5ec4ff;
+  --dark:    #080e18;
+  --surface: #0e1826;
+  --card-bg: #111c2a;
+  --text:    #e8f2fa;
+  --muted:   #6b8aa0;
+  --border:  rgba(38,153,210,.15);
+  --fh:      'Fraunces', serif;
+  --fb:      'Manrope', sans-serif;
+  --r:       18px;
+}
+
+/* ─── LIGHTBOX ─── */
+.lx {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; opacity: 0; pointer-events: none;
+  transition: opacity .3s ease; font-family: var(--fb);
+}
+.lx.open { opacity: 1; pointer-events: all; }
+.lx-bg { position: absolute; inset: 0; background: rgba(4,8,18,.97); backdrop-filter: blur(14px); }
+
+.lx-close {
+  position: fixed; top: 16px; right: 16px; z-index: 10;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.13);
+  color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .22s;
+}
+.lx-close:hover { background: var(--blue); border-color: var(--blue); transform: rotate(90deg); }
+
+.lx-nav {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 10;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.13);
+  color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .22s;
+}
+.lx-nav:hover { background: var(--blue); border-color: var(--blue); }
+.lx-nav--l { left: 16px; }
+.lx-nav--r { right: 16px; }
+
+.lx-frame {
+  position: relative; z-index: 5;
+  max-width: min(88vw, 1080px); max-height: 80vh;
+  display: flex; align-items: center; justify-content: center;
+}
+.lx-loader {
+  display: none; width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,.08); border-top-color: var(--blue);
+  border-radius: 50%; animation: lx-spin .75s linear infinite; position: absolute;
+}
+.lx-loader.on { display: block; }
+@keyframes lx-spin { to { transform: rotate(360deg); } }
+
+.lx-img {
+  max-width: 100%; max-height: 80vh;
+  border-radius: 14px; object-fit: contain;
+  box-shadow: 0 40px 100px rgba(0,0,0,.7);
+  opacity: 0; transform: scale(.92) translateY(10px);
+  transition: opacity .4s, transform .45s cubic-bezier(.16,1,.3,1);
+}
+.lx-img.on { opacity: 1; transform: scale(1) translateY(0); }
+
+.lx-caption {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(8,14,24,.9); backdrop-filter: blur(12px);
+  padding: 10px 22px; border-radius: 40px;
+  border: 1px solid rgba(255,255,255,.07); z-index: 10;
+  white-space: nowrap; max-width: 90vw;
+  font-family: var(--fb); color: rgba(255,255,255,.8); font-size: .83rem; font-weight: 500;
+}
+.lx-caption__sep { color: rgba(255,255,255,.18); }
+.lx-caption__link { color: var(--blue2); font-weight: 600; text-decoration: none; font-size: .78rem; transition: color .2s; }
+.lx-caption__link:hover { color: #fff; }
+.lx-caption__link.hide { display: none; }
+
+/* ─── SECTION ─── */
+.hs {
+  max-width: 1380px;
+  margin: 52px auto;
+  padding: 0 24px;
+  font-family: var(--fb);
+}
+
+/* Header */
+.hs-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 28px; gap: 20px;
+}
+.hs-header__sup {
+  display: block; font-size: .68rem; font-weight: 700;
+  letter-spacing: 3.5px; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 8px;
+}
+.hs-header__title {
+  font-family: font-size: clamp(1.6rem, 1.5vw, 2.8rem);
+  font-weight: 400; color: #1a2535; line-height: 1;
+  letter-spacing: -1px;
+}
+.hs-header__title span {
+  {% comment %} font-style: italic; {% endcomment %}
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hs-header__controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.hs-ctrl {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #f0f6fb; border: 1.5px solid #d4e8f5; color: #1a2535;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .22s;
+}
+.hs-ctrl:hover { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 6px 16px rgba(38,153,210,.35); }
+
+.hs-ticker {
+  display: flex; align-items: baseline; gap: 4px;
+  font-family: var(--fh); font-weight: 900;
+  min-width: 64px; justify-content: center;
+}
+.hs-ticker__n  { font-size: 1.5rem; color: var(--blue); line-height: 1; }
+.hs-ticker__of { font-size: .75rem; color: #bbb; margin: 0 2px; }
+.hs-ticker__t  { font-size: 1rem; color: #bbb; }
+
+/* Stage */
+.hs-stage {
+  position: relative;
+}
+
+/* Stack ghost cards */
+.hs-stack {
+  position: absolute;
+  left: 0; right: 0;
+  border-radius: var(--r);
+  pointer-events: none; z-index: 0;
+  {% comment %} background: linear-gradient(135deg, #d4e8f5, #e8f4fb); {% endcomment %}
+}
+.hs-stack--b {
+  bottom: -18px;
+  height: calc(100% - 12px);
+  opacity: .45;
+  transform: scaleX(.94);
+}
+.hs-stack--a {
+  bottom: -9px;
+  height: calc(100% - 6px);
+  opacity: .6;
+  transform: scaleX(.97);
+}
+
+/* Swiper */
+.hs-swiper {
+  position: relative; z-index: 1;
+  border-radius: var(--r);
+  overflow: hidden;
+  height: 500px;
+  box-shadow: 0 30px 70px rgba(0,0,0,.12), 0 8px 20px rgba(38,153,210,.08);
+}
+.hs-swiper .swiper-wrapper,
+.hs-swiper .swiper-slide { height: 100% !important; }
+
+/* Card */
+.hs-card {
+  position: relative; width: 100%; height: 100%;
+  display: block; cursor: pointer; outline: none;
+  overflow: hidden; background: var(--card-bg);
+}
+.hs-card:focus-visible { outline: 2px solid var(--blue); }
+
+/* Photo */
+.hs-card__photo {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+.hs-card__photo img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  display: block;
+  transition: transform 1.1s cubic-bezier(.16,1,.3,1);
+}
+.hs-card:hover .hs-card__photo img { transform: scale(1.08); }
+
+.hs-card__vignette {
+  position: absolute; inset: 0;
+  background:
+    {% comment %} linear-gradient(to top,  rgba(6,10,20,.92) 0%, rgba(6,10,20,.2) 45%, transparent 70%),
+    linear-gradient(to right, rgba(6,10,20,.3) 0%, transparent 40%); {% endcomment %}
+}
+
+/* Top row */
+.hs-card__top {
+  position: absolute; top: 22px; left: 22px; right: 22px; z-index: 4;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hs-card__index {
+  font-family: var(--fh); font-size: .78rem; font-weight: 900;
+  color: rgba(255,255,255,.4); letter-spacing: 2px;
+}
+.hs-card__chip {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(38,153,210,.18); border: 1px solid rgba(38,153,210,.4);
+  color: var(--blue2); font-size: .65rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 30px;
+  backdrop-filter: blur(8px);
+}
+.hs-card__chip-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue2);
+  animation: chip-blink 2s ease-in-out infinite;
+}
+@keyframes chip-blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* Bottom content */
+.hs-card__bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
+  padding: 0 28px 26px;
+}
+.hs-card__bottom-inner {
+  transform: translateY(8px); transition: transform .4s cubic-bezier(.16,1,.3,1);
+}
+.hs-card:hover .hs-card__bottom-inner { transform: translateY(0); }
+
+.hs-card__name {
+  font-family: var(--fh); font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-weight: 900; color: #fff; line-height: 1.05;
+  letter-spacing: -.5px; margin-bottom: 14px;
+  text-shadow: 0 2px 20px rgba(0,0,0,.4);
+}
+
+.hs-card__row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .4s .05s, transform .4s .05s cubic-bezier(.16,1,.3,1);
+}
+.hs-card:hover .hs-card__row { opacity: 1; transform: translateY(0); }
+
+.hs-card__zoom-hint {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .72rem; font-weight: 600;
+  color: rgba(255,255,255,.6); letter-spacing: .5px;
+}
+
+.hs-card__cta {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  color: #fff; font-size: .78rem; font-weight: 700;
+  padding: 9px 20px; border-radius: 30px; text-decoration: none;
+  font-family: var(--fb);
+  box-shadow: 0 6px 20px rgba(38,153,210,.45);
+  transition: box-shadow .22s, transform .22s;
+  flex-shrink: 0; position: relative; z-index: 5;
+}
+.hs-card__cta:hover { box-shadow: 0 8px 28px rgba(38,153,210,.65); transform: translateY(-1px); }
+
+/* Footer */
+.hs-footer {
+  display: flex; align-items: center; gap: 16px;
+  margin-top: 32px; padding: 0 2px;
+}
+.hs-progress {
+  flex: 1; height: 3px; background: #dde8f0; border-radius: 99px; overflow: hidden;
+}
+.hs-progress__fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--blue), var(--blue2));
+  border-radius: 99px; transition: width .1s linear;
+}
+.hs-dots { display: flex; gap: 6px; }
+.hs-dot {
+  height: 6px; border-radius: 99px; cursor: pointer; width: 6px;
+  background: #cce3f0; border: none; transition: all .35s ease;
+}
+.hs-dot.on { background: linear-gradient(90deg, var(--blue), var(--blue2)); width: 26px; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1024px) {
+  .hs-swiper { height: 420px; }
+}
+@media (max-width: 768px) {
+  .hs { margin: 28px auto; padding: 0 14px; }
+  .hs-swiper { height: 340px; }
+  .hs-stack--b { bottom: -14px; }
+  .hs-stack--a { bottom: -7px; }
+  .hs-card__bottom { padding: 0 20px 20px; }
+  .hs-card__name { font-size: 1.3rem; margin-bottom: 10px; }
+}
+@media (max-width: 520px) {
+  .hs-header { flex-direction: column; align-items: flex-start; margin-bottom: 20px; gap: 12px; }
+  .hs-swiper { height: 280px; border-radius: 14px; }
+  .hs-stack--b { bottom: -12px; border-radius: 14px; }
+  .hs-stack--a { bottom: -6px; border-radius: 14px; }
+  .hs-card__top { top: 14px; left: 14px; right: 14px; }
+  .hs-card__bottom { padding: 0 16px 16px; }
+  .hs-card__name { font-size: 1.1rem; margin-bottom: 8px; }
+  .hs-card__zoom-hint { display: none; }
+  .lx-nav { width: 40px; height: 40px; }
+  .lx-nav--l { left: 8px; } .lx-nav--r { right: 8px; }
+  .lx-caption { padding: 8px 14px; flex-direction: column; gap: 4px; }
+}
+</style>
+
+<!-- ════ SCRIPTS ════ -->
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  const cards   = Array.from(document.querySelectorAll('.hs-card'));
+  const gallery = cards.map(c => ({ img: c.dataset.img, title: c.dataset.title, link: c.dataset.link || '' }));
+  const total   = gallery.length;
+
+  /* ── Lightbox ── */
+  const lx     = document.getElementById('lx');
+  const lxBg   = document.getElementById('lxBg');
+  const lxImg  = document.getElementById('lxImg');
+  const lxLoad = document.getElementById('lxLoader');
+  const lxTit  = document.getElementById('lxTitle');
+  const lxCnt  = document.getElementById('lxCount');
+  const lxVis  = document.getElementById('lxVisit');
+  let ci = 0;
+
+  function lxLoad2(i) {
+    ci = ((i % total) + total) % total;
+    const g = gallery[ci];
+    lxImg.classList.remove('on'); lxLoad.classList.add('on');
+    lxTit.textContent = g.title;
+    lxCnt.textContent = `${ci + 1} / ${total}`;
+    g.link ? (lxVis.href = g.link, lxVis.classList.remove('hide'))
+           :  lxVis.classList.add('hide');
+    const t = new Image();
+    t.onload = () => {
+      lxImg.src = g.img; lxImg.alt = g.title;
+      lxLoad.classList.remove('on');
+      requestAnimationFrame(() => lxImg.classList.add('on'));
+    };
+    t.onerror = () => lxLoad.classList.remove('on');
+    t.src = g.img;
+  }
+  function lxOpen(i)  { lxLoad2(i); lx.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function lxClose2() { lx.classList.remove('open'); document.body.style.overflow = ''; lxImg.classList.remove('on'); lxImg.src = ''; }
+
+  cards.forEach((c, i) => {
+    c.addEventListener('click', e => { if (!e.target.closest('.hs-card__cta')) lxOpen(i); });
+    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); lxOpen(i); } });
+  });
+  document.getElementById('lxClose').onclick = lxClose2;
+  lxBg.onclick = lxClose2;
+  document.getElementById('lxPrev').onclick = () => lxLoad2(ci - 1);
+  document.getElementById('lxNext').onclick = () => lxLoad2(ci + 1);
+  document.addEventListener('keydown', e => {
+    if (!lx.classList.contains('open')) return;
+    if (e.key === 'Escape')     lxClose2();
+    if (e.key === 'ArrowLeft')  lxLoad2(ci - 1);
+    if (e.key === 'ArrowRight') lxLoad2(ci + 1);
+  });
+
+  /* ── Dots + counter ── */
+  const dotsWrap = document.getElementById('hsDots');
+  const fillEl   = document.getElementById('hsFill');
+  const curEl    = document.getElementById('hsCur');
+  const totEl    = document.getElementById('hsTot');
+  if (totEl) totEl.textContent = String(total).padStart(2, '0');
+
+  const dots = Array.from({ length: total }, (_, i) => {
+    const d = document.createElement('button');
+    d.className = 'hs-dot'; d.setAttribute('aria-label', `Slide ${i + 1}`);
+    dotsWrap.appendChild(d); return d;
+  });
+
+  function updateUI(ri) {
+    dots.forEach((d, i) => d.classList.toggle('on', i === ri));
+    if (curEl) curEl.textContent = String(ri + 1).padStart(2, '0');
+  }
+
+  /* ── Progress ── */
+  const DELAY = 5000;
+  let timer = null, t0 = 0;
+  function startFill() {
+    clearInterval(timer); fillEl.style.width = '0%'; t0 = Date.now();
+    timer = setInterval(() => {
+      const p = Math.min(((Date.now() - t0) / DELAY) * 100, 100);
+      fillEl.style.width = p + '%';
+      if (p >= 100) clearInterval(timer);
+    }, 30);
+  }
+
+  /* ── Swiper ── */
+  const sw = new Swiper('.hs-swiper', {
+    loop: true, speed: 900, grabCursor: true,
+    slidesPerView: 1, spaceBetween: 0,
+    effect: 'fade',
+    fadeEffect: { crossFade: true },
+    autoplay: { delay: DELAY, disableOnInteraction: false },
+    navigation: { nextEl: '.hs-next', prevEl: '.hs-prev' },
+    on: {
+      init()        { updateUI(this.realIndex); },
+      slideChange() { updateUI(this.realIndex); startFill(); }
+    }
+  });
+
+  dots.forEach((d, i) => d.addEventListener('click', () => { sw.slideToLoop(i); updateUI(i); startFill(); }));
+  startFill();
+});
+</script>
+			<!-- Contact End --> 
+
+			<!-- Marquee Start -->
+            <!-- <section class="section-lg">
+				<div class="container-fluid p-0">
+					<div class="swiper-slider marquee">
+						<div class="swiper-wrapper">
+							<article class="pbmit-marquee-effect-style-1 swiper-slide">
+								<div class="pbmit-tag-wrapper">
+									<h2 class="pbmit-element-title" data-text="Food Tours">
+										Food Tours
+									</h2>
+								</div>
+							</article>
+							<article class="pbmit-marquee-effect-style-1 swiper-slide">
+								<div class="pbmit-tag-wrapper">
+									<h2 class="pbmit-element-title" data-text="Day Cruises">
+										Day Cruises
+									</h2>
+								</div>
+							</article>
+							<article class="pbmit-marquee-effect-style-1 swiper-slide">
+								<div class="pbmit-tag-wrapper">
+									<h2 class="pbmit-element-title" data-text="Cultural">
+										Cultural
+									</h2>
+								</div>
+							</article>
+							<article class="pbmit-marquee-effect-style-1 swiper-slide">
+								<div class="pbmit-tag-wrapper">
+									<h2 class="pbmit-element-title" data-text="Day Cruises">
+										Day Cruises
+									</h2>
+								</div>
+							</article>
+						</div>
+					</div>
+				</div>
+			</section> -->
+			<!-- Marquee End -->
+
+			<!-- Blog Start -->
+			{% comment %} <section class="section-xl" style=" background: #f1ede4;">
+				<div class="container"> 
+					<div class="pbmit-heading-subheading text-center animation-style2">
+						<h4 class="pbmit-subtitle">Our EventS</h4>
+						<h2 class="pbmit-title">Check Out Our Events</h2>
+					</div>
+					<div class="swiper-slider" data-loop="true" data-autoplay="false" data-dots="false" data-arrows="false" data-columns="3" data-margin="29" data-effect="slide">
+						<div class="swiper-wrapper">
+							{% for event in events|slice:":4" %} 
+							<div class="swiper-slide">
+								<article class="pbmit-blog-style-1">
+									<div class="post-item">
+										<div class="pbminfotech-box-content">
+											<div class="pbmit-featured-container">
+												<div class="pbmit-featured-img-wrapper">
+													<div class="pbmit-featured-wrapper">
+														<!-- Removed modal trigger anchor -->
+														<img src="{{ event.image.url }}" class="img-fluid" alt="{{ event.headline }}">
+													</div>
+												</div>
+											</div>
+											<div class="pbmit-content-wrapper">
+												<div class="pbmit-date-wraper d-flex align-items-center">
+													<div class="pbmit-meta-category pbmit-meta-line">
+														<div class="pbmit-meta-category">
+															<a href="#" rel="category tag">{{ event.category }}</a>
+														</div>
+													</div>
+													<div class="pbmit-meta-date-wrapper pbmit-meta-line">
+														<div class="pbmit-meta-date">
+															<span class="pbmit-post-date">{{ event.date|date:"F j, Y" }}</span>
+														</div>
+													</div>
+												</div>
+												<h3 class="pbmit-post-title">
+													<a href="#">{{ event.headline }}</a>
+												</h3>
+												<div class="pbminfotech-box-desc">
+													{{ event.subhead }}
+												</div>
+											</div>
+										</div>
+									</div>
+								</article>
+							</div>
+							{% endfor %}
+						</div>
+						
+					<div class="text-center pt-md-5 pt-3">
+						<a href="{% url 'events' %}" class="pbmit-btn pbmit-btn-white" style="border: 1px solid var(--pbmit-blackish-color);
+					">
+							<span class="pbmit-button-content-wrapper">
+								<span class="pbmit-button-text">
+									View All
+								</span>
+							</span>
+						</a>
+					</div>
+				</div>
+			</section>  {% endcomment %}
+			<!-- Blog End -->
+
+		</div>
+		<!-- page content End -->
+
+		{% include 'footer.html' %}
+
+		
+
+	</body>
+</html>

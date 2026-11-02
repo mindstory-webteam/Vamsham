@@ -1,0 +1,464 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    {% include 'head.html' %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.title }} | Premium Event</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/lightgallery@2.1.8/css/lightgallery-bundle.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #059669;
+            --accent: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --text: #334155;
+            --white: #ffffff;
+            --gray-light: #e2e8f0;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--light);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        
+        .hero-section {
+            position: relative;
+            height: 80vh;
+            min-height: 600px;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8));
+        }
+        
+        .hero-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.9);
+        }
+        
+        .hero-content {
+            width: 100%;
+            padding: 4rem 2rem;
+            color: var(--white);
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            position: relative;
+        }
+        
+        .hero-title {
+            font-family: 'Libre Baskerville', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color:#fff;
+            line-height: 1.2;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero-meta {
+            display: flex;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .event-container {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+        
+        .event-card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            padding: 3rem;
+            margin-bottom: 4rem;
+            border: 1px solid var(--gray-light);
+        }
+        
+        .section-title {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--dark);
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+        
+        .event-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            color: var(--text);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .info-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            border-top: 4px solid var(--primary);
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        
+        .info-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .info-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .info-card p {
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+        
+        .gallery-container {
+            margin: 4rem 0;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+        }
+        
+        .gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover .gallery-image {
+            transform: scale(1.05);
+        }
+        
+        .gallery-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: var(--white);
+            padding: 1rem;
+            transform: translateY(100%);
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover .gallery-caption {
+            transform: translateY(0);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+        
+        .floating-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            cursor: pointer;
+            z-index: 100;
+            transition: var(--transition);
+        }
+        
+        .floating-button:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                height: 70vh;
+                min-height: 500px;
+            }
+            
+            .hero-content {
+                padding: 2rem 1rem;
+            }
+            
+            .hero-meta {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .event-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animation classes */
+        .animate-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+        
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <img src="{{ event.image.url }}" alt="{{ event.title }}" class="hero-image">
+        <div class="hero-content animate-in">
+            <h1 class="hero-title">{{ event.title }}</h1>
+            <div class="hero-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar-alt"></i>
+                    <span>Coming Soon</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Location TBA</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Tickets Available Soon</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="event-container">
+        <div class="event-card animate-in delay-1">
+            <h2 class="section-title">Event Details</h2>
+            <div class="event-description">
+                {{ event.description|linebreaks }}
+            </div>
+            
+            <!-- Key Information -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Schedule</h3>
+                    {% comment %} <p><strong>Date:</strong> {{ events.date|date:"F j, Y" }}</p> {% endcomment %}
+
+                    <p>Full event schedule will be announced soon. Stay tuned for updates on sessions and activities.</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h3>Venue</h3>
+                    {% comment %} <p><strong>Location:</strong> {{ event.location }}</p> {% endcomment %}
+                    <p>Our prestigious venue will be revealed in the coming weeks. Expect a world-class location.</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Speakers</h3>
+                    <p>Industry leaders and innovators will share their insights. Speaker lineup announcement coming soon.</p>
+                </div>
+                {% comment %} <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3>Catering</h3>
+                    <p>Gourmet catering will be provided throughout the event, with options for all dietary requirements.</p>
+                </div> {% endcomment %}
+            </div>
+            
+            {% comment %} <a href="#register" class="cta-button">Notify Me When Tickets Go Live</a> {% endcomment %}
+        </div>
+
+        <!-- Gallery Section -->
+        {% if event.gallery_images.all %}
+        <div class="event-card animate-in delay-2">
+            <h2 class="section-title">Family Photo Collection</h2>
+            <p>Captured Moments from Our Events</p>
+            
+            <div class="gallery-grid">
+                {% for image in event.gallery_images.all %}
+                <a href="{{ image.image.url }}" class="gallery-item" data-src="{{ image.image.url }}" data-sub-html="{{ image.caption }}">
+                    <img src="{{ image.image.url }}" alt="{{ image.caption }}" class="gallery-image">
+                    {% if image.caption %}
+                    <div class="gallery-caption">
+                        <p>{{ image.caption }}</p>
+                    </div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% comment %} <!-- Floating Button -->
+    <div class="floating-button" onclick="window.location.href='#register'">
+        <i class="fas fa-ticket-alt"></i>
+    </div> {% endcomment %}
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.1.8/lightgallery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.1.8/plugins/zoom/lg-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.1.8/plugins/fullscreen/lg-fullscreen.min.js"></script>
+    <script>
+        // Initialize lightGallery
+        if(document.querySelector('.gallery-grid')) {
+            lightGallery(document.querySelector('.gallery-grid'), {
+                selector: '.gallery-item',
+                download: false,
+                zoom: true,
+                counter: true
+            });
+        }
+        
+        // Intersection Observer for animations
+        const animateElements = () => {
+            const elements = document.querySelectorAll('.event-card, .section-title, .info-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            elements.forEach(el => {
+                observer.observe(el);
+            });
+        };
+        
+        document.addEventListener('DOMContentLoaded', animateElements);
+    </script>
+</body>
+</html>

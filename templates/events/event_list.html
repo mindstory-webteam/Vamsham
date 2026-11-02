@@ -1,0 +1,706 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+	{% include 'head.html' %}
+	<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="page-wrapper">
+
+	{% include 'navbar.html' %}
+
+	<!-- Title Bar -->
+	<div class="pbmit-title-bar-wrapper" style="margin:0;">
+		<div class="container">
+			<div class="pbmit-title-bar-content">
+				<div class="pbmit-title-bar-content-inner">
+					<div class="pbmit-tbar">
+						<div class="pbmit-tbar-inner container">
+							<h1 class="pbmit-tbar-title">Events</h1>
+						</div>
+					</div>
+					<div class="pbmit-breadcrumb">
+						<div class="pbmit-breadcrumb-inner">
+							<span><a href="#" class="home"><span>Vamsham Family</span></a></span>
+							<span class="sep"><i class="pbmit-base-icon-angle-right"></i></span>
+							<span><span class="current-item">Events</span></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="page-content">
+<style>
+	*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+	:root {
+	  --navy:       #0f1f3d;
+	  --navy-mid:   #162447;
+	  --emerald:    #2699D2;
+	  --emerald-lt: #2699D2;
+	  --emerald-pale: #e8f5fc;
+	  --gold:       #f59e0b;
+	  --ink:        #0d1117;
+	  --slate:      #334155;
+	  --muted:      #64748b;
+	  --border:     #e2e8f0;
+	  --bg:         #f8fafc;
+	  --white:      #ffffff;
+	  --radius-card: 22px;
+	}
+
+	body {
+	  background: var(--bg);
+	  color: var(--ink);
+	}
+
+	/* ═══════════════════════════════
+	   FILTER BAR — bold navy bar
+	═══════════════════════════════ */
+	.filter-bar {
+	  background: var(--navy);
+	  position: sticky;
+	  top: 0;
+	  z-index: 200;
+	  box-shadow: 0 4px 24px rgba(15,31,61,.35);
+	}
+
+	.filter-inner {
+	  max-width: 1200px;
+	  margin: 0 auto;
+	  padding: 0 28px;
+	  display: flex;
+	  align-items: center;
+	  gap: 0;
+	  flex-wrap: wrap;
+	}
+
+	/* search side */
+	.filter-search-side {
+	  display: flex;
+	  align-items: center;
+	  gap: 0;
+	  padding: 14px 24px 14px 0;
+	  border-right: 1px solid rgba(255,255,255,.1);
+	  flex-shrink: 0;
+	}
+
+	.search-wrap {
+	  display: flex;
+	  align-items: center;
+	  background: rgba(255,255,255,.08);
+	  border: 1px solid rgba(255,255,255,.14);
+	  border-radius: 10px;
+	  overflow: hidden;
+	  transition: border-color .2s, background .2s;
+	}
+	.search-wrap:focus-within {
+	  border-color: #2699D2;
+	  background: rgba(38,153,210,.08);
+	}
+	.search-icon { padding: 0 10px 0 14px; color: rgba(255,255,255,.4); font-size: .88rem; }
+	.search-input {
+	  background: transparent; border: none; outline: none;
+	  padding: 10px 4px; font-size: .82rem;
+	  color: #fff; width: 200px;
+	}
+	.search-input::placeholder { color: rgba(255,255,255,.3); }
+	.search-btn {
+	  background: var(--emerald); border: none; color: #fff;
+	  padding: 11px 18px; font-size: .78rem;
+	  font-weight: 600;
+	  cursor: pointer; transition: background .2s; white-space: nowrap;
+	}
+	.search-btn:hover { background: #2699D2; }
+
+	/* pills side */
+	.filter-pills-side {
+	  display: flex;
+	  align-items: center;
+	  gap: 6px;
+	  padding: 14px 0 14px 24px;
+	  overflow-x: auto;
+	  scrollbar-width: none;
+	  flex: 1;
+	}
+	.filter-pills-side::-webkit-scrollbar { display: none; }
+
+	.fpill {
+	  background: rgba(255,255,255,.07);
+	  border: 1px solid rgba(255,255,255,.12);
+	  border-radius: 7px;
+	  color: rgba(255,255,255,.6);
+	  font-size: .72rem; font-weight: 500;
+	  padding: 6px 14px;
+	  text-decoration: none;
+	  transition: all .18s;
+	  white-space: nowrap;
+	  flex-shrink: 0;
+	}
+	.fpill:hover {
+	  background: rgba(38,153,210,.15);
+	  border-color: #2699D2;
+	  color: #2699D2;
+	}
+	.fpill.active {
+	  background: var(--emerald);
+	  border-color: var(--emerald);
+	  color: #fff;
+	  box-shadow: 0 2px 10px rgba(38,153,210,.4);
+	}
+
+	/* ═══════════════════════════════
+	   SECTION HEADER
+	═══════════════════════════════ */
+	.section-head {
+	  max-width: 1200px;
+	  margin: 48px auto 32px;
+	  padding: 0 28px;
+	  display: flex;
+	  align-items: center;
+	  justify-content: space-between;
+	  gap: 16px;
+	  flex-wrap: wrap;
+	}
+	.section-left {}
+	.eyebrow {
+	  font-size: .65rem; font-weight: 600;
+	  letter-spacing: .2em; text-transform: uppercase;
+	  color: var(--emerald); margin-bottom: 6px;
+	}
+	.section-title {
+	  font-size: clamp(1.6rem, 3vw, 2.3rem);
+	  font-weight: 700; color: var(--navy);
+	  line-height: 1.15;
+	}
+	.section-title em { font-style: italic; color: var(--emerald); font-weight: 400; }
+
+	.count-pill {
+	  display: flex; align-items: center; gap: 8px;
+	  background: var(--navy);
+	  color: #fff;
+	  border-radius: 50px;
+	  padding: 8px 20px;
+	  font-size: .75rem; font-weight: 600;
+	}
+	.count-dot {
+	  width: 8px; height: 8px; border-radius: 50%;
+	  background: #2699D2;
+	  animation: pulse 2s infinite;
+	}
+	@keyframes pulse {
+	  0%, 100% { box-shadow: 0 0 0 0 rgba(38,153,210,.4); }
+	  50%       { box-shadow: 0 0 0 5px rgba(38,153,210,0); }
+	}
+
+	/* ═══════════════════════════════
+	   3-COLUMN GRID
+	═══════════════════════════════ */
+	.main-wrap {
+	  max-width: 1200px;
+	  margin: 0 auto 70px;
+	  padding: 0 28px;
+	}
+
+	.events-grid {
+	  display: grid;
+	  grid-template-columns: repeat(3, 1fr);
+	  gap: 24px;
+	}
+	@media (max-width: 960px)  { .events-grid { grid-template-columns: repeat(2,1fr); gap: 20px; } }
+	@media (max-width: 560px)  { .events-grid { grid-template-columns: 1fr; gap: 16px; } }
+
+	/* ═══════════════════════════════
+	   CARD — new horizontal-top design
+	═══════════════════════════════ */
+	.event-card {
+	  background: var(--white);
+	  border-radius: var(--radius-card);
+	  overflow: hidden;
+	  cursor: pointer;
+	  display: flex;
+	  flex-direction: column;
+	  border: 1px solid var(--border);
+	  transition: transform .3s cubic-bezier(.25,.46,.45,.94),
+	              box-shadow .3s ease;
+	  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+	  position: relative;
+	}
+	.event-card:hover {
+	  transform: translateY(-8px);
+	  box-shadow: 0 24px 60px rgba(15,31,61,.16), 0 4px 16px rgba(0,0,0,.08);
+	}
+
+	/* image */
+	.card-img-wrap {
+	  position: relative;
+	  height: 210px;
+	  overflow: hidden;
+	  flex-shrink: 0;
+	}
+	.card-img-wrap img {
+	  width: 100%; height: 100%; object-fit: cover;
+	  display: block;
+	  transition: transform .65s cubic-bezier(.25,.46,.45,.94);
+	}
+	.event-card:hover .card-img-wrap img { transform: scale(1.07); }
+
+	/* dark navy overlay on hover */
+	.card-img-overlay {
+	  position: absolute; inset: 0;
+	  background: linear-gradient(to bottom, rgba(15,31,61,0) 35%, rgba(15,31,61,.72) 100%);
+	}
+
+	/* category pill — top left */
+	.cat-pill {
+	  position: absolute; top: 14px; left: 14px;
+	  background: var(--navy);
+	  color: #fff;
+	  font-size: .6rem; font-weight: 700;
+	  letter-spacing: .1em; text-transform: uppercase;
+	  padding: 5px 12px; border-radius: 6px;
+	  border: 1px solid rgba(255,255,255,.15);
+	}
+
+	/* emerald dot accent — top right */
+	.card-accent-dot {
+	  position: absolute; top: 14px; right: 14px;
+	  width: 10px; height: 10px; border-radius: 50%;
+	  background: #2699D2;
+	  box-shadow: 0 0 0 3px rgba(38,153,210,.25);
+	}
+
+	/* photo count — bottom right on image */
+	.photo-tag {
+	  position: absolute; bottom: 12px; right: 12px;
+	  background: rgba(255,255,255,.15);
+	  backdrop-filter: blur(8px);
+	  border: 1px solid rgba(255,255,255,.2);
+	  color: #fff;
+	  font-size: .62rem; font-weight: 600;
+	  padding: 4px 10px; border-radius: 20px;
+	  display: flex; align-items: center; gap: 5px;
+	}
+
+	.no-photo {
+	  height: 210px;
+	  background: linear-gradient(135deg, #0f1f3d 0%, #162447 100%);
+	  display: flex; flex-direction: column;
+	  align-items: center; justify-content: center; gap: 10px;
+	}
+	.no-photo-icon { font-size: 2.5rem; opacity: .25; }
+	.no-photo-text { font-size: .65rem; color: rgba(255,255,255,.3); letter-spacing: .08em; font-weight: 500; text-transform: uppercase; }
+
+	/* card body */
+	.card-body {
+	  padding: 20px 22px;
+	  display: flex; flex-direction: column; flex: 1;
+	}
+
+	.card-title {
+	  padding: 5px 12px;
+	  font-size: 1.12rem; font-weight: 700;
+	  color: var(--navy); line-height: 1.3;
+	  margin-bottom: 8px; letter-spacing: -.01em;
+	  transition: color .2s;
+	}
+	.event-card:hover .card-title { color: var(--emerald); }
+
+	.card-desc {
+	  padding: 5px 12px;
+	  font-size: .77rem; color: var(--muted);
+	  line-height: 1.72; flex: 1; font-weight: 400;
+	}
+
+	/* ═══ CARD FOOTER — new design ═══ */
+	.card-footer-row {
+	  margin-top: 18px;
+	  display: grid;
+	  grid-template-columns: 1fr 1fr;
+	  gap: 1px;
+	  background: var(--border);
+	  border-radius: 12px;
+	  overflow: hidden;
+	  border: 1px solid var(--border);
+	}
+
+	.footer-half {
+	  background: var(--white);
+	  display: flex; flex-direction: column;
+	  align-items: center; justify-content: center;
+	  padding: 11px 10px;
+	  gap: 2px;
+	  transition: background .2s;
+	  cursor: pointer;
+	}
+	.footer-half:first-child { border-right: 1px solid var(--border); }
+
+	.footer-half-label {
+	  font-size: .58rem; font-weight: 600;
+	  letter-spacing: .12em; text-transform: uppercase;
+	  color: var(--muted);
+	}
+	.footer-half-value {
+	  font-size: .78rem; font-weight: 700;
+	  color: var(--navy);
+	  
+	}
+
+	/* right half — gallery CTA */
+	.footer-cta-half {
+	  background: var(--navy);
+	  display: flex; align-items: center; justify-content: center;
+	  gap: 7px;
+	  padding: 11px 10px;
+	  transition: background .2s;
+	  cursor: pointer;
+	}
+	.footer-cta-label {
+	  font-size: .72rem; font-weight: 700;
+	  color: #fff; letter-spacing: .03em;
+	}
+	.footer-cta-icon {
+	  width: 22px; height: 22px;
+	  background: var(--emerald);
+	  border-radius: 6px;
+	  display: flex; align-items: center; justify-content: center;
+	  font-size: .75rem; color: #fff;
+	  transition: transform .25s;
+	  flex-shrink: 0;
+	}
+	.event-card:hover .footer-cta-half { background: var(--emerald); }
+	.event-card:hover .footer-cta-icon { background: rgba(255,255,255,.2); transform: rotate(-45deg); }
+
+	/* ═══════════════════════════════
+	   EMPTY STATE
+	═══════════════════════════════ */
+	.empty-state {
+	  grid-column: 1/-1; text-align: center; padding: 90px 20px;
+	}
+	.empty-icon { font-size: 4rem; opacity: .2; margin-bottom: 18px; }
+	.empty-state h4 {
+	  font-size: 1.5rem;
+	  font-weight: 700; color: var(--navy); margin-bottom: 10px;
+	}
+	.empty-state p { font-size: .82rem; color: var(--muted); margin-bottom: 24px; }
+
+	/* ═══════════════════════════════
+	   MODAL
+	═══════════════════════════════ */
+	.modal-content {
+	  border: none; border-radius: 22px; overflow: hidden;
+	  box-shadow: 0 40px 100px rgba(0,0,0,.24);
+	}
+	.modal-header {
+	  background: var(--navy); border: none; padding: 22px 26px;
+	  display: flex; align-items: flex-start; gap: 12px;
+	}
+	.modal-header-body { flex: 1; }
+	.modal-eyebrow {
+	  font-size: .6rem; font-weight: 700; letter-spacing: .16em;
+	  text-transform: uppercase; color: #2699D2; margin-bottom: 6px;
+	}
+	.modal-title {
+	  color: #fff !important; font-weight: 700 !important;
+	  font-size: 1.3rem !important; line-height: 1.25;
+	}
+	.modal-sub { color: rgba(255,255,255,.4); font-size: .76rem; margin-top: 4px; }
+
+	.modal-img-box {
+	  background: #080f1e;
+	  display: flex; align-items: center; justify-content: center;
+	  min-height: 420px;
+	}
+	.modal-img-box img { max-height: 430px; max-width: 100%; object-fit: contain; }
+
+	.thumb-strip {
+	  display: flex; gap: 5px; padding: 10px 12px;
+	  background: #0d1a36; overflow-x: auto;
+	}
+	.thumb-strip::-webkit-scrollbar { height: 3px; }
+	.thumb-strip::-webkit-scrollbar-thumb { background: var(--emerald); border-radius: 3px; }
+	.thumb-strip img {
+	  width: 58px; height: 44px; object-fit: cover;
+	  border-radius: 7px; cursor: pointer; opacity: .35;
+	  border: 2px solid transparent; flex-shrink: 0; transition: all .2s;
+	}
+	.thumb-strip img.active-thumb { opacity: 1; border-color: #2699D2; }
+
+	.modal-desc-box {
+	  padding: 20px 26px; font-size: .86rem;
+	  color: var(--slate); line-height: 1.8;
+	  border-top: 1px solid var(--border);
+	}
+
+	/* ═══════════════════════════════
+	   PAGINATION
+	═══════════════════════════════ */
+	.pagination-wrap {
+	  display: flex; justify-content: center; padding: 10px 0 54px;
+	}
+	.pagination { gap: 5px; }
+	.page-link {
+	  background: var(--white) !important;
+	  border: 1.5px solid var(--border) !important;
+	  border-radius: 10px !important;
+	  color: var(--slate) !important;
+	  font-size: .8rem; font-weight: 500;
+	  padding: 8px 16px;
+	  transition: all .18s;
+	}
+	.page-item.active .page-link {
+	  background: var(--navy) !important;
+	  border-color: var(--navy) !important;
+	  color: #fff !important;
+	}
+	.page-link:hover {
+	  border-color: var(--emerald) !important;
+	  color: var(--emerald) !important;
+	}
+
+	/* ═══════════════════════════════
+	   ANIMATIONS
+	═══════════════════════════════ */
+	@keyframes fadeUp {
+	  from { opacity: 0; transform: translateY(26px); }
+	  to   { opacity: 1; transform: translateY(0); }
+	}
+	.event-card { animation: fadeUp .5s ease both; }
+	.event-card:nth-child(1) { animation-delay: .06s; }
+	.event-card:nth-child(2) { animation-delay: .13s; }
+	.event-card:nth-child(3) { animation-delay: .20s; }
+	.event-card:nth-child(4) { animation-delay: .27s; }
+	.event-card:nth-child(5) { animation-delay: .34s; }
+	.event-card:nth-child(6) { animation-delay: .41s; }
+	.event-card:nth-child(7) { animation-delay: .48s; }
+	.event-card:nth-child(8) { animation-delay: .55s; }
+	.event-card:nth-child(9) { animation-delay: .62s; }
+
+	/* ═══════════════════════════════
+	   RESPONSIVE
+	═══════════════════════════════ */
+	@media (max-width: 768px) {
+	  .filter-inner { flex-direction: column; align-items: stretch; padding: 0; }
+	  .filter-search-side {
+	    border-right: none; border-bottom: 1px solid rgba(255,255,255,.1);
+	    padding: 12px 16px;
+	  }
+	  .filter-pills-side { padding: 10px 16px; }
+	  .section-head, .main-wrap { padding-left: 16px; padding-right: 16px; }
+	  .search-input { width: 160px; }
+	  .modal-img-box { min-height: 240px; }
+	  .modal-img-box img { max-height: 260px; }
+	}
+	@media (max-width: 440px) {
+	  .search-wrap { flex: 1; }
+	  .search-input { width: 100%; flex: 1; }
+	}
+	</style>
+
+	<!-- ══ FILTER BAR ══ -->
+	<div class="filter-bar">
+	  <div class="filter-inner">
+	    <div class="filter-search-side">
+	      <form method="get" style="display:contents;">
+	        {% if current_category %}
+	          <input type="hidden" name="category" value="{{ current_category }}">
+	        {% endif %}
+	        <div class="search-wrap">
+	          <span class="search-icon">🔍</span>
+	          <input type="text" name="q" value="{{ current_query }}"
+	                 class="search-input" placeholder="Search events…">
+	          <button type="submit" class="search-btn">Search</button>
+	        </div>
+	      </form>
+	    </div>
+	    <div class="filter-pills-side">
+	      <a href="?{% if current_query %}q={{ current_query }}{% endif %}"
+	         class="fpill {% if not current_category %}active{% endif %}">All Events</a>
+	      {% for cat in all_categories %}
+	      <a href="?category={{ cat }}{% if current_query %}&q={{ current_query }}{% endif %}"
+	         class="fpill {% if current_category == cat %}active{% endif %}">{{ cat }}</a>
+	      {% endfor %}
+	    </div>
+	  </div>
+	</div>
+
+	<!-- ══ SECTION HEADER ══ -->
+	<div class="section-head">
+	  <div class="section-left">
+	    {% comment %} <div class="eyebrow">Vamsham Family · Memories</div> {% endcomment %}
+	    <h2 class="section-title">Family <em>Events</em> & Gatherings</h2>
+	  </div>
+	  {% if page_obj %}
+	  <div class="count-pill">
+	    <span class="count-dot"></span>
+	    {{ page_obj.paginator.count }} Event{% if page_obj.paginator.count != 1 %}s{% endif %}
+	  </div>
+	  {% endif %}
+	</div>
+
+	<!-- ══ GRID ══ -->
+	<div class="main-wrap">
+	  <div class="events-grid">
+	    {% for event in page_obj %}
+	    {% with imgs=event.images.all %}
+
+	    <div class="event-card" data-bs-toggle="modal" data-bs-target="#modal{{ event.pk }}">
+
+	      <!-- Image -->
+	      {% if imgs %}
+	      <div class="card-img-wrap">
+	        <img src="{{ imgs.0.image.url }}" alt="{{ event.title }}">
+	        <div class="card-img-overlay"></div>
+	        <span class="cat-pill">{{ event.category }}</span>
+	        <span class="card-accent-dot"></span>
+	        {% if imgs|length > 1 %}
+	        <span class="photo-tag">📷 {{ imgs|length }} photos</span>
+	        {% endif %}
+	      </div>
+	      {% else %}
+	      <div class="no-photo">
+	        <div class="no-photo-icon">🎉</div>
+	        <div class="no-photo-text">No photos yet</div>
+	      </div>
+	      {% endif %}
+
+	      <!-- Body -->
+	      <div class="card-body">
+	        <div class="card-title">{{ event.title }}</div>
+	        <div class="card-desc">{{ event.description|truncatechars:105 }}</div>
+
+	        <!-- ══ FOOTER — split grid ══ -->
+	        <div class="card-footer-row">
+	          <!-- left: date info -->
+	          <div class="footer-half">
+	            <span class="footer-half-label">Date</span>
+	            <span class="footer-half-value">{{ event.date|date:"M j, Y" }}</span>
+	          </div>
+	          <!-- right: gallery CTA -->
+	          <div class="footer-cta-half">
+	            <span class="footer-cta-label">Gallery</span>
+	            <span class="footer-cta-icon">↗</span>
+	          </div>
+	        </div>
+
+	      </div>
+	    </div>
+
+	    <!-- ══ MODAL ══ -->
+	    <div class="modal fade" id="modal{{ event.pk }}" tabindex="-1" aria-hidden="true">
+	      <div class="modal-dialog modal-dialog-centered modal-lg">
+	        <div class="modal-content">
+	          <div class="modal-header">
+	            <div class="modal-header-body">
+	              <div class="modal-eyebrow">{{ event.category }}</div>
+	              <h5 class="modal-title">{{ event.title }}</h5>
+	              <div class="modal-sub">{{ event.date|date:"F j, Y" }}</div>
+	            </div>
+	            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+	          </div>
+
+	          {% if imgs %}
+	          <div id="carousel{{ event.pk }}" class="carousel slide" data-bs-ride="false">
+	            <div class="carousel-inner">
+	              {% for img in imgs %}
+	              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+	                <div class="modal-img-box">
+	                  <img src="{{ img.image.url }}" alt="{{ img.caption|default:event.title }}">
+	                </div>
+	                {% if img.caption %}
+	                <p style="text-align:center;font-size:.8rem;color:var(--muted);padding:10px 20px;margin:0;background:var(--bg);">{{ img.caption }}</p>
+	                {% endif %}
+	              </div>
+	              {% endfor %}
+	            </div>
+	            {% if imgs|length > 1 %}
+	            <button class="carousel-control-prev" type="button"
+	                    data-bs-target="#carousel{{ event.pk }}" data-bs-slide="prev">
+	              <span class="carousel-control-prev-icon"></span>
+	            </button>
+	            <button class="carousel-control-next" type="button"
+	                    data-bs-target="#carousel{{ event.pk }}" data-bs-slide="next">
+	              <span class="carousel-control-next-icon"></span>
+	            </button>
+	            <div class="thumb-strip">
+	              {% for img in imgs %}
+	              <img src="{{ img.image.url }}"
+	                   data-bs-target="#carousel{{ event.pk }}"
+	                   data-bs-slide-to="{{ forloop.counter0 }}"
+	                   class="carousel-thumb {% if forloop.first %}active-thumb{% endif %}"
+	                   alt="thumb">
+	              {% endfor %}
+	            </div>
+	            {% endif %}
+	          </div>
+	          {% else %}
+	          <div style="text-align:center;padding:64px 20px;color:var(--muted);">
+	            <div style="font-size:3rem;margin-bottom:14px;opacity:.25;">📷</div>
+	            <p style="font-size:.82rem;">No images uploaded yet.</p>
+	          </div>
+	          {% endif %}
+
+	          {% if event.description %}
+	          <div class="modal-desc-box">{{ event.description }}</div>
+	          {% endif %}
+	        </div>
+	      </div>
+	    </div>
+
+	    {% endwith %}
+	    {% empty %}
+	    <div class="empty-state">
+	      <div class="empty-icon">🔍</div>
+	      <h4>No Events Found</h4>
+	      <p>Try a different keyword or select another category.</p>
+	      <a href="{% url 'event_list' %}" class="fpill active" style="display:inline-block;margin-top:8px;">Clear Filters</a>
+	    </div>
+	    {% endfor %}
+	  </div>
+
+	  <!-- ══ PAGINATION ══ -->
+	  {% if page_obj.has_other_pages %}
+	  <div class="pagination-wrap">
+	    <ul class="pagination flex-wrap">
+	      {% if page_obj.has_previous %}
+	      <li class="page-item">
+	        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">← Prev</a>
+	      </li>
+	      {% endif %}
+	      {% for num in page_obj.paginator.page_range %}
+	      <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+	        <a class="page-link" href="?page={{ num }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">{{ num }}</a>
+	      </li>
+	      {% endfor %}
+	      {% if page_obj.has_next %}
+	      <li class="page-item">
+	        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">Next →</a>
+	      </li>
+	      {% endif %}
+	    </ul>
+	  </div>
+	  {% endif %}
+	</div>
+
+	</div><!-- .page-content -->
+</div><!-- .page-wrapper -->
+
+{% include 'footer.html' %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.querySelectorAll('.carousel').forEach(function(car) {
+    var thumbs = car.querySelectorAll('.carousel-thumb');
+    car.addEventListener('slide.bs.carousel', function(e) {
+      thumbs.forEach(function(t, i) { t.classList.toggle('active-thumb', i === e.to); });
+    });
+  });
+</script>
+</body>
+</html>

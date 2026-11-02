@@ -1,0 +1,258 @@
+<li>
+    <div class="mc">
+        <div class="couple">
+
+            <!-- ════════════════════════════════════════════════════
+                 MAIN MEMBER CARD
+            ════════════════════════════════════════════════════ -->
+            <div class="card {% if member.gender == 'M' %}male{% elif member.gender == 'F' %}female{% endif %}{% if member.date_of_death %} deceased{% endif %}"
+                 data-member-id="{{ member.id }}"
+                 onclick="openModal({{ member.id }}, event)"
+                 title="Click to view {{ member.first_name }} {{ member.last_name }}'s details">
+
+                {% if is_main_member %}
+                    <div class="crown" title="Root / Main Member">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                {% endif %}
+
+                {% if member.date_of_death %}
+                    <div class="mourning-ribbon" title="Deceased · {{ member.date_of_death|date:'j M Y' }}"></div>
+                    <div class="mourning-band">
+                        <span class="mb-rule"></span>
+                        <i class="fas fa-cross mb-cross"></i>
+                        <span class="mb-date">{{ member.date_of_death|date:"j M Y" }}</span>
+                        <span class="mb-rule r"></span>
+                    </div>
+                {% endif %}
+
+                <!-- ▐▌ PARENT / CHILD DOT — bottom-left corner badge ▌▐
+                     🟢 sitemap icon = has children (Parent node)
+                     🔵 leaf icon    = no children (Child / leaf node)
+                     Spouse cards get NO indicator (as requested).
+                -->
+                {% if member.get_children %}
+                    <div class="fam-dot fam-parent" title="Parent — has children in this tree">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                {% else %}
+                    <div class="fam-dot fam-child" title="Child — leaf member">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                {% endif %}
+
+                <div class="avatar">
+                    {% if member.photo %}
+                        <img src="{{ member.photo.url }}"
+                             alt="{{ member.first_name }}" loading="lazy">
+                    {% else %}
+                        <img src="https://via.placeholder.com/62/0f0c07/c9a84c?text={{ member.first_name|first|upper }}"
+                             alt="{{ member.first_name }}" loading="lazy">
+                    {% endif %}
+                </div>
+
+                <div class="cname">{{ member.first_name }} {{ member.last_name }}</div>
+
+                <div class="cbadge
+                    {% if member.membership_category == 'LM' %}b-lm
+                    {% elif member.membership_category == 'PM' %}b-pm
+                    {% else %}b-nm{% endif %}">
+                    {% if member.membership_category == 'LM' %}
+                        <i class="fas fa-star"></i> Life Member
+                    {% elif member.membership_category == 'PM' %}
+                        <i class="fas fa-check-circle"></i> Paid Member
+                    {% else %}
+                        <i class="fas fa-user"></i> Member
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ════════════════════════════════════════════════════
+                 SPOUSE CARD(S) — no fam-dot indicator for spouses
+            ════════════════════════════════════════════════════ -->
+            {% for spouse in member.spouses.all %}
+                {% if spouse.id != member.id and member.id < spouse.id %}
+
+                    <div class="sp-con">
+                        <div class="hrt"><i class="fas fa-heart"></i></div>
+                    </div>
+
+                    <div class="card {% if spouse.gender == 'M' %}male{% elif spouse.gender == 'F' %}female{% endif %}{% if spouse.date_of_death %} deceased{% endif %}"
+                         data-member-id="{{ spouse.id }}"
+                         onclick="openModal({{ spouse.id }}, event)"
+                         title="Click to view {{ spouse.first_name }} {{ spouse.last_name }}'s details">
+
+                        {% if spouse.date_of_death %}
+                            <div class="mourning-ribbon" title="Deceased · {{ spouse.date_of_death|date:'j M Y' }}"></div>
+                            <div class="mourning-band">
+                                <span class="mb-rule"></span>
+                                <i class="fas fa-cross mb-cross"></i>
+                                <span class="mb-date">{{ spouse.date_of_death|date:"j M Y" }}</span>
+                                <span class="mb-rule r"></span>
+                            </div>
+                        {% endif %}
+
+                        <div class="avatar">
+                            {% if spouse.photo %}
+                                <img src="{{ spouse.photo.url }}"
+                                     alt="{{ spouse.first_name }}" loading="lazy">
+                            {% else %}
+                                <img src="https://via.placeholder.com/62/0f0c07/c9a84c?text={{ spouse.first_name|first|upper }}"
+                                     alt="{{ spouse.first_name }}" loading="lazy">
+                            {% endif %}
+                        </div>
+
+                        <div class="cname">{{ spouse.first_name }} {{ spouse.last_name }}</div>
+
+                        <div class="cbadge
+                            {% if spouse.membership_category == 'LM' %}b-lm
+                            {% elif spouse.membership_category == 'PM' %}b-pm
+                            {% else %}b-nm{% endif %}">
+                            {% if spouse.membership_category == 'LM' %}
+                                <i class="fas fa-star"></i> Life Member
+                            {% elif spouse.membership_category == 'PM' %}
+                                <i class="fas fa-check-circle"></i> Paid Member
+                            {% else %}
+                                <i class="fas fa-user"></i> Member
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- ════════════════════════════════════════════
+                         HIDDEN DATA STORE — SPOUSE
+                    ════════════════════════════════════════════ -->
+                    <div class="pd"
+                         id="popup-{{ spouse.id }}"
+                         data-name="{{ spouse.first_name }} {{ spouse.last_name }}"
+                         data-gender="{% if spouse.gender == 'M' %}Male{% elif spouse.gender == 'F' %}Female{% else %}Other{% endif %}"
+                         data-is-main="false"
+                         data-category="{{ spouse.membership_category }}"
+                         data-photo="{% if spouse.photo %}{{ spouse.photo.url }}{% endif %}"
+                         data-family-photo="{% if spouse.family_photo %}{{ spouse.family_photo.url }}{% endif %}"
+                         data-spouses='[{"id":{{ member.id }},"name":"{{ member.first_name }} {{ member.last_name }}","photo":"{% if member.photo %}{{ member.photo.url }}{% endif %}"}{% for o in spouse.spouses.all %}{% if o.id != member.id and o.id != spouse.id %},{"id":{{ o.id }},"name":"{{ o.first_name }} {{ o.last_name }}","photo":"{% if o.photo %}{{ o.photo.url }}{% endif %}"}{% endif %}{% endfor %}]'
+                         data-sections='[
+                           {"title":"Personal Information","ico":"fa-user-circle","fields":[
+                             {"l":"First Name",  "v":"{{ spouse.first_name }}"},
+                             {"l":"Last Name",   "v":"{{ spouse.last_name }}"},
+                             {"l":"Gender",      "v":"{% if spouse.gender == "M" %}Male{% elif spouse.gender == "F" %}Female{% else %}Other{% endif %}"},
+                             {"l":"Birth Order", "v":"{% if spouse.birth_order > 0 %}{{ spouse.birth_order }}{% endif %}"},
+                             {"l":"Blood Group", "v":"{{ spouse.blood_group|default:"" }}"}
+                           ]},
+                           {"title":"Membership","ico":"fa-id-card","fields":[
+                             {"l":"Category",       "v":"{% if spouse.membership_category == "LM" %}Life Member{% elif spouse.membership_category == "PM" %}Paid Member{% else %}Member{% endif %}"},
+                             {"l":"Membership No.", "v":"{{ spouse.membership_number|default:"" }}"}
+                           ]},
+                           {"title":"Birth Details","ico":"fa-baby","fields":[
+                             {"l":"Date of Birth",  "v":"{{ spouse.date_of_birth|date:"j F Y"|default:"" }}"},
+                             {"l":"Place of Birth", "v":"{{ spouse.place_of_birth|default:"" }}"}
+                           ]},
+                           {"title":"Baptism","ico":"fa-water","fields":[
+                             {"l":"Baptism Date",  "v":"{{ spouse.baptism_date|date:"j F Y"|default:"" }}"},
+                             {"l":"Baptism Place", "v":"{{ spouse.baptism_place|default:"" }}"}
+                           ]},
+                           {"title":"Holy Communion","ico":"fa-wine-glass-alt","fields":[
+                             {"l":"Communion Date",  "v":"{{ spouse.communion_date|date:"j F Y"|default:"" }}"},
+                             {"l":"Communion Place", "v":"{{ spouse.communion_place|default:"" }}"}
+                           ]},
+                           {"title":"Marriage","ico":"fa-ring","fields":[
+                             {"l":"Marriage Date",  "v":"{{ spouse.marriage_date|date:"j F Y"|default:"" }}"},
+                             {"l":"Marriage Place", "v":"{{ spouse.marriage_place|default:"" }}"}
+                           ]},
+                           {"title":"Contact Information","ico":"fa-phone-alt","fields":[
+                             {"l":"Mobile", "v":"{{ spouse.mobile_number|default:"" }}"},
+                             {"l":"Email",  "v":"{{ spouse.email|default:"" }}", "fw":true}
+                           ]},
+                           {"title":"Education & Career","ico":"fa-graduation-cap","fields":[
+                             {"l":"Education",  "v":"{{ spouse.education|default:"" }}", "fw":true},
+                             {"l":"Employment", "v":"{{ spouse.employed|default:"" }}", "fw":true}
+                           ]},
+                           {"title":"Death & Burial","ico":"fa-cross","fields":[
+                             {"l":"Date of Death",  "v":"{{ spouse.date_of_death|date:"j F Y"|default:"" }}"},
+                             {"l":"Place of Death", "v":"{{ spouse.place_of_death|default:"" }}"},
+                             {"l":"Burial Place",   "v":"{{ spouse.burial_place|default:"" }}"},
+                             {"l":"Cause of Death", "v":"{{ spouse.cause_of_death|default:"" }}", "fw":true}
+                           ]},
+                           {"title":"Last Updated","ico":"fa-clock","fields":[
+                             {"l":"Date Updated", "v":"{{ spouse.date_updated|date:"j F Y, g:i A" }}", "fw":true}
+                           ]}
+                         ]'>
+                    </div>
+
+                {% endif %}
+            {% endfor %}
+
+        </div><!-- /.couple -->
+
+        <!-- ════════════════════════════════════════════════════════
+             HIDDEN DATA STORE — MAIN MEMBER
+        ════════════════════════════════════════════════════════ -->
+        <div class="pd"
+             id="popup-{{ member.id }}"
+             data-name="{{ member.first_name }} {{ member.last_name }}"
+             data-gender="{% if member.gender == 'M' %}Male{% elif member.gender == 'F' %}Female{% else %}Other{% endif %}"
+             data-is-main="{{ is_main_member|yesno:'true,false' }}"
+             data-category="{{ member.membership_category }}"
+             data-photo="{% if member.photo %}{{ member.photo.url }}{% endif %}"
+             data-family-photo="{% if member.family_photo %}{{ member.family_photo.url }}{% endif %}"
+             data-spouses='[{% for sp in member.spouses.all %}{"id":{{ sp.id }},"name":"{{ sp.first_name }} {{ sp.last_name }}","photo":"{% if sp.photo %}{{ sp.photo.url }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+             data-sections='[
+               {"title":"Personal Information","ico":"fa-user-circle","fields":[
+                 {"l":"First Name",  "v":"{{ member.first_name }}"},
+                 {"l":"Last Name",   "v":"{{ member.last_name }}"},
+                 {"l":"Gender",      "v":"{% if member.gender == "M" %}Male{% elif member.gender == "F" %}Female{% else %}Other{% endif %}"},
+                 {"l":"Birth Order", "v":"{% if member.birth_order > 0 %}{{ member.birth_order }}{% endif %}"},
+                 {"l":"Blood Group", "v":"{{ member.blood_group|default:"" }}"}
+               ]},
+               {"title":"Membership","ico":"fa-id-card","fields":[
+                 {"l":"Category",       "v":"{% if member.membership_category == "LM" %}Life Member{% elif member.membership_category == "PM" %}Paid Member{% else %}Member{% endif %}"},
+                 {"l":"Membership No.", "v":"{{ member.membership_number|default:"" }}"}
+               ]},
+               {"title":"Birth Details","ico":"fa-baby","fields":[
+                 {"l":"Date of Birth",  "v":"{{ member.date_of_birth|date:"j F Y"|default:"" }}"},
+                 {"l":"Place of Birth", "v":"{{ member.place_of_birth|default:"" }}"}
+               ]},
+               {"title":"Baptism","ico":"fa-water","fields":[
+                 {"l":"Baptism Date",  "v":"{{ member.baptism_date|date:"j F Y"|default:"" }}"},
+                 {"l":"Baptism Place", "v":"{{ member.baptism_place|default:"" }}"}
+               ]},
+               {"title":"Holy Communion","ico":"fa-wine-glass-alt","fields":[
+                 {"l":"Communion Date",  "v":"{{ member.communion_date|date:"j F Y"|default:"" }}"},
+                 {"l":"Communion Place", "v":"{{ member.communion_place|default:"" }}"}
+               ]},
+               {"title":"Marriage","ico":"fa-ring","fields":[
+                 {"l":"Marriage Date",  "v":"{{ member.marriage_date|date:"j F Y"|default:"" }}"},
+                 {"l":"Marriage Place", "v":"{{ member.marriage_place|default:"" }}"}
+               ]},
+               {"title":"Contact Information","ico":"fa-phone-alt","fields":[
+                 {"l":"Mobile", "v":"{{ member.mobile_number|default:"" }}"},
+                 {"l":"Email",  "v":"{{ member.email|default:"" }}", "fw":true}
+               ]},
+               {"title":"Education & Career","ico":"fa-graduation-cap","fields":[
+                 {"l":"Education",  "v":"{{ member.education|default:"" }}", "fw":true},
+                 {"l":"Employment", "v":"{{ member.employed|default:"" }}", "fw":true}
+               ]},
+               {"title":"Death & Burial","ico":"fa-cross","fields":[
+                 {"l":"Date of Death",  "v":"{{ member.date_of_death|date:"j F Y"|default:"" }}"},
+                 {"l":"Place of Death", "v":"{{ member.place_of_death|default:"" }}"},
+                 {"l":"Burial Place",   "v":"{{ member.burial_place|default:"" }}"},
+                 {"l":"Cause of Death", "v":"{{ member.cause_of_death|default:"" }}", "fw":true}
+               ]},
+               {"title":"Last Updated","ico":"fa-clock","fields":[
+                 {"l":"Date Updated", "v":"{{ member.date_updated|date:"j F Y, g:i A" }}", "fw":true}
+               ]}
+             ]'>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             CHILDREN (recursive)
+        ════════════════════════════════════════════════════════ -->
+        {% if member.get_children %}
+            <ul>
+                {% for child in member.get_children %}
+                    {% include 'family6memb.html' with member=child is_main_member=False %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+    </div><!-- /.mc -->
+</li>

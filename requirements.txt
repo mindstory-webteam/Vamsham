@@ -1,0 +1,15 @@
+asgiref==3.9.1
+Django==5.2.5
+django-jazzmin==3.0.1
+django-js-asset==3.1.2
+django-mptt==0.18.0
+pillow==11.3.0
+sqlparse==0.5.3
+tzdata==2025.2
+whitenoise==6.9.0
+# REST API for the mobile app
+djangorestframework==3.18.3
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+# Only needed if DB_ENGINE=postgres
+# psycopg[binary]==3.2.9

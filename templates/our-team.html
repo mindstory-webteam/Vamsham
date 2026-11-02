@@ -1,0 +1,412 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+{% include 'head.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<body>
+<div class="page-wrapper">
+    {% include 'navbar.html' %}
+
+    <!-- Title Bar -->
+    <div class="pbmit-title-bar-wrapper" style="margin: 0px 10px 0;">
+        <div class="container">
+            <div class="pbmit-title-bar-content">
+                <div class="pbmit-title-bar-content-inner">
+                    <div class="pbmit-tbar">
+                        <div class="pbmit-tbar-inner container">
+                            <h1 class="pbmit-tbar-title">Office Bearers</h1>
+                        </div>
+                    </div>
+                    <div class="pbmit-breadcrumb">
+                        <div class="pbmit-breadcrumb-inner">
+                            <span><a title="" href="/" class="home"><span>Vamsham Family</span></a></span>
+                            <span class="sep"><i class="pbmit-base-icon-angle-right"></i></span>
+                            <span><span class="post-root post post-post current-item">Office Bearers</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div> 
+    </div>
+    <!-- Title Bar end -->
+
+    <!-- Store default avatar URL as a data attribute to use safely in JS onerror -->
+    <span id="defaultAvatarUrl" data-url="{% static 'images/default-avatar.jpg' %}" style="display:none;"></span>
+
+    <!-- Compact Filter Design -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="compact-filter-card p-4 rounded-3">
+                    <div class="text-center mb-3">
+                        <h5 class="fw-bold text-white mb-1">View Committee Members</h5>
+                        <p class="text-light opacity-75 mb-0">Select a year to discover our team</p>
+                    </div>
+                    
+                    <div class="filter-content">
+                        <div class="input-wrapper mb-3">
+                            <select id="yearFilter" class="compact-select">
+                                <option value="" selected disabled>Choose a Year</option>
+                                {% for year, members in general_by_year.items %}
+                                    <option value="{{ year }}">{{ year }}</option>
+                                {% endfor %}
+                                {% for year, members in women_by_year.items %}
+                                    {% if year not in general_by_year %}
+                                        <option value="{{ year }}">{{ year }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="select-arrow">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Association Pills -->
+                        <div class="association-pills text-center" id="associationTabs" style="display: none;">
+                            <div class="d-flex justify-content-center flex-wrap gap-2">
+                                <input type="radio" class="btn-check" name="association" id="associationAll" autocomplete="off" checked>
+                                <label class="association-pill" for="associationAll">
+                                    <i class="fas fa-layer-group me-1"></i>All
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="association" id="associationGeneral" autocomplete="off">
+                                <label class="association-pill" for="associationGeneral">
+                                    <i class="fas fa-users me-1"></i>General
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="association" id="associationWomen" autocomplete="off">
+                                <label class="association-pill" for="associationWomen">
+                                    <i class="fas fa-venus me-1"></i>Women
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Members Section -->
+    <div id="generalSections">
+        {% for year, members in general_by_year.items %}
+        <section class="team-section py-4 general-section" data-year="{{ year }}" style="display: none;">
+            <div class="container">
+                <div class="row mb-4 text-center">
+                    <div class="col-12">
+                        <h3 class="fw-bold mb-1 text-dark">Vamsham Family Association</h3>
+                        <h6 class="text-secondary">Executive Committee {{ year }}</h6>
+                        <div class="divider mx-auto"></div>
+                    </div>
+                </div>
+                {% if members %}
+                <div class="row g-3 justify-content-center">
+                    {% for member in members %}
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="team-card h-100 shadow-sm">
+                            <div class="team-img-wrapper position-relative">
+                                {% if member.image %}
+                                    <img
+                                        src="{{ member.image.url }}"
+                                        class="img-fluid w-100 team-img"
+                                        alt="{{ member.name }}"
+                                        onerror="this.onerror=null; this.src=document.getElementById('defaultAvatarUrl').dataset.url;"
+                                    >
+                                {% else %}
+                                    <img
+                                        src="{% static 'images/default-avatar.jpg' %}"
+                                        class="img-fluid w-100 team-img"
+                                        alt="{{ member.name }}"
+                                    >
+                                {% endif %}
+                                <a href="{% url 'team_detail' member.slug %}" class="stretched-link"></a>
+                            </div>
+                            <div class="p-2 text-center bg-white">
+                                <h6 class="fw-bold mb-0 text-dark">{{ member.name }}</h6>
+                                <small class="text-muted d-block">{{ member.position }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No general committee members found for {{ year }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+
+    <!-- Women Members Section -->
+    <div id="womenSections">
+        {% for year, members in women_by_year.items %}
+        <section class="team-section py-4 women-section" data-year="{{ year }}" style="display: none;">
+            <div class="container">
+                <div class="row mb-4 text-center">
+                    <div class="col-12">
+                        <h3 class="fw-bold mb-1 text-dark">Women Family Association</h3>
+                        <h6 class="text-secondary">Executive Committee {{ year }}</h6>
+                        <div class="divider mx-auto"></div>
+                    </div>
+                </div>
+                {% if members %}
+                <div class="row g-3 justify-content-center">
+                    {% for member in members %}
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="team-card h-100 shadow-sm">
+                            <div class="team-img-wrapper position-relative">
+                                {% if member.image %}
+                                    <img
+                                        src="{{ member.image.url }}"
+                                        class="img-fluid w-100 team-img"
+                                        alt="{{ member.name }}"
+                                        onerror="this.onerror=null; this.src=document.getElementById('defaultAvatarUrl').dataset.url;"
+                                    >
+                                {% else %}
+                                    <img
+                                        src="{% static 'images/default-avatar.jpg' %}"
+                                        class="img-fluid w-100 team-img"
+                                        alt="{{ member.name }}"
+                                    >
+                                {% endif %}
+                                <a href="{% url 'team_detail' member.slug %}" class="stretched-link"></a>
+                            </div>
+                            <div class="p-2 text-center bg-white">
+                                <h6 class="fw-bold mb-0 text-dark">{{ member.name }}</h6>
+                                <small class="text-muted d-block">{{ member.position }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No women's committee members found for {{ year }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+
+    <!-- No Selection Message -->
+    <div id="noSelection" class="container text-center py-5 my-2">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <i class="fas fa-calendar-alt fa-4x text-muted mb-4"></i>
+                <h3 class="text-muted">Select a year to view committee members</h3>
+                <p class="text-muted">Choose a year from the dropdown to see the executive committees</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Data Message (hidden by default) -->
+    <div id="noDataMessage" class="container text-center py-5" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <i class="fas fa-users fa-4x text-muted mb-4"></i>
+                <h3 class="text-muted">No committee members found</h3>
+                <p class="text-muted">No committee members available for the selected year and association type.</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: #2699D2;
+            margin: 15px auto;
+        }
+        
+        .team-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            background: #fff;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .team-img {
+            height: 150px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .team-card:hover .team-img {
+            transform: scale(1.05);
+        }
+        
+        .compact-filter-card {
+            background: linear-gradient(135deg, #2699D2, #1a6a96);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .compact-select {
+            width: 100%;
+            padding: 12px 45px 12px 16px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+        
+        .compact-select:focus {
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+        
+        .select-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #2699D2;
+            font-size: 14px;
+        }
+        
+        .association-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 25px;
+            color: #2699D2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .association-pill:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+        
+        .btn-check:checked + .association-pill {
+            background: #fff;
+            border-color: #2699D2;
+            color: #2699D2;
+            box-shadow: 0 4px 15px rgba(38, 153, 210, 0.3);
+        }
+        
+        .team-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .team-img {
+                height: 120px;
+            }
+            
+            .association-pill {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearFilter = document.getElementById('yearFilter');
+            const associationTabs = document.getElementById('associationTabs');
+            const noSelection = document.getElementById('noSelection');
+            const noDataMessage = document.getElementById('noDataMessage');
+            const generalSections = document.querySelectorAll('.general-section');
+            const womenSections = document.querySelectorAll('.women-section');
+            
+            // Initialize - hide all sections
+            hideAllSections();
+            noSelection.style.display = 'block';
+            noDataMessage.style.display = 'none';
+            associationTabs.style.display = 'none';
+
+            yearFilter.addEventListener('change', function() {
+                const selectedYear = this.value;
+                
+                if (selectedYear) {
+                    associationTabs.style.display = 'block';
+                    noSelection.style.display = 'none';
+                    noDataMessage.style.display = 'none';
+                    filterSections();
+                } else {
+                    associationTabs.style.display = 'none';
+                    noSelection.style.display = 'block';
+                    noDataMessage.style.display = 'none';
+                    hideAllSections();
+                }
+            });
+            
+            document.querySelectorAll('input[name="association"]').forEach(radio => {
+                radio.addEventListener('change', filterSections);
+            });
+            
+            function filterSections() {
+                const selectedYear = yearFilter.value;
+                const associationType = document.querySelector('input[name="association"]:checked').id;
+                
+                hideAllSections();
+                noDataMessage.style.display = 'none';
+                
+                if (selectedYear) {
+                    let visibleSections = 0;
+                    
+                    if (associationType === 'associationAll' || associationType === 'associationGeneral') {
+                        const generalSection = document.querySelector(`.general-section[data-year="${selectedYear}"]`);
+                        if (generalSection) {
+                            generalSection.style.display = 'block';
+                            visibleSections++;
+                        }
+                    }
+                    
+                    if (associationType === 'associationAll' || associationType === 'associationWomen') {
+                        const womenSection = document.querySelector(`.women-section[data-year="${selectedYear}"]`);
+                        if (womenSection) {
+                            womenSection.style.display = 'block';
+                            visibleSections++;
+                        }
+                    }
+                    
+                    // Show no data message if no sections are visible
+                    if (visibleSections === 0) {
+                        noDataMessage.style.display = 'block';
+                    }
+                }
+            }
+            
+            function hideAllSections() {
+                generalSections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                womenSections.forEach(section => {
+                    section.style.display = 'none';
+                });
+            }
+        });
+    </script>
+
+    {% include 'footer.html' %}
+</div>
+</body>
+</html>

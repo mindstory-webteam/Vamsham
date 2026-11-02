@@ -1,0 +1,367 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Dashboard | Vamsham Family Admin{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  #content-main { padding: 0 !important; }
+  #content { padding: 0 !important; }
+  .dashboard-shell { display: flex; min-height: calc(100vh - 56px); font-family: 'Segoe UI', sans-serif; background: #f4f5f7; }
+
+  /* ── Sidebar ── */
+  .db-sidebar {
+    width: 220px; min-width: 220px;
+    background: #1a2332;
+    display: flex; flex-direction: column;
+  }
+  .db-brand {
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .db-brand-logo {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg,#c8a96e,#a07840);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 8px;
+  }
+  .db-brand-title { font-size: 13px; font-weight: 500; color: #e8dcc8; }
+  .db-brand-sub   { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+  .db-section-label {
+    padding: 14px 18px 4px;
+    font-size: 10px; color: rgba(255,255,255,0.3);
+    letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  .db-nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; margin: 1px 8px;
+    border-radius: 6px; cursor: pointer;
+    font-size: 12.5px; color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .db-nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+  .db-nav-item.active { background: rgba(200,169,110,0.18); color: #c8a96e; }
+  .db-nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .db-nav-count {
+    margin-left: auto; font-size: 10px;
+    background: rgba(255,255,255,0.08); border-radius: 10px;
+    padding: 1px 6px; color: rgba(255,255,255,0.35);
+  }
+  .db-nav-item.active .db-nav-count { background: rgba(200,169,110,0.2); color: #c8a96e; }
+  .db-sidebar-footer {
+    margin-top: auto;
+    padding: 14px 18px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px; color: rgba(255,255,255,0.25);
+  }
+
+  /* ── Main ── */
+  .db-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Topbar ── */
+  .db-topbar {
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 0 24px;
+    height: 56px; display: flex; align-items: center; gap: 16px;
+  }
+  .db-topbar-title { font-size: 15px; font-weight: 500; color: #1a2332; }
+  .db-topbar-spacer { flex: 1; }
+  .db-search-box {
+    display: flex; align-items: center; gap: 8px;
+    background: #f4f5f7;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px; padding: 0 12px; height: 34px; width: 260px;
+    position: relative;
+  }
+  .db-search-box input {
+    border: none; background: transparent; outline: none;
+    font-size: 13px; color: #1a2332; width: 100%;
+  }
+  .db-search-icon { color: #999; font-size: 14px; }
+  .db-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #c8a96e; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 600; color: #fff;
+  }
+
+  /* ── Content ── */
+  .db-content { flex: 1; padding: 24px; overflow-y: auto; }
+  .db-page-header { margin-bottom: 20px; }
+  .db-page-header h1 { font-size: 18px; font-weight: 500; color: #1a2332; }
+  .db-page-header p  { font-size: 13px; color: #888; margin-top: 3px; }
+
+  /* ── Search Results ── */
+  .db-search-results {
+    display: none;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px; margin-bottom: 16px; overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .db-search-results.show { display: block; }
+  .db-sr-head {
+    padding: 10px 16px; font-size: 11px; color: #888;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+  }
+  .db-sr-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px; border-bottom: 1px solid #f5f5f5;
+    cursor: pointer; text-decoration: none;
+  }
+  .db-sr-row:last-child { border-bottom: none; }
+  .db-sr-row:hover { background: #fafafa; }
+  .db-sr-name { font-size: 13px; color: #1a2332; }
+  .db-sr-tag  { font-size: 11px; color: #aaa; }
+
+  /* ── Stats ── */
+  .db-stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
+  .db-stat-card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px; padding: 16px 18px;
+    position: relative; overflow: hidden;
+  }
+  .db-stat-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .db-stat-value { font-size: 28px; font-weight: 600; color: #1a2332; line-height: 1; }
+  .db-stat-sub   { font-size: 11px; color: #bbb; margin-top: 4px; }
+  .db-stat-bar   { position: absolute; top: 0; right: 0; width: 4px; height: 100%; border-radius: 0 10px 10px 0; }
+
+  /* ── Two col ── */
+  .db-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── Panel ── */
+  .db-panel { background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; }
+  .db-panel-head {
+    padding: 14px 18px; border-bottom: 1px solid #f0f0f0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .db-panel-head h3  { font-size: 13px; font-weight: 500; color: #1a2332; }
+  .db-panel-action   { font-size: 11px; color: #c8a96e; text-decoration: none; }
+  .db-panel-action:hover { text-decoration: underline; }
+
+  /* ── Family rows ── */
+  .db-family-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 18px; border-bottom: 1px solid #f5f5f5;
+    cursor: pointer; text-decoration: none;
+    transition: background 0.1s;
+  }
+  .db-family-row:last-child { border-bottom: none; }
+  .db-family-row:hover { background: #fafafa; }
+  .db-family-avatar {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; flex-shrink: 0;
+  }
+  .db-family-name  { font-size: 13px; font-weight: 500; color: #1a2332; }
+  .db-family-path  { font-size: 11px; color: #bbb; }
+  .db-family-badge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+
+  /* ── Member rows ── */
+  .db-member-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 18px; border-bottom: 1px solid #f5f5f5;
+  }
+  .db-member-row:last-child { border-bottom: none; }
+  .db-minitial {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; flex-shrink: 0;
+  }
+  .db-mname   { font-size: 13px; color: #1a2332; }
+  .db-mfamily { font-size: 11px; color: #aaa; }
+  .db-mstatus { margin-left: auto; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 8px; }
+
+  /* ── Empty state ── */
+  .db-empty { padding: 24px; text-align: center; font-size: 13px; color: #bbb; }
+
+  @media (max-width: 900px) {
+    .db-stats-grid { grid-template-columns: repeat(2,1fr); }
+    .db-two-col    { grid-template-columns: 1fr; }
+    .db-sidebar    { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <div class="db-sidebar">
+    <div class="db-brand">
+      <div class="db-brand-logo">M</div>
+      <div class="db-brand-title">Vamsham Family</div>
+      <div class="db-brand-sub">Admin Portal</div>
+    </div>
+
+    <div class="db-section-label">Navigation</div>
+    <a class="db-nav-item active" href="{% url 'admin:index' %}">
+      <span class="db-nav-dot"></span> Dashboard
+    </a>
+    <a class="db-nav-item" href="{% url 'admin:app_list' app_label='yourapp' %}">
+      <span class="db-nav-dot"></span> All Members
+      <span class="db-nav-count">{{ total_members }}</span>
+    </a>
+
+    <div class="db-section-label">Families</div>
+    {% for f in families %}
+    <a class="db-nav-item" href="{{ f.admin_url }}">
+      <span class="db-nav-dot"></span> {{ f.name }}
+      <span class="db-nav-count">{{ f.count }}</span>
+    </a>
+    {% endfor %}
+
+    <div class="db-sidebar-footer">Vamsham Family &copy; 2025</div>
+  </div>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="db-main">
+
+    <!-- Topbar -->
+    <div class="db-topbar">
+      <span class="db-topbar-title">Dashboard</span>
+      <span class="db-topbar-spacer"></span>
+      <div class="db-search-box">
+        <span class="db-search-icon">&#9906;</span>
+        <input type="text" id="dbSearch" placeholder="Search members…" autocomplete="off" />
+      </div>
+      <div class="db-avatar">{{ request.user.username|slice:":2"|upper }}</div>
+    </div>
+
+    <!-- Content -->
+    <div class="db-content">
+
+      <div class="db-page-header">
+        <h1>Family Overview</h1>
+        <p>Manage all family members and trees from one place.</p>
+      </div>
+
+      <!-- Search Results -->
+      <div class="db-search-results" id="dbSearchResults">
+        <div class="db-sr-head" id="dbSrHead">Results</div>
+        <div id="dbSrList"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="db-stats-grid">
+        <div class="db-stat-card">
+          <div class="db-stat-bar" style="background:#c8a96e;"></div>
+          <div class="db-stat-label">Total Members</div>
+          <div class="db-stat-value">{{ total_members }}</div>
+          <div class="db-stat-sub">Across {{ families|length }} families</div>
+        </div>
+        <div class="db-stat-card">
+          <div class="db-stat-bar" style="background:#5DCAA5;"></div>
+          <div class="db-stat-label">Family Trees</div>
+          <div class="db-stat-value">{{ families|length }}</div>
+          <div class="db-stat-sub">Active trees</div>
+        </div>
+        <div class="db-stat-card">
+          <div class="db-stat-bar" style="background:#7F77DD;"></div>
+          <div class="db-stat-label">Largest Family</div>
+          <div class="db-stat-value">{{ largest_family.count }}</div>
+          <div class="db-stat-sub">{{ largest_family.name }}</div>
+        </div>
+        <div class="db-stat-card">
+          <div class="db-stat-bar" style="background:#D85A30;"></div>
+          <div class="db-stat-label">Recent Additions</div>
+          <div class="db-stat-value">{{ recent_count }}</div>
+          <div class="db-stat-sub">This month</div>
+        </div>
+      </div>
+
+      <!-- Two columns -->
+      <div class="db-two-col">
+
+        <!-- Family Trees panel -->
+        <div class="db-panel">
+          <div class="db-panel-head">
+            <h3>Family Trees</h3>
+            <a class="db-panel-action" href="{% url 'admin:index' %}">View all</a>
+          </div>
+          {% for f in families %}
+          <a class="db-family-row" href="{{ f.admin_url }}">
+            <div class="db-family-avatar" style="background:{{ f.bg }};color:{{ f.fg }};">{{ f.name|slice:":1" }}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="db-family-name">{{ f.name }}</div>
+              <div class="db-family-path">{{ f.url }}</div>
+            </div>
+            <span class="db-family-badge" style="background:{{ f.bg }};color:{{ f.fg }};">{{ f.count }} members</span>
+          </a>
+          {% empty %}
+          <div class="db-empty">No families found.</div>
+          {% endfor %}
+        </div>
+
+        <!-- Members A–Z panel -->
+        <div class="db-panel">
+          <div class="db-panel-head">
+            <h3>Members (A–Z)</h3>
+            <a class="db-panel-action" href="#">See all</a>
+          </div>
+          {% for m in recent_members %}
+          <div class="db-member-row">
+            <div class="db-minitial" style="background:{{ m.bg }};color:{{ m.fg }};">{{ m.initials }}</div>
+            <div>
+              <div class="db-mname">{{ m.full_name }}</div>
+              <div class="db-mfamily">{{ m.family }}</div>
+            </div>
+            <span class="db-mstatus" style="background:{{ m.bg }};color:{{ m.fg }};">Active</span>
+          </div>
+          {% empty %}
+          <div class="db-empty">No members found.</div>
+          {% endfor %}
+        </div>
+
+      </div><!-- end two-col -->
+    </div><!-- end db-content -->
+  </div><!-- end db-main -->
+</div><!-- end dashboard-shell -->
+
+<!-- Pass member data to JS for live search -->
+<script>
+const DB_MEMBERS = [
+  {% for m in all_members_json %}
+  { name: "{{ m.full_name }}", family: "{{ m.family }}", url: "{{ m.url }}", initials: "{{ m.initials }}", bg: "{{ m.bg }}", fg: "{{ m.fg }}" }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+const dbInput   = document.getElementById('dbSearch');
+const dbResults = document.getElementById('dbSearchResults');
+const dbSrHead  = document.getElementById('dbSrHead');
+const dbSrList  = document.getElementById('dbSrList');
+
+dbInput.addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  if (!q) { dbResults.classList.remove('show'); return; }
+
+  const hits = DB_MEMBERS.filter(m =>
+    m.name.toLowerCase().includes(q) || m.family.toLowerCase().includes(q)
+  );
+
+  dbSrHead.textContent = hits.length + ' result' + (hits.length !== 1 ? 's' : '') + ' for "' + this.value.trim() + '"';
+  dbSrList.innerHTML = hits.length
+    ? hits.map(m => `
+        <a class="db-sr-row" href="${m.url}">
+          <div class="db-minitial" style="background:${m.bg};color:${m.fg};width:26px;height:26px;font-size:10px;">${m.initials}</div>
+          <div>
+            <div class="db-sr-name">${m.name}</div>
+            <div class="db-sr-tag">${m.family} Family</div>
+          </div>
+        </a>`).join('')
+    : '<div style="padding:14px 18px;font-size:13px;color:#bbb;">No members found.</div>';
+
+  dbResults.classList.add('show');
+});
+
+document.addEventListener('click', function(e){
+  if (!dbResults.contains(e.target) && e.target !== dbInput) {
+    dbResults.classList.remove('show');
+  }
+});
+</script>
+{% endblock %}

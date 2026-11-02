@@ -1,0 +1,110 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+	{% include 'head.html' %}
+   </head>
+
+   <body>
+	<!-- Page Wrapper -->
+	<div class="page-wrapper">
+
+		{% include 'navbar.html' %}
+		<!-- Header Main Area End Here -->
+
+		<!-- Title Bar -->
+		<div class="pbmit-title-bar-wrapper" style="margin: 0px 0px 0;">
+			<div class="container">
+				<div class="pbmit-title-bar-content">
+					<div class="pbmit-title-bar-content-inner">
+						<div class="pbmit-tbar">
+							<div class="pbmit-tbar-inner container">
+								<h1 class="pbmit-tbar-title"> Events</h1>
+							</div>
+						</div>
+						<div class="pbmit-breadcrumb">
+							<div class="pbmit-breadcrumb-inner">
+								<span><a title="" href="#" class="home"><span>Vamsham Family</span></a></span>
+								<span class="sep">
+									<i class="pbmit-base-icon-angle-right"></i>
+								</span>
+								<span><span class="post-root post post-post current-item"> Events</span></span>
+							</div>
+						</div>
+					</div>
+				</div> 
+			</div> 
+		</div>
+		<!-- Title Bar End-->
+
+		<div class="page-content">  
+
+		<!-- Blog Grid Col 4 -->
+		<section class="section-md">
+			<div class="container-fluid px-4">
+				<div class="row pbmit-element-posts-wrapper">
+					{% for event in events %}
+					<article class="pbmit-blog-style-1 col-md-6 col-lg-4">
+					<div class="post-item">
+						<div class="pbminfotech-box-content">
+						<div class="pbmit-featured-container">
+							<div class="pbmit-featured-img-wrapper">
+							<div class="pbmit-featured-wrapper">
+								<a href="#" data-bs-toggle="modal" data-bs-target="#imageModal{{ forloop.counter }}">
+								<img src="{{ event.image.url }}" class="img-fluid" alt="{{ event.headline }}">
+								</a>
+							</div>
+							</div>
+						</div>
+						<div class="pbmit-content-wrapper">
+							<div class="pbmit-date-wraper d-flex align-items-center">
+							<div class="pbmit-meta-category pbmit-meta-line">
+								<div class="pbmit-meta-category">
+								<a href="#" rel="category tag">{{ event.category }}</a>
+								</div>
+							</div>
+							<div class="pbmit-meta-date-wrapper pbmit-meta-line">
+								<div class="pbmit-meta-date">
+								<span class="pbmit-post-date">{{ event.date|date:"F j, Y" }}</span>
+								</div>
+							</div>
+							</div>
+							<h3 class="pbmit-post-title">
+							<a href="#">{{ event.headline }}</a>
+							</h3>
+							<div class="pbminfotech-box-desc">
+							{{ event.subhead }}
+							</div>
+						</div>
+						</div>
+					</div>
+					</article>
+
+					<!-- Modal for each image -->
+					<div class="modal fade" id="imageModal{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered modal-lg">
+						<div class="modal-content bg-transparent border-0">
+						<div class="modal-body p-0 text-center">
+							<img src="{{ event.image.url }}" class="img-fluid" alt="{{ event.headline }}">
+						</div>
+						</div>
+					</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</section>
+		<!-- Blog Grid Col 4 End -->
+
+		</div>
+         
+		{% include 'footer.html' %}
+        <!-- footer End -->
+
+    </div>
+    <!-- Page Wrapper End -->
+
+         
+   </body>
+</html>

@@ -1,0 +1,282 @@
+{% load static %}
+<!-- Header Section -->
+<header class="main-header">
+    <div class="header-container">
+        <!-- Logo -->
+        <div class="logo">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'images/logo/logo.png' %}" alt="Your Logo">
+            </a>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <nav class="desktop-nav">
+            <ul>
+                <li><a href="{% url 'home' %}" class="active">Home</a></li>
+                <li><a href="{% url 'history' %}">Family History</a></li>
+                <li><a href="{% url 'register' %}">Family Tree</a></li>
+                <li><a href="{% url 'team' %}">Office Bearers</a></li>
+                <li><a href="{% url 'events' %}">Events</a></li>
+                <li><a href="{% url 'gallery' %}">Gallery</a></li>
+            </ul>
+        </nav>
+
+        <!-- Header Buttons -->
+        {% comment %} <div class="header-buttons">
+            <a href="#" class="search-btn"><i class="fas fa-search"></i></a>
+            <a href="{% url 'register' %}" class="login-btn">Login</a>
+        </div> {% endcomment %}
+
+        <!-- Mobile Menu Toggle -->
+        <div class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <ul>
+            <li><a href="{% url 'home' %}" class="active">Home</a></li>
+            <li><a href="{% url 'history' %}">Family History</a></li>
+            <li><a href="{% url 'register' %}">Family Tree</a></li>
+            <li><a href="{% url 'team' %}">Office Bearerss</a></li>
+            <li><a href="{% url 'events' %}">Events</a></li>
+            <li><a href="{% url 'gallery' %}">Gallery</a></li>
+        </ul>
+    </nav>
+</header>
+
+<style>
+    /* Header Styles */
+    .main-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: transparent;
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+
+    .main-header.scrolled {
+        background: #2699D2;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 5%;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Logo */
+    .logo img {
+        height: 40px;
+        width: auto;
+        transition: all 0.3s ease;
+    }
+
+    /* Desktop Navigation */
+    .desktop-nav ul {
+        display: flex;
+        list-style: none;
+    }
+
+    .desktop-nav ul li {
+        margin: 0 15px;
+        position: relative;
+    }
+
+    .desktop-nav ul li a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 16px;
+        transition: color 0.3s ease;
+        padding: 5px 0;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .desktop-nav ul li a:hover,
+    .desktop-nav ul li a.active {
+        color: #ffffff;
+        border-bottom: 2px solid white;
+    }
+
+    /* Header Buttons */
+    .header-buttons {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-btn {
+        color: white;
+        font-size: 18px;
+        margin-right: 20px;
+        transition: color 0.3s ease;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .search-btn:hover {
+        color: #f1f1f1;
+    }
+
+    .login-btn {
+        background: white;
+        color: #2699D2;
+        padding: 8px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .login-btn:hover {
+        background: #f1f1f1;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 30px;
+        height: 21px;
+        cursor: pointer;
+    }
+
+    .mobile-menu-toggle span {
+        display: block;
+        height: 3px;
+        width: 100%;
+        background: white;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        background: #2699D2;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        transform: translateY(-150%);
+        transition: transform 0.3s ease;
+        z-index: 999;
+    }
+
+    .mobile-nav.active {
+        transform: translateY(0);
+    }
+
+    .mobile-nav ul {
+        list-style: none;
+        padding: 20px 0;
+    }
+
+    .mobile-nav ul li {
+        margin: 0;
+    }
+
+    .mobile-nav ul li a {
+        display: block;
+        padding: 12px 5%;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .mobile-nav ul li a.active {
+        background: rgba(255,255,255,0.1);
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 992px) {
+        .desktop-nav {
+            display: none;
+        }
+
+        .mobile-menu-toggle {
+            display: flex;
+        }
+        
+        .header-container {
+            padding: 15px 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .login-btn {
+            padding: 6px 15px;
+            font-size: 14px;
+        }
+        
+        .mobile-nav {
+            top: 70px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const header = document.querySelector('.main-header');
+        const mobileToggle = document.querySelector('.mobile-menu-toggle');
+        const mobileNav = document.querySelector('.mobile-nav');
+        const body = document.body;
+
+        // Scroll effect
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile Menu Toggle
+        mobileToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            
+            // Toggle hamburger to X
+            const spans = this.querySelectorAll('span');
+            if (this.classList.contains('active')) {
+                spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+                spans[1].style.opacity = '0';
+                spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
+                body.style.overflow = 'hidden';
+            } else {
+                spans[0].style.transform = '';
+                spans[1].style.opacity = '';
+                spans[2].style.transform = '';
+                body.style.overflow = '';
+            }
+        });
+
+        // Close mobile menu when clicking on links
+        const mobileLinks = document.querySelectorAll('.mobile-nav a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mobileToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+                body.style.overflow = '';
+                
+                // Reset hamburger icon
+                const spans = mobileToggle.querySelectorAll('span');
+                spans[0].style.transform = '';
+                spans[1].style.opacity = '';
+                spans[2].style.transform = '';
+            });
+        });
+    });
+
+</script>

@@ -1,0 +1,85 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+
+{% include 'head.html' %}
+
+   <body>
+	<!-- Page Wrapper -->
+	<div class="page-wrapper">
+
+		{% include 'navbar.html' %}
+		
+		<!-- Header Main Area End Here -->
+
+		<!-- Title Bar -->
+		<div class="pbmit-title-bar-wrapper" style="margin: 0px 10px 0;">
+			<div class="container">
+				<div class="pbmit-title-bar-content">
+					<div class="pbmit-title-bar-content-inner">
+						<div class="pbmit-tbar">
+							<div class="pbmit-tbar-inner container">
+								<h1 class="pbmit-tbar-title"> Gallery </h1>
+							</div>
+						</div>
+						<div class="pbmit-breadcrumb">
+							<div class="pbmit-breadcrumb-inner">
+								<span><a title="" href="#" class="home"><span>Vamsham Family</span></a></span>
+								<span class="sep">
+									<i class="pbmit-base-icon-angle-right"></i>
+								</span>
+								<span><span class="post-root post post-post current-item"> Gallery </span></span>
+							</div>
+						</div>
+					</div>
+				</div> 
+			</div> 
+		</div>
+		<!-- Title Bar End-->
+
+		<div class="page-content">  
+
+		<!-- Grid No Gap -->
+		<section class="section-md">
+			<div class="container-fluid px-4">
+				<div class="row g-1">
+					{% for item in galleries %}
+					<article class="pbmit-portfolio-style-1 col-md-4">
+						<div class="pbminfotech-post-content">
+							<div class="pbmit-featured-img-wrapper">
+								<div class="pbmit-featured-wrapper">
+									<img src="{{ item.image.url }}" class="img-fluid" alt="">
+								</div>
+							</div>
+							<div class="pbminfotech-box-content">
+								<div class="pbminfotech-titlebox">
+									<div class="pbmit-port-cat">
+										<a href="" rel="tag">{{ item.subhead }}</a>
+									</div>
+									<h3 class="pbmit-portfolio-title">
+										<a href="">{{ item.headline }}</a>
+									</h3>
+								</div>
+							</div>
+							<div class="pbmit-portfolio-btn">
+								{% comment %} <a href="portfolio-detail-style-1.html">
+									<i class="pbmit-base-icon-pbmit-up-arrow"></i>
+								</a> {% endcomment %}
+							</div>
+							<a class="pbmit-link" href=""></a>
+						</div>
+					</article>
+					{% endfor %}
+
+					
+				</div>
+			</div>
+		</section>
+		<!-- Grid No Gap End -->
+
+		</div>
+         
+		<!-- footer -->
+		{% include 'footer.html' %}
+   </body>
+</html>

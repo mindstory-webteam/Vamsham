@@ -1,0 +1,10 @@
+<h1>{{ event.title }}</h1>
+<p>{{ event.description }}</p>
+<img src="{{ event.main_image.url }}" alt="{{ event.title }}">
+
+<h3>Gallery</h3>
+<div class="gallery">
+    {% for img in event.gallery_images.all %}
+        <img src="{{ img.image.url }}" alt="Gallery image">
+    {% endfor %}
+</div>

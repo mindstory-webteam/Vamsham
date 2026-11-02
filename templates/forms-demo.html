@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login / Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #00B4DB, #0083B0);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 370px;
+      height: 530px;
+      position: relative;
+      perspective: 1200px;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      transform-style: preserve-3d;
+      transition: transform 0.8s ease-in-out;
+    }
+
+    .container.flipped .card {
+      transform: rotateY(180deg);
+    }
+
+    .side {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 35px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      backdrop-filter: blur(15px);
+      backface-visibility: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    .side.back {
+      transform: rotateY(180deg);
+    }
+
+    h2 {
+      color: #fff;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .messages {
+      text-align: center;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+
+    .messages p {
+      background: rgba(255,255,255,0.85);
+      color: #d9534f;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      display: inline-block;
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+
+    .messages p.success {
+      color: #28a745;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.85);
+      font-size: 1rem;
+      color: #333;
+      outline: none;
+    }
+
+    .input-group input::placeholder {
+      color: #888;
+    }
+
+    .btn {
+      padding: 12px;
+      background: #fff;
+      color: #0083B0;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background: #eaeaea;
+    }
+
+    .toggle-link {
+      text-align: center;
+      margin-top: 20px;
+      color: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .back-link {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .back-link a {
+      color: #fff;
+      font-size: 0.85rem;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        max-width: 90%;
+        height: auto;
+      }
+
+      .side {
+        padding: 25px;
+        box-shadow: none;
+        background: none;
+      }
+
+      .btn {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="flip-card">
+  <div class="card">
+
+    <!-- Login Form -->
+    <div class="side front">
+      <h2>Login</h2>
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <p class="{% if message.tags == 'success' %}success{% endif %}">
+              {{ message }}
+            </p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="input-group">
+          <input type="text" name="username" placeholder="Username or Email" required />
+        </div>
+        <div class="input-group">
+          <input type="password" name="password" placeholder="Password" required />
+        </div>
+        <button type="submit" class="btn">Login</button>
+      </form>
+      <div class="toggle-link" onclick="flipCard()">Don't have an account? Register</div>
+      <div class="back-link">
+        <a href="{% url 'home' %}">🏠 Back to Home</a>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div class="side back">
+      <h2>Register</h2>
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <p class="{% if message.tags == 'success' %}success{% endif %}">
+              {{ message }}
+            </p>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <form method="POST" action="{% url 'register' %}">
+        {% csrf_token %}
+        <div class="input-group">
+          <input type="text" name="first_name" placeholder="Full Name" required />
+        </div>
+        <div class="input-group">
+          <input type="email" name="email" placeholder="Email" required />
+        </div>
+        <div class="input-group">
+          <input type="text" name="phone" placeholder="Phone Number" required />
+        </div>
+        <div class="input-group">
+          <input type="password" name="password1" placeholder="Password" required />
+        </div>
+        <div class="input-group">
+          <input type="password" name="password2" placeholder="Confirm Password" required />
+        </div>
+        <button type="submit" class="btn">Register</button>
+      </form>
+      <div class="toggle-link" onclick="flipCard()">Already have an account? Login</div>
+      <div class="back-link">
+        <a href="{% url 'home' %}">🏠 Back to Home</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function flipCard() {
+    document.getElementById("flip-card").classList.toggle("flipped");
+  }
+
+  // Automatically show registration form if user is on /register/
+  {% if request.path == '/register/' %}
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("flip-card").classList.add("flipped");
+  });
+  {% endif %}
+</script>
+
+</body>
+</html>

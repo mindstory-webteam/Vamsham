@@ -1,0 +1,273 @@
+$pbmit_preypoint-font: "flaticon";
+
+@font-face {
+    font-family: $flaticon-font;
+    src: url("../fonts/flaticon.woff2?131090574aca8a68615ceb9079b71f6b") format("woff2"),
+url("../fonts/flaticon.woff?131090574aca8a68615ceb9079b71f6b") format("woff"),
+url("../fonts/flaticon.eot?131090574aca8a68615ceb9079b71f6b#iefix") format("embedded-opentype"),
+url("../fonts/flaticon.ttf?131090574aca8a68615ceb9079b71f6b") format("truetype"),
+url("../fonts/flaticon.svg?131090574aca8a68615ceb9079b71f6b#flaticon") format("svg");
+}
+
+i[class^="flaticon-"]:before, i[class*=" pbmit-preypoint-icon-"]:before {
+    font-family: flaticon !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+$pbmit_preypoint-map: (
+    "christian": "\f101",
+    "straight-quotes": "\f102",
+    "open": "\f103",
+    "phone-call": "\f104",
+    "plus-symbol-button": "\f105",
+    "envelope": "\f106",
+    "mail": "\f107",
+    "email-marketing": "\f108",
+    "placeholder": "\f109",
+    "call": "\f10a",
+    "calendar": "\f10b",
+    "month": "\f10c",
+    "bible": "\f10d",
+    "holy-ghost": "\f10e",
+    "ten-commandments": "\f10f",
+    "resurrection": "\f110",
+    "pulpit": "\f111",
+    "holy-ghost-1": "\f112",
+    "holy-ghost-2": "\f113",
+    "gospel": "\f114",
+    "baptism": "\f115",
+    "shepherd": "\f116",
+    "christianity": "\f117",
+    "jesus": "\f118",
+    "praying": "\f119",
+    "angel": "\f11a",
+    "christianity-1": "\f11b",
+    "cross": "\f11c",
+    "praying-1": "\f11d",
+    "jesus-1": "\f11e",
+    "communion": "\f11f",
+    "pulpit-1": "\f120",
+    "tree-of-life": "\f121",
+    "marriage": "\f122",
+    "praying-2": "\f123",
+    "priest": "\f124",
+    "lion": "\f125",
+    "cross-1": "\f126",
+    "grapes": "\f127",
+    "wedding-rings": "\f128",
+    "fish": "\f129",
+    "church": "\f12a",
+    "goblet": "\f12b",
+    "nun": "\f12c",
+    "pope": "\f12d",
+    "bible-1": "\f12e",
+    "golgotha": "\f12f",
+    "church-1": "\f130",
+    "cross-2": "\f131",
+    "cross-3": "\f132",
+    "easter-egg": "\f133",
+    "bible-2": "\f134",
+    "jesus-2": "\f135",
+    "marriage-1": "\f136",
+    "praying-3": "\f137",
+    "bread": "\f138",
+    "candle": "\f139",
+    "scroll": "\f13a",
+    "charity": "\f13b",
+    "holy-ghost-3": "\f13c",
+    "arrow-down": "\f13d",
+    "arrow": "\f13e",
+);
+
+.pbmit-preypoint-icon-christian:before {
+    content: map-get($pbmit_preypoint-map, "christian");
+}
+.pbmit-preypoint-icon-straight-quotes:before {
+    content: map-get($pbmit_preypoint-map, "straight-quotes");
+}
+.pbmit-preypoint-icon-open:before {
+    content: map-get($pbmit_preypoint-map, "open");
+}
+.pbmit-preypoint-icon-phone-call:before {
+    content: map-get($pbmit_preypoint-map, "phone-call");
+}
+.pbmit-preypoint-icon-plus-symbol-button:before {
+    content: map-get($pbmit_preypoint-map, "plus-symbol-button");
+}
+.pbmit-preypoint-icon-envelope:before {
+    content: map-get($pbmit_preypoint-map, "envelope");
+}
+.pbmit-preypoint-icon-mail:before {
+    content: map-get($pbmit_preypoint-map, "mail");
+}
+.pbmit-preypoint-icon-email-marketing:before {
+    content: map-get($pbmit_preypoint-map, "email-marketing");
+}
+.pbmit-preypoint-icon-placeholder:before {
+    content: map-get($pbmit_preypoint-map, "placeholder");
+}
+.pbmit-preypoint-icon-call:before {
+    content: map-get($pbmit_preypoint-map, "call");
+}
+.pbmit-preypoint-icon-calendar:before {
+    content: map-get($pbmit_preypoint-map, "calendar");
+}
+.pbmit-preypoint-icon-month:before {
+    content: map-get($pbmit_preypoint-map, "month");
+}
+.pbmit-preypoint-icon-bible:before {
+    content: map-get($pbmit_preypoint-map, "bible");
+}
+.pbmit-preypoint-icon-holy-ghost:before {
+    content: map-get($pbmit_preypoint-map, "holy-ghost");
+}
+.pbmit-preypoint-icon-ten-commandments:before {
+    content: map-get($pbmit_preypoint-map, "ten-commandments");
+}
+.pbmit-preypoint-icon-resurrection:before {
+    content: map-get($pbmit_preypoint-map, "resurrection");
+}
+.pbmit-preypoint-icon-pulpit:before {
+    content: map-get($pbmit_preypoint-map, "pulpit");
+}
+.pbmit-preypoint-icon-holy-ghost-1:before {
+    content: map-get($pbmit_preypoint-map, "holy-ghost-1");
+}
+.pbmit-preypoint-icon-holy-ghost-2:before {
+    content: map-get($pbmit_preypoint-map, "holy-ghost-2");
+}
+.pbmit-preypoint-icon-gospel:before {
+    content: map-get($pbmit_preypoint-map, "gospel");
+}
+.pbmit-preypoint-icon-baptism:before {
+    content: map-get($pbmit_preypoint-map, "baptism");
+}
+.pbmit-preypoint-icon-shepherd:before {
+    content: map-get($pbmit_preypoint-map, "shepherd");
+}
+.pbmit-preypoint-icon-christianity:before {
+    content: map-get($pbmit_preypoint-map, "christianity");
+}
+.pbmit-preypoint-icon-jesus:before {
+    content: map-get($pbmit_preypoint-map, "jesus");
+}
+.pbmit-preypoint-icon-praying:before {
+    content: map-get($pbmit_preypoint-map, "praying");
+}
+.pbmit-preypoint-icon-angel:before {
+    content: map-get($pbmit_preypoint-map, "angel");
+}
+.pbmit-preypoint-icon-christianity-1:before {
+    content: map-get($pbmit_preypoint-map, "christianity-1");
+}
+.pbmit-preypoint-icon-cross:before {
+    content: map-get($pbmit_preypoint-map, "cross");
+}
+.pbmit-preypoint-icon-praying-1:before {
+    content: map-get($pbmit_preypoint-map, "praying-1");
+}
+.pbmit-preypoint-icon-jesus-1:before {
+    content: map-get($pbmit_preypoint-map, "jesus-1");
+}
+.pbmit-preypoint-icon-communion:before {
+    content: map-get($pbmit_preypoint-map, "communion");
+}
+.pbmit-preypoint-icon-pulpit-1:before {
+    content: map-get($pbmit_preypoint-map, "pulpit-1");
+}
+.pbmit-preypoint-icon-tree-of-life:before {
+    content: map-get($pbmit_preypoint-map, "tree-of-life");
+}
+.pbmit-preypoint-icon-marriage:before {
+    content: map-get($pbmit_preypoint-map, "marriage");
+}
+.pbmit-preypoint-icon-praying-2:before {
+    content: map-get($pbmit_preypoint-map, "praying-2");
+}
+.pbmit-preypoint-icon-priest:before {
+    content: map-get($pbmit_preypoint-map, "priest");
+}
+.pbmit-preypoint-icon-lion:before {
+    content: map-get($pbmit_preypoint-map, "lion");
+}
+.pbmit-preypoint-icon-cross-1:before {
+    content: map-get($pbmit_preypoint-map, "cross-1");
+}
+.pbmit-preypoint-icon-grapes:before {
+    content: map-get($pbmit_preypoint-map, "grapes");
+}
+.pbmit-preypoint-icon-wedding-rings:before {
+    content: map-get($pbmit_preypoint-map, "wedding-rings");
+}
+.pbmit-preypoint-icon-fish:before {
+    content: map-get($pbmit_preypoint-map, "fish");
+}
+.pbmit-preypoint-icon-church:before {
+    content: map-get($pbmit_preypoint-map, "church");
+}
+.pbmit-preypoint-icon-goblet:before {
+    content: map-get($pbmit_preypoint-map, "goblet");
+}
+.pbmit-preypoint-icon-nun:before {
+    content: map-get($pbmit_preypoint-map, "nun");
+}
+.pbmit-preypoint-icon-pope:before {
+    content: map-get($pbmit_preypoint-map, "pope");
+}
+.pbmit-preypoint-icon-bible-1:before {
+    content: map-get($pbmit_preypoint-map, "bible-1");
+}
+.pbmit-preypoint-icon-golgotha:before {
+    content: map-get($pbmit_preypoint-map, "golgotha");
+}
+.pbmit-preypoint-icon-church-1:before {
+    content: map-get($pbmit_preypoint-map, "church-1");
+}
+.pbmit-preypoint-icon-cross-2:before {
+    content: map-get($pbmit_preypoint-map, "cross-2");
+}
+.pbmit-preypoint-icon-cross-3:before {
+    content: map-get($pbmit_preypoint-map, "cross-3");
+}
+.pbmit-preypoint-icon-easter-egg:before {
+    content: map-get($pbmit_preypoint-map, "easter-egg");
+}
+.pbmit-preypoint-icon-bible-2:before {
+    content: map-get($pbmit_preypoint-map, "bible-2");
+}
+.pbmit-preypoint-icon-jesus-2:before {
+    content: map-get($pbmit_preypoint-map, "jesus-2");
+}
+.pbmit-preypoint-icon-marriage-1:before {
+    content: map-get($pbmit_preypoint-map, "marriage-1");
+}
+.pbmit-preypoint-icon-praying-3:before {
+    content: map-get($pbmit_preypoint-map, "praying-3");
+}
+.pbmit-preypoint-icon-bread:before {
+    content: map-get($pbmit_preypoint-map, "bread");
+}
+.pbmit-preypoint-icon-candle:before {
+    content: map-get($pbmit_preypoint-map, "candle");
+}
+.pbmit-preypoint-icon-scroll:before {
+    content: map-get($pbmit_preypoint-map, "scroll");
+}
+.pbmit-preypoint-icon-charity:before {
+    content: map-get($pbmit_preypoint-map, "charity");
+}
+.pbmit-preypoint-icon-holy-ghost-3:before {
+    content: map-get($pbmit_preypoint-map, "holy-ghost-3");
+}
+.pbmit-preypoint-icon-arrow-down:before {
+    content: map-get($pbmit_preypoint-map, "arrow-down");
+}
+.pbmit-preypoint-icon-arrow:before {
+    content: map-get($pbmit_preypoint-map, "arrow");
+}

@@ -1,0 +1,524 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+{% include 'head.html' %}
+<body>
+<div class="page-wrapper">
+  {% include 'navbar.html' %}
+
+  <div class="pbmit-title-bar-wrapper" style="margin:0 10px 0">
+    <div class="container">
+      <div class="pbmit-title-bar-content">
+        <div class="pbmit-title-bar-content-inner">
+          <div class="pbmit-tbar">
+            <div class="pbmit-tbar-inner container">
+              <h1 class="pbmit-tbar-title">Family Photos</h1>
+            </div>
+          </div>
+          <div class="pbmit-breadcrumb">
+            <div class="pbmit-breadcrumb-inner">
+              <span><a href="{% url 'home' %}" class="home"><span>Vamsham Family</span></a></span>
+              <span class="sep"><i class="pbmit-base-icon-angle-right"></i></span>
+              <span><span class="current-item">Family Photos</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --radius: 16px;
+      --badge-bg: rgba(20, 30, 60, 0.72);
+      --badge-border: rgba(255,255,255,0.18);
+      --count-bg: rgba(20, 30, 60, 0.65);
+      --ease: cubic-bezier(.25,.46,.45,.94);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── section ── */
+    .gc-section {
+      background: #f4f6fa;
+      padding: clamp(28px, 5vw, 56px) clamp(14px, 3vw, 40px);
+    }
+
+    /* ── 4-column row grid ── */
+    .gc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(14px, 2.2vw, 24px);
+    }
+    @media (max-width: 1100px) { .gc-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 780px)  { .gc-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 540px)  { .gc-grid { grid-template-columns: 1fr; } }
+
+    /* ── CARD ── */
+    .gc-card {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 4 / 3;
+      background: #1a1a2e;
+      box-shadow: 0 4px 24px rgba(0,0,0,.13), 0 1px 4px rgba(0,0,0,.09);
+      transition: transform .32s var(--ease), box-shadow .32s var(--ease);
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      animation: gc-rise .5s var(--ease) both;
+    }
+    @keyframes gc-rise {
+      from { opacity:0; transform:translateY(20px) scale(.97); }
+      to   { opacity:1; transform:translateY(0)     scale(1); }
+    }
+    .gc-card:nth-child(1){ animation-delay:.04s }
+    .gc-card:nth-child(2){ animation-delay:.10s }
+    .gc-card:nth-child(3){ animation-delay:.16s }
+    .gc-card:nth-child(4){ animation-delay:.22s }
+    .gc-card:nth-child(5){ animation-delay:.28s }
+    .gc-card:nth-child(6){ animation-delay:.34s }
+    .gc-card:nth-child(7){ animation-delay:.40s }
+    .gc-card:nth-child(8){ animation-delay:.46s }
+    .gc-card:nth-child(9){ animation-delay:.52s }
+
+    @media (hover: hover) {
+      .gc-card:hover {
+        transform: translateY(-5px) scale(1.012);
+        box-shadow: 0 16px 48px rgba(0,0,0,.22), 0 4px 12px rgba(0,0,0,.12);
+      }
+      .gc-card:hover .gc-photo {
+        transform: scale(1.07);
+        filter: brightness(1.0) saturate(1.08);
+      }
+      .gc-card:hover .gc-veil {
+        opacity: 1;
+      }
+    }
+    @media (hover: none) {
+      .gc-card:active { transform: scale(1.015); }
+    }
+
+    /* ── photo fill ── */
+    .gc-photo {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform .45s var(--ease), filter .35s var(--ease);
+      filter: brightness(.92) saturate(.95);
+    }
+
+    /* subtle dark veil on hover */
+    .gc-veil {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        160deg,
+        rgba(10,18,48,.18) 0%,
+        transparent 50%,
+        rgba(10,18,48,.35) 100%
+      );
+      opacity: 0;
+      transition: opacity .3s var(--ease);
+      pointer-events: none;
+    }
+
+    /* always-on bottom gradient so count badge is readable */
+    .gc-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 45%,
+        rgba(10,18,48,.55) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* ── TITLE BADGE (top-left) ── */
+    .gc-title-badge {
+      position: absolute;
+      top: 14px; left: 14px;
+      background: var(--badge-bg);
+      border: 1px solid var(--badge-border);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 8px;
+      padding: 6px 12px 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      max-width: calc(100% - 28px);
+      z-index: 3;
+    }
+    /* blue dot */
+    .gc-title-badge::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4a9eff;
+      box-shadow: 0 0 6px rgba(74,158,255,.7);
+      flex-shrink: 0;
+    }
+    .gc-title-text {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(.62rem, 1.4vw, .72rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── COUNT BADGE (bottom-right) ── */
+    .gc-count-badge {
+      position: absolute;
+      bottom: 14px; right: 14px;
+      background: var(--count-bg);
+      border: 1px solid var(--badge-border);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 5px 12px 5px 9px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 3;
+    }
+    /* camera icon */
+    .gc-count-badge svg {
+      width: 13px; height: 13px;
+      fill: #b0c4e8;
+      flex-shrink: 0;
+    }
+    .gc-count-text {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(.6rem, 1.3vw, .68rem);
+      font-weight: 500;
+      color: #d8e8ff;
+      letter-spacing: .04em;
+    }
+
+    /* ── EMPTY STATE ── */
+    .gc-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 64px 16px;
+      font-family: 'Inter', sans-serif;
+      color: #8a9ab5;
+    }
+    .gc-empty h3 { font-size: 1.3rem; margin-bottom: 8px; font-weight: 600; color: #4a5a78; }
+    .gc-empty p  { font-size: .85rem; }
+
+    /* ══════════════════════
+       LIGHTBOX
+    ══════════════════════ */
+    .gc-lb {
+      position: fixed; inset: 0; z-index: 99999;
+      background: rgba(8,10,20,.96);
+      display: flex; align-items: center; justify-content: center;
+      padding: 0; opacity: 0; pointer-events: none;
+      transition: opacity .28s var(--ease);
+      overscroll-behavior: contain;
+    }
+    .gc-lb.open { opacity:1; pointer-events:all; }
+
+    .gc-lb-stage {
+      display: flex; flex-direction: column; align-items: center;
+      width: 100%; height: 100%;
+      max-width: min(94vw, 1080px);
+      margin: 0 auto;
+      padding: clamp(52px,7vw,68px) clamp(8px,2vw,20px) clamp(12px,2vw,20px);
+      transform: scale(.94) translateY(10px);
+      transition: transform .3s var(--ease);
+      overflow: hidden; gap: 0;
+    }
+    .gc-lb.open .gc-lb-stage { transform: scale(1) translateY(0); }
+
+    .gc-lb-frame {
+      width: 100%; flex: 1 1 auto; min-height: 0;
+      border-radius: 14px; overflow: hidden;
+      background: #0d0f1a;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 32px 80px rgba(0,0,0,.8);
+      position: relative;
+    }
+    /* top accent line */
+    .gc-lb-frame::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, #4a9eff 40%, #4a9eff 60%, transparent);
+      z-index: 2;
+    }
+    #gc-lb-img {
+      display: block; max-width: 100%; max-height: 100%;
+      width: auto; height: auto; object-fit: contain;
+      transition: opacity .2s; border-radius: 14px;
+    }
+    #gc-lb-img.fading { opacity: 0; }
+
+    .gc-lb-bar {
+      width: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; padding: 12px 4px 8px; flex-wrap: wrap; flex-shrink: 0;
+    }
+    .gc-lb-title {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(.84rem,2.2vw,1rem);
+      font-weight: 600; color: #e8f0ff;
+      letter-spacing: .04em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px; margin: 0;
+    }
+    .gc-lb-title::before {
+      content: '';
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #4a9eff;
+      box-shadow: 0 0 8px rgba(74,158,255,.8);
+      flex-shrink: 0;
+    }
+    .gc-lb-cap {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(.6rem,1.5vw,.68rem);
+      font-weight: 400; color: rgba(180,200,255,.5);
+      margin: 3px 0 0 16px;
+    }
+    .gc-lb-ctr {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(.58rem,1.3vw,.66rem);
+      font-weight: 500; color: rgba(74,158,255,.7);
+      letter-spacing: .15em; flex-shrink: 0;
+    }
+
+    /* thumbnails */
+    .gc-lb-strip {
+      display: flex; gap: 6px; width: 100%;
+      overflow-x: auto; scrollbar-width: none;
+      padding: 4px 0 4px; flex-shrink: 0;
+    }
+    .gc-lb-strip::-webkit-scrollbar { display: none; }
+    .gc-lb-thumb {
+      flex-shrink: 0; width: 54px; height: 40px;
+      border-radius: 6px; overflow: hidden;
+      cursor: pointer;
+      border: 1.5px solid transparent; opacity: .35;
+      transition: opacity .2s, border-color .2s, transform .2s;
+    }
+    .gc-lb-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .gc-lb-thumb.active { border-color:#4a9eff; opacity:1; transform:scale(1.08); }
+    @media(hover:hover){ .gc-lb-thumb:hover { opacity:.72; } }
+
+    /* arrows */
+    .gc-lb-arrow {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      width: 46px; height: 46px;
+      background: rgba(20,30,60,.7);
+      border: 1px solid rgba(74,158,255,.25);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background .2s, transform .2s, border-color .2s;
+      z-index: 100001;
+    }
+    .gc-lb-arrow:hover { background:rgba(74,158,255,.2); border-color:rgba(74,158,255,.6); transform:translateY(-50%) scale(1.1); }
+    .gc-lb-arrow:disabled { opacity:.15; pointer-events:none; }
+    .gc-lb-arrow svg { width:20px; height:20px; fill:#c8dcff; }
+    .gc-lb-prev { left:10px; } .gc-lb-next { right:10px; }
+
+    /* close */
+    .gc-lb-close {
+      position: fixed; top:12px; right:14px;
+      width:40px; height:40px;
+      background: rgba(20,30,60,.7);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-radius: 50%;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:background .2s, border-color .2s; z-index:100002;
+    }
+    .gc-lb-close:hover { background:rgba(220,50,50,.45); border-color:rgba(220,80,80,.6); }
+    .gc-lb-close svg { width:15px; height:15px; fill:#c8dcff; }
+
+    @media(max-width:599px){
+      .gc-lb-arrow { display:none; }
+      .gc-lb-strip { display:none; }
+      .gc-lb-stage { padding:48px 0 10px; max-width:100%; }
+      .gc-lb-frame { border-radius:0; }
+    }
+    @media(max-width:380px){
+      .gc-lb-close { top:8px; right:8px; width:36px; height:36px; }
+    }
+  </style>
+
+  <!-- ── GALLERY ── -->
+  <section class="gc-section">
+    {% if photos %}
+      <div class="gc-grid" id="gcGrid">
+        {% for photo in photos %}
+          <div class="gc-card"
+               tabindex="0" role="button"
+               aria-label="View {{ photo.title }}"
+               data-index="{{ forloop.counter0 }}"
+               data-src="{{ photo.image.url }}"
+               data-title="{{ photo.title }}"
+               data-caption="{{ photo.caption }}">
+
+            <!-- full-fill photo -->
+            <img class="gc-photo"
+                 src="{{ photo.image.url }}"
+                 alt="{{ photo.title }}"
+                 loading="lazy" decoding="async">
+
+            <!-- bottom gradient -->
+            <div class="gc-gradient"></div>
+            <!-- hover veil -->
+            <div class="gc-veil"></div>
+
+            <!-- title badge — top left -->
+            <div class="gc-title-badge">
+              <span class="gc-title-text">{{ photo.title }}</span>
+            </div>
+
+            <!-- photo count badge — bottom right -->
+            <div class="gc-count-badge">
+              <!-- camera icon -->
+              <svg viewBox="0 0 24 24">
+                <path d="M12 15.2A3.2 3.2 0 1 1 12 8.8a3.2 3.2 0 0 1 0 6.4zm7-12H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5.2A2 2 0 0 0 19 3.2zm-7 13A5.2 5.2 0 1 1 12 6a5.2 5.2 0 0 1 0 10.2zM17.5 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+              </svg>
+              <span class="gc-count-text">
+                {% if photo.photo_count %}{{ photo.photo_count }} photos{% else %}View photos{% endif %}
+              </span>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <div class="gc-grid">
+        <div class="gc-empty">
+          <h3>No Photos Yet</h3>
+          <p>Family photos will appear here once uploaded.</p>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+  </div>
+
+  <!-- ══ LIGHTBOX ══ -->
+  <div class="gc-lb" id="gcLightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button class="gc-lb-close" id="gcClose" aria-label="Close">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <button class="gc-lb-arrow gc-lb-prev" id="gcPrev" aria-label="Previous">
+      <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg>
+    </button>
+    <button class="gc-lb-arrow gc-lb-next" id="gcNext" aria-label="Next">
+      <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+    </button>
+
+    <div class="gc-lb-stage">
+      <div class="gc-lb-frame">
+        <img id="gc-lb-img" src="" alt="">
+      </div>
+      <div class="gc-lb-bar">
+        <div>
+          <p class="gc-lb-title" id="gc-lb-title"></p>
+          <p class="gc-lb-cap"   id="gc-lb-cap"></p>
+        </div>
+        <span class="gc-lb-ctr" id="gc-lb-ctr"></span>
+      </div>
+      <div class="gc-lb-strip" id="gc-lb-strip"></div>
+    </div>
+  </div>
+
+  {% include 'footer.html' %}
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const cards = Array.from(document.querySelectorAll('.gc-card'));
+  if (!cards.length) return;
+
+  const photos = cards.map(el => ({
+    src:     el.dataset.src,
+    title:   el.dataset.title   || '',
+    caption: el.dataset.caption || '',
+  }));
+
+  const lb       = document.getElementById('gcLightbox');
+  const img      = document.getElementById('gc-lb-img');
+  const titleEl  = document.getElementById('gc-lb-title');
+  const capEl    = document.getElementById('gc-lb-cap');
+  const ctrEl    = document.getElementById('gc-lb-ctr');
+  const strip    = document.getElementById('gc-lb-strip');
+  const closeBtn = document.getElementById('gcClose');
+  const prevBtn  = document.getElementById('gcPrev');
+  const nextBtn  = document.getElementById('gcNext');
+  let cur = 0;
+
+  photos.forEach((p, i) => {
+    const t = document.createElement('div');
+    t.className = 'gc-lb-thumb';
+    t.innerHTML = `<img src="${p.src}" loading="lazy" alt="${p.title}">`;
+    t.addEventListener('click', () => go(i));
+    strip.appendChild(t);
+  });
+
+  function syncStrip() {
+    Array.from(strip.children).forEach((t, i) => t.classList.toggle('active', i === cur));
+    const a = strip.children[cur];
+    if (a) a.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  function render() {
+    const p = photos[cur];
+    img.classList.add('fading');
+    const tmp = new Image();
+    tmp.onload  = () => { img.src = tmp.src; img.alt = p.title; img.classList.remove('fading'); };
+    tmp.onerror = () => { img.src = p.src; img.classList.remove('fading'); };
+    tmp.src = p.src;
+    titleEl.textContent = p.title;
+    capEl.textContent   = p.caption;
+    capEl.style.display = p.caption ? '' : 'none';
+    ctrEl.textContent   = `${cur + 1} / ${photos.length}`;
+    prevBtn.disabled    = cur === 0;
+    nextBtn.disabled    = cur === photos.length - 1;
+    syncStrip();
+  }
+
+  function openLb(i) { cur = i; render(); lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeLb()  { lb.classList.remove('open'); document.body.style.overflow = ''; }
+  function go(i)      { if (i >= 0 && i < photos.length) { cur = i; render(); } }
+
+  cards.forEach((el, i) => {
+    el.addEventListener('click', () => openLb(i));
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLb(i); }});
+  });
+  closeBtn.addEventListener('click', closeLb);
+  prevBtn.addEventListener('click',  () => go(cur - 1));
+  nextBtn.addEventListener('click',  () => go(cur + 1));
+  lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape')     closeLb();
+    if (e.key === 'ArrowLeft')  go(cur - 1);
+    if (e.key === 'ArrowRight') go(cur + 1);
+  });
+
+  let sx = 0, sy = 0;
+  lb.addEventListener('touchstart', e => { sx = e.changedTouches[0].clientX; sy = e.changedTouches[0].clientY; }, { passive: true });
+  lb.addEventListener('touchmove',  e => { if (Math.abs(e.changedTouches[0].clientX - sx) > Math.abs(e.changedTouches[0].clientY - sy)) e.preventDefault(); }, { passive: false });
+  lb.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 48) dx < 0 ? go(cur + 1) : go(cur - 1);
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
