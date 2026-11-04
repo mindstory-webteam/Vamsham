@@ -204,6 +204,9 @@ OTP_MAX_ATTEMPTS = 5
 # For store reviewers / testing only: a fixed phone + code that always works. Leave empty in production.
 OTP_TEST_PHONE = env("OTP_TEST_PHONE", "")
 OTP_TEST_CODE = env("OTP_TEST_CODE", "")
+# Demo mode: the code is sent back to the app and shown on screen (no SMS needed).
+# ONLY for testing — anyone could sign in as any number while this is on. Leave 0 when members use the app.
+OTP_DEMO = env_bool("OTP_DEMO", False)
 
 # ── Jazzmin admin theme (Ocean Bento colours via static/vamsham/admin.css) ──────────────────────────────────────────
 JAZZMIN_SETTINGS = {

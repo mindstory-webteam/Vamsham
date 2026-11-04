@@ -424,3 +424,23 @@ class BranchManagementTests(TestCase):
     def test_only_committee_can_manage(self):
         c = APIClient()
         self.assertIn(c.post("/api/admin/branches", {"name": "X"}, format="json").status_code, (401, 403))
+
+
+class OtpDemoModeTests(TestCase):
+    """OTP_DEMO sends the code back to the app (testing only); off by default."""
+
+    def test_code_hidden_by_default(self):
+        res = APIClient().post("/api/auth/otp/request", {"phone": "9000000101"}, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.assertNotIn("demo_code", res.json())
+
+    def test_demo_code_returned_and_works(self):
+        from django.test import override_settings
+        with override_settings(OTP_DEMO=True):
+            c = APIClient()
+            res = c.post("/api/auth/otp/request", {"phone": "9000000102"}, format="json")
+            code = res.json()["demo_code"]
+            self.assertRegex(code, r"^\d{6}$")
+            ok = c.post("/api/auth/otp/verify", {"phone": "9000000102", "code": code}, format="json")
+            self.assertEqual(ok.status_code, 200)
+            self.assertIn("access", ok.json())

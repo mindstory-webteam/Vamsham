@@ -2,6 +2,7 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.db import transaction
 from django.utils import timezone
+from django.conf import settings
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -98,10 +99,13 @@ class OTPRequestView(APIView):
         if not phone:
             return Response({"detail": "Please enter a valid mobile number."}, status=400)
         try:
-            otp.create_and_send(phone)
+            code = otp.create_and_send(phone)
         except otp.OTPError as exc:
             return Response({"detail": str(exc)}, status=429)
-        return Response({"sent": True, "phone": phone, "expires_in": 300})
+        data = {"sent": True, "phone": phone, "expires_in": 300}
+        if settings.OTP_DEMO:
+            data["demo_code"] = code  # demo/testing only — see OTP_DEMO in settings
+        return Response(data)
 
 
 class OTPVerifyView(APIView):

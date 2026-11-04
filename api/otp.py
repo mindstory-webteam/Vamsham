@@ -45,7 +45,7 @@ class OTPError(Exception):
 
 
 def create_and_send(phone):
-    """Create a code for this phone and send it. Raises OTPError when rate-limited."""
+    """Create a code for this phone and send it; returns the code. Raises OTPError when rate-limited."""
     hour_ago = timezone.now() - timedelta(hours=1)
     if PhoneOTP.objects.filter(phone=phone, created_at__gte=hour_ago).count() >= 5:
         raise OTPError("Too many codes requested. Please try again in an hour.")
@@ -62,7 +62,7 @@ def create_and_send(phone):
         expires_at=timezone.now() + timedelta(seconds=settings.OTP_TTL_SECONDS),
     )
     send_sms_code(phone, code)
-    return True
+    return code
 
 
 def verify(phone, code):
