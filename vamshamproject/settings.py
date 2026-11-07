@@ -175,6 +175,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "otp": env("OTP_THROTTLE", "30/hour"),
         "login": env("LOGIN_THROTTLE", "30/hour"),
+        "face": env("FACE_THROTTLE", "60/hour"),
         "anon": "120/hour",
     },
 }
@@ -267,3 +268,12 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "loggers": {"api": {"handlers": ["console"], "level": "INFO"}},
 }
+
+# ── Face scan sign in ────────────────────────────────────────
+# Free OpenCV models (YuNet finds the face, SFace turns it into a face code).
+# They live in backend/face_models/ — run `python manage.py download_face_models` if missing.
+FACE_MODEL_DIR = Path(env("FACE_MODEL_DIR", str(BASE_DIR / "face_models")))
+FACE_MATCH_THRESHOLD = float(env("FACE_MATCH_THRESHOLD", "0.42"))  # cosine; OpenCV suggests 0.363, higher = stricter
+FACE_MAX_FAILS = 5  # wrong faces in a row before face scan rests
+FACE_LOCK_MINUTES = 10
+DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024  # 3 camera photos (base64) for face set-up

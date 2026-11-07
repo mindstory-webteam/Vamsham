@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import admin as a
 from .views import auth, community as c, family as f, settings_views as st
 from .views import branch_views as br
+from .views import face as fc
 
 urlpatterns = [
     # ── Sign in ──────────────────────────────────────────────
@@ -11,6 +12,9 @@ urlpatterns = [
     path("auth/otp/verify", auth.OTPVerifyView.as_view()),
     path("auth/login", auth.PasswordLoginView.as_view()),
     path("auth/refresh", TokenRefreshView.as_view()),
+    path("auth/face", fc.FaceStatusView.as_view()),
+    path("auth/face/enroll", fc.FaceEnrollView.as_view()),
+    path("auth/face/login", fc.FaceLoginView.as_view()),
 
     # ── Me ───────────────────────────────────────────────────
     path("me", auth.MeView.as_view()),

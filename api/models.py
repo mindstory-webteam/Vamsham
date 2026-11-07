@@ -279,3 +279,29 @@ class AssociationSettings(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class FaceProfile(models.Model):
+    """A member's face code for face-scan sign in. Only numbers (SFace embeddings), never photos."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="face_profile")
+    embeddings = models.JSONField(default=list)  # 3 x 128 floats (straight, left, right)
+    consent_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Face code · {self.user}"
+
+
+class FaceDevice(models.Model):
+    """A phone that may sign in with face scan. The phone keeps the secret key; we keep its hash."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="face_devices")
+    key_hash = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=60, blank=True)
+    failed = models.PositiveSmallIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user} · {self.name or 'phone'}"

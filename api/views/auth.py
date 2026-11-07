@@ -14,7 +14,7 @@ from app1.models import Profile
 
 from .. import otp
 from ..branches import BRANCH_LABELS, SLUGS, get_member
-from ..models import DeviceToken, DonorStatus, MemberLink, Payment
+from ..models import DeviceToken, FaceProfile, DonorStatus, MemberLink, Payment
 from ..people import summary
 from ..permissions import is_approved
 
@@ -74,6 +74,7 @@ def me_payload(user, request=None):
             "text": link.claim_text if link else "",
         },
         "show_phone": link.show_phone if link else True,
+        "face_enrolled": FaceProfile.objects.filter(user=user).exists(),
         "fee": fee,
         "missing_details": missing,
         "donor": {"available": donor.available if donor else False,

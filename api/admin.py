@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from mptt.admin import MPTTModelAdmin
 
-from .models import (BloodRequest, BranchMember, Broadcast, ChangeRequest, DeviceToken, EventRSVP, FamilyBranch,
+from .models import (BloodRequest, BranchMember, Broadcast, ChangeRequest, DeviceToken, EventRSVP, FaceDevice, FaceProfile, FamilyBranch,
                      MemberLink, NewMemberRequest, Notification, Payment, PhoneOTP)
 
 
@@ -66,3 +66,19 @@ class BranchMemberAdmin(MPTTModelAdmin):
     list_display = ("first_name", "last_name", "branch", "membership_category", "membership_number")
     list_filter = ("branch", "membership_category")
     search_fields = ("first_name", "last_name", "membership_number")
+
+
+@admin.register(FaceProfile)
+class FaceProfileAdmin(admin.ModelAdmin):
+    """Face codes are numbers only (no photos). Delete one to switch face scan off for that person."""
+    list_display = ("user", "consent_at", "updated_at")
+    search_fields = ("user__username", "user__profile__full_name")
+    exclude = ("embeddings",)
+    readonly_fields = ("user", "consent_at")
+
+
+@admin.register(FaceDevice)
+class FaceDeviceAdmin(admin.ModelAdmin):
+    list_display = ("user", "name", "failed", "locked_until", "last_used", "created_at")
+    exclude = ("key_hash",)
+    readonly_fields = ("user", "name", "created_at", "last_used")

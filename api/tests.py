@@ -12,7 +12,7 @@ from app1.models import Event, Memory, Profile
 from family.models import LonappanFamily, VarunnyFamily
 
 from api import otp as otp_mod
-from api.models import ChangeRequest, MemberLink, NewMemberRequest, Notification, PhoneOTP
+from api.models import ChangeRequest, FaceProfile, MemberLink, NewMemberRequest, Notification, PhoneOTP
 from api.people import describe
 
 os.environ["EXPO_PUSH"] = "0"
@@ -444,3 +444,105 @@ class OtpDemoModeTests(TestCase):
             ok = c.post("/api/auth/otp/verify", {"phone": "9000000102", "code": code}, format="json")
             self.assertEqual(ok.status_code, 200)
             self.assertIn("access", ok.json())
+
+
+class FaceScanTests(TestCase):
+    """Face scan sign in. The face engine is swapped for a fake so these run without OpenCV."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        from api import face as face_mod
+        cache.clear()
+        self.face = face_mod
+        self._embed = face_mod.embed
+        # fake "photos": the text says whose face it is
+        vec = {"me": [1.0] + [0.0] * 127, "me2": [0.95, 0.31] + [0.0] * 126, "other": [0.0, 1.0] + [0.0] * 126}
+
+        def fake_embed(img):
+            if img == "none":
+                raise face_mod.FaceError("no_face", "We couldn't see a face.")
+            return vec[img]
+        face_mod.embed = fake_embed
+        self.user = User.objects.create_user("faceuser", password="x")
+        Profile.objects.create(user=self.user, full_name="Face User", phone_number="+919000000001", is_approved=True)
+        self.c = APIClient()
+
+    def tearDown(self):
+        self.face.embed = self._embed
+
+    def enroll(self, images=("me", "me2", "me"), consent=True):
+        self.c.force_authenticate(self.user)
+        r = self.c.post("/api/auth/face/enroll", {"images": list(images), "consent": consent, "device_name": "Test"}, format="json")
+        self.c.force_authenticate(None)
+        return r
+
+    def test_enroll_then_login_goes_home(self):
+        r = self.enroll()
+        self.assertEqual(r.status_code, 201, r.data)
+        key = r.data["device_key"]
+        r = self.c.post("/api/auth/face/login", {"device_key": key, "image": "me2"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertIn("access", r.data)
+        self.assertTrue(r.data["me"]["face_enrolled"])
+        self.assertNotIn("photo", str(FaceProfile.objects.get(user=self.user).embeddings)[:10])
+
+    def test_consent_required_and_mismatched_photos(self):
+        self.assertEqual(self.enroll(consent=False).data["code"], "consent")
+        self.assertEqual(self.enroll(images=("me", "other")).data["code"], "mismatch")
+        self.assertEqual(self.enroll(images=("me", "none")).data["code"], "no_face")
+        self.assertFalse(FaceProfile.objects.exists())
+
+    def test_wrong_face_wrong_phone_and_lockout(self):
+        key = self.enroll().data["device_key"]
+        r = self.c.post("/api/auth/face/login", {"device_key": "someone-elses-phone", "image": "me"}, format="json")
+        self.assertEqual((r.status_code, r.data["code"]), (401, "unknown_device"))
+        r = self.c.post("/api/auth/face/login", {"device_key": key, "image": "none"}, format="json")
+        self.assertEqual(r.data["code"], "no_face")  # no face doesn't count as a try
+        for i in range(4):
+            r = self.c.post("/api/auth/face/login", {"device_key": key, "image": "other"}, format="json")
+            self.assertEqual((r.status_code, r.data["tries_left"]), (401, 4 - i))
+        r = self.c.post("/api/auth/face/login", {"device_key": key, "image": "other"}, format="json")
+        self.assertEqual((r.status_code, r.data["code"]), (429, "locked"))
+        r = self.c.post("/api/auth/face/login", {"device_key": key, "image": "me"}, format="json")
+        self.assertEqual(r.status_code, 429)  # even the right face waits
+
+    def test_setting_up_again_replaces_old_phone_and_delete_removes_all(self):
+        old = self.enroll().data["device_key"]
+        new = self.enroll().data["device_key"]
+        self.assertEqual(self.c.post("/api/auth/face/login", {"device_key": old, "image": "me"}, format="json").status_code, 401)
+        self.assertEqual(self.c.post("/api/auth/face/login", {"device_key": new, "image": "me"}, format="json").status_code, 200)
+        self.c.force_authenticate(self.user)
+        self.assertTrue(self.c.get("/api/auth/face").data["enrolled"])
+        self.assertEqual(self.c.delete("/api/auth/face").status_code, 204)
+        self.assertFalse(self.c.get("/api/auth/face").data["enrolled"])
+        self.c.force_authenticate(None)
+        self.assertEqual(self.c.post("/api/auth/face/login", {"device_key": new, "image": "me"}, format="json").status_code, 401)
+
+    def test_declined_member_cannot_face_login(self):
+        key = self.enroll().data["device_key"]
+        self.user.is_active = False
+        self.user.save()
+        self.assertEqual(self.c.post("/api/auth/face/login", {"device_key": key, "image": "me"}, format="json").status_code, 403)
+
+
+class FaceEngineTests(TestCase):
+    """The real OpenCV models on real photos (runs only where OpenCV, the models and scikit-image are installed)."""
+
+    def test_real_models(self):
+        try:
+            import cv2
+            from skimage import data
+        except ImportError:
+            self.skipTest("OpenCV / scikit-image not installed")
+        from api import face
+        if not face.available():
+            self.skipTest("face models missing")
+        jpg = lambda im: cv2.imencode(".jpg", im)[1].tobytes()  # noqa: E731
+        astro = cv2.cvtColor(data.astronaut(), cv2.COLOR_RGB2BGR)
+        a = face.embed(jpg(astro))
+        b = face.embed(jpg(cv2.convertScaleAbs(cv2.resize(astro[20:480, 40:470], (300, 320)), alpha=1.2, beta=10)))
+        other = face.embed(jpg(cv2.cvtColor(data.camera()[20:300, 120:400], cv2.COLOR_GRAY2BGR)))  # cropped: his face is small
+        self.assertGreater(face.similarity(a, b), 0.6)
+        self.assertLess(face.similarity(a, other), 0.36)
+        with self.assertRaises(face.FaceError):
+            face.embed(jpg(cv2.cvtColor(data.coffee(), cv2.COLOR_RGB2BGR)))

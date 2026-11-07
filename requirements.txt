@@ -13,3 +13,6 @@ djangorestframework-simplejwt==5.5.1
 django-cors-headers==4.9.0
 # Only needed if DB_ENGINE=postgres
 # psycopg[binary]==3.2.9
+# Face scan sign in (free OpenCV face models in face_models/)
+opencv-python-headless==4.12.0.88
+numpy>=1.26
