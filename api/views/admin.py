@@ -179,7 +179,22 @@ class ApprovalListView(APIView):
 
     def get(self, request):
         items = approval_items(request)
-        return Response({"count": len(items), "results": items})
+        return Response({"count": len(items), "results": items, "done_this_month": decided_this_month()})
+
+
+def decided_this_month():
+    """How many requests the committee approved / declined since the 1st of this month."""
+    start = timezone.localtime().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    approved = declined = 0
+    for p in Profile.objects.filter(decided_at__gte=start).select_related("user"):
+        if p.is_approved:
+            approved += 1
+        else:
+            declined += 1
+    for Model in (ChangeRequest, NewMemberRequest):
+        approved += Model.objects.filter(decided_at__gte=start, status="approved").count()
+        declined += Model.objects.filter(decided_at__gte=start, status="declined").count()
+    return {"approved": approved, "declined": declined, "total": approved + declined}
 
 
 class ApprovalDecisionView(APIView):
@@ -198,9 +213,10 @@ class ApprovalDecisionView(APIView):
             profile = getattr(user, "profile", None) if user else None
             if not profile:
                 return Response({"detail": "Not found."}, status=404)
+            profile.decided_at = timezone.now()
             if ok:
                 profile.is_approved = True
-                profile.save(update_fields=["is_approved"])
+                profile.save(update_fields=["is_approved", "decided_at"])
                 ref = request.data.get("member_ref")
                 if ref:
                     branch, mid = parse_ref(ref)
@@ -211,6 +227,7 @@ class ApprovalDecisionView(APIView):
                 notify([user], f"Welcome to {AssociationSettings.load().app_name}!",
                        "Your account has been approved. You can now see the family tree.", kind="approval")
             else:
+                profile.save(update_fields=["decided_at"])
                 user.is_active = False
                 user.save(update_fields=["is_active"])
             return Response({"ok": True, "status": "approved" if ok else "declined"})
@@ -330,6 +347,48 @@ class AdminMemberListView(APIView):
         ser.is_valid(raise_exception=True)
         m = ser.save()
         return Response(detail(m, branch, request), status=201)
+
+
+def csv_response(filename, header, rows):
+    """A CSV download that opens cleanly in Excel (UTF-8 with BOM, so Malayalam names work)."""
+    import csv
+    from django.http import HttpResponse
+    resp = HttpResponse(content_type="text/csv; charset=utf-8")
+    resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+    resp.write("\ufeff")
+    w = csv.writer(resp)
+    w.writerow(header)
+    for r in rows:
+        w.writerow(["" if v is None else v for v in r])
+    return resp
+
+
+class AdminMemberExportView(APIView):
+    """GET /admin/members/export?branch=&q=&category=&missing= → members.csv (same filters as the list)."""
+    permission_classes = [IsStaff]
+
+    def get(self, request):
+        p = request.query_params
+        rows = search(query=p.get("q", "").strip(), branch=p.get("branch") or None,
+                      category=p.get("category") or None, blood=p.get("blood") or None, request=request)
+        out = []
+        for r in rows:
+            m = get_member(r["branch"], r["id"])
+            if m is None:
+                continue
+            missing = p.get("missing")
+            if missing and getattr(m, missing, None):
+                continue
+            out.append([
+                f"{m.first_name or ''} {m.last_name or ''}".strip(), BRANCH_LABELS.get(r["branch"], r["branch"]),
+                (m.level + 1) if getattr(m, "level", None) is not None else "",
+                CATEGORY_LABELS.get(m.membership_category, m.membership_category or ""), m.membership_number or "",
+                m.mobile_number or "", m.email or "", m.date_of_birth or "", m.blood_group or "",
+                m.place_of_birth or "", m.date_of_death or "",
+            ])
+        return csv_response(f"vamsham-members-{date.today().isoformat()}.csv",
+                            ["Name", "Branch", "Generation", "Membership", "Membership no.", "Mobile", "Email",
+                             "Date of birth", "Blood group", "Place of birth", "Date of death"], out)
 
 
 class AdminMemberDetailView(APIView):
@@ -516,3 +575,66 @@ class PaymentListView(APIView):
         ser.is_valid(raise_exception=True)
         p = ser.save(recorded_by=request.user)
         return Response(PaymentSerializer(p).data, status=201)
+
+
+class PaymentExportView(APIView):
+    """GET /admin/payments/export?year=2026 → payments.csv"""
+    permission_classes = [IsStaff]
+
+    def get(self, request):
+        qs = Payment.objects.all()
+        year = request.query_params.get("year")
+        if year and year.isdigit():
+            qs = qs.filter(paid_on__year=int(year))
+        purposes, methods = dict(Payment.PURPOSES), dict(Payment.METHODS)
+        rows = [[x.receipt_no, x.paid_on, x.payer_name, BRANCH_LABELS.get(x.branch, x.branch), purposes.get(x.purpose, x.purpose),
+                 methods.get(x.method, x.method), x.reference, f"{x.amount:.2f}"] for x in qs]
+        return csv_response(f"vamsham-payments-{year or 'all'}.csv",
+                            ["Receipt", "Date", "Paid by", "Branch", "For", "Method", "Reference", "Amount (Rs)"], rows)
+
+
+ANNUAL_CATEGORIES = ("PM", "PMF", "M")  # members who pay the fee every year (life members pay once)
+
+
+def unpaid_members(year):
+    """Living annual-fee members with no annual-fee payment recorded for them this year."""
+    paid = set(Payment.objects.filter(purpose="annual_fee", paid_on__year=year, member_id__isnull=False)
+               .values_list("branch", "member_id"))
+    out = []
+    for slug, Model, _label in all_models():
+        for m in Model.objects.filter(date_of_death__isnull=True, membership_category__in=ANNUAL_CATEGORIES):
+            if (slug, m.pk) not in paid:
+                out.append((slug, m))
+    return out
+
+
+class UnpaidView(APIView):
+    """
+    GET  /admin/payments/unpaid?year=2026 → {count, on_app, year}
+    POST /admin/payments/unpaid {year} → reminds the ones who use the app (notification)
+    """
+    permission_classes = [IsStaff]
+
+    def _year(self, request):
+        y = str(request.data.get("year") or request.query_params.get("year") or date.today().year)
+        return int(y) if y.isdigit() else date.today().year
+
+    def _users(self, rows):
+        keys = {(slug, m.pk) for slug, m in rows}
+        links = MemberLink.objects.filter(user__is_active=True, user__profile__is_approved=True).select_related("user")
+        return [lk.user for lk in links if (lk.branch, lk.member_id) in keys]
+
+    def get(self, request):
+        year = self._year(request)
+        rows = unpaid_members(year)
+        return Response({"year": year, "count": len(rows), "on_app": len(self._users(rows))})
+
+    def post(self, request):
+        year = self._year(request)
+        users = self._users(unpaid_members(year))
+        s = AssociationSettings.load()
+        sent = notify(users, f"{s.app_name}: annual fee {year}",
+                      f"A gentle reminder — your annual fee of ₹{s.annual_fee:,.0f} for {year} is due. Thank you!"
+                      if getattr(s, "annual_fee", None) else f"A gentle reminder — your annual fee for {year} is due. Thank you!",
+                      kind="fee")
+        return Response({"sent": sent, "detail": f"Reminder sent to {sent} {'person' if sent == 1 else 'people'}."})

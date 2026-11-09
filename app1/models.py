@@ -153,6 +153,7 @@ class Profile(models.Model):
     pin_code      = models.CharField(max_length=10, blank=True)
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     is_approved   = models.BooleanField(default=False)
+    decided_at    = models.DateTimeField(null=True, blank=True)  # when the committee approved / declined the sign-up
 
     def __str__(self):
         return self.full_name

@@ -558,3 +558,44 @@ class DashboardWeekTests(TestCase):
         self.assertEqual(r.status_code, 200, r.data)
         self.assertEqual(len(r.data["week"]), 7)
         self.assertIn("birthdays", r.data["week"][0])
+
+
+class BentoPagesBackendTests(TestCase):
+    """Approval history, CSV exports and the annual-fee reminder."""
+
+    def setUp(self):
+        self.staff = User.objects.create_user("bento", password="x", is_staff=True)
+        Profile.objects.create(user=self.staff, full_name="Bento", phone_number="+919000000066", is_approved=True)
+        self.c = APIClient()
+        self.c.force_authenticate(self.staff)
+
+    def test_approvals_done_this_month(self):
+        u = User.objects.create_user("newbie", password="x")
+        Profile.objects.create(user=u, full_name="New Bie", phone_number="+919000000065")
+        r = self.c.get("/api/admin/approvals")
+        self.assertEqual(r.data["done_this_month"]["total"], 0)
+        self.c.post(f"/api/admin/approvals/signup/{u.pk}/approve", {}, format="json")
+        r = self.c.get("/api/admin/approvals")
+        self.assertEqual(r.data["done_this_month"], {"approved": 1, "declined": 0, "total": 1})
+
+    def test_member_and_payment_csv(self):
+        r = self.c.get("/api/admin/members/export")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("text/csv", r["Content-Type"])
+        self.assertTrue(r.content.decode("utf-8-sig").startswith("Name,Branch"))
+        from api.models import Payment
+        Payment.objects.create(payer_name="Lissy V.", purpose="annual_fee", amount=1000)
+        r = self.c.get("/api/admin/payments/export?year=%d" % date.today().year)
+        self.assertIn("Lissy V.", r.content.decode("utf-8-sig"))
+
+    def test_unpaid_and_remind(self):
+        r = self.c.get("/api/admin/payments/unpaid")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("count", r.data)
+        r = self.c.post("/api/admin/payments/unpaid", {}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("sent", r.data)
+
+    def test_staff_only(self):
+        self.c.force_authenticate(None)
+        self.assertEqual(self.c.get("/api/admin/members/export").status_code, 401)
