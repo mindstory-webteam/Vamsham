@@ -74,9 +74,37 @@ def dashboard_data(request):
             is_approved=True, user__date_joined__gte=date.today().replace(day=1)).count(),
         "upcoming_events": Event.objects.filter(date__gte=date.today()).count(),
         "generations": _generations(),
+        "week": _week_ahead(),
         "settings": {"app_name": AssociationSettings.load().app_name,
                      "family_name": AssociationSettings.load().family_name},
     }
+
+
+def _week_ahead(days=7):
+    """Birthdays and wedding anniversaries for today and the next 6 days (living people)."""
+    start = date.today()
+    wanted = {}
+    for i in range(days):
+        d = date.fromordinal(start.toordinal() + i)
+        wanted[(d.month, d.day)] = d
+    out = {d: {"date": d.isoformat(), "birthdays": [], "anniversaries": []} for d in wanted.values()}
+    for slug, Model, label in all_models():
+        rows = Model.objects.filter(date_of_death__isnull=True).filter(
+            Q(date_of_birth__isnull=False) | Q(marriage_date__isnull=False)
+        ).values("id", "first_name", "last_name", "date_of_birth", "marriage_date")
+        for r in rows:
+            name = f"{r['first_name'] or ''} {r['last_name'] or ''}".strip()
+            b = r["date_of_birth"]
+            if b and (b.month, b.day) in wanted:
+                d = wanted[(b.month, b.day)]
+                out[d]["birthdays"].append({"ref": f"{slug}:{r['id']}", "name": name, "branch_label": label,
+                                            "turning": d.year - b.year})
+            w = r["marriage_date"]
+            if w and (w.month, w.day) in wanted:
+                d = wanted[(w.month, w.day)]
+                out[d]["anniversaries"].append({"ref": f"{slug}:{r['id']}", "name": name, "branch_label": label,
+                                                "years": d.year - w.year})
+    return [out[d] for d in sorted(out)]
 
 
 def _payments_this_year():

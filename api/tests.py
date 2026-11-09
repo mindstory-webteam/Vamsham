@@ -546,3 +546,15 @@ class FaceEngineTests(TestCase):
         self.assertLess(face.similarity(a, other), 0.36)
         with self.assertRaises(face.FaceError):
             face.embed(jpg(cv2.cvtColor(data.coffee(), cv2.COLOR_RGB2BGR)))
+
+
+class DashboardWeekTests(TestCase):
+    def test_dashboard_has_seven_days(self):
+        staff = User.objects.create_user("wk", password="x", is_staff=True)
+        Profile.objects.create(user=staff, full_name="Week", phone_number="+919000000077", is_approved=True)
+        c = APIClient()
+        c.force_authenticate(staff)
+        r = c.get("/api/admin/dashboard")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(len(r.data["week"]), 7)
+        self.assertIn("birthdays", r.data["week"][0])
