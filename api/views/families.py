@@ -233,3 +233,16 @@ class PublicFamiliesView(APIView):
                           "logo": request.build_absolute_uri(f.logo.url) if f.logo else None}
                          for f in Family.objects.filter(is_active=True)])
 
+
+
+class PublicFamilyView(APIView):
+    """GET /families/<slug> — name, colour and logo for the family's own sign-in page."""
+    permission_classes = []
+    authentication_classes = []
+
+    def get(self, request, slug):
+        f = Family.objects.filter(slug=slug).first()
+        if not f:
+            return Response({"detail": "There's no family at this link. Check the link with your family admin."}, status=404)
+        return Response({"slug": f.slug, "name": f.name, "place": f.place, "color": f.color, "is_active": f.is_active,
+                         "logo": request.build_absolute_uri(f.logo.url) if f.logo else None})

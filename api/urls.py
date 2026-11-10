@@ -15,6 +15,7 @@ urlpatterns = [
     path("auth/refresh", TokenRefreshView.as_view()),
     path("families", fm.PublicFamiliesView.as_view()),
     path("families/mine", fm.MyFamiliesView.as_view()),
+    path("families/<slug:slug>", fm.PublicFamilyView.as_view()),
     path("super/families", fm.FamiliesView.as_view()),
     path("super/families/<int:pk>", fm.FamilyDetailView.as_view()),
     path("super/families/<int:pk>/admins", fm.FamilyAdminsView.as_view()),

@@ -198,6 +198,16 @@ class PasswordLoginView(APIView):
                 user = authenticate(request, username=u.get_username(), password=request.data.get("password"))
         if user is None:
             return Response({"detail": "Wrong username or password."}, status=400)
+        # the family's own sign-in link (/f/<family>) and the main-admin page only let the right people in
+        if request.data.get("main") in (True, "true", "1") and not user.is_superuser:
+            return Response({"detail": "This page is only for the main Vamsham admin. Use your family's sign-in link."}, status=403)
+        slug = str(request.data.get("family") or "").strip()
+        if slug and not user.is_superuser:
+            from ..tenancy import family_for_user
+            fam = Family.objects.filter(slug=slug).first()
+            if fam is None or family_for_user(user) != fam.id:
+                name = fam.name if fam else "this family"
+                return Response({"detail": f"This account isn't on the {name} committee. Use your own family's sign-in link."}, status=403)
         blocked = family_paused(user)
         if blocked:
             return Response({"detail": blocked}, status=403)

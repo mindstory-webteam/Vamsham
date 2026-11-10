@@ -731,3 +731,40 @@ class MultiFamilyTests(TestCase):
         self.assertEqual(r.data["code"], "locked")
         r = self.c.post("/api/auth/face/confirm", {"check": check, "last4": "1223"}, format="json")
         self.assertEqual(r.data["code"], "expired")
+
+
+
+class FamilyLinkLoginTests(TestCase):
+    """Each family's sign-in link and the separate main-admin sign-in."""
+
+    def setUp(self):
+        from api.tenancy import forget_default
+        forget_default()
+        from api.models import Family, FamilyAccess
+        self.other = Family.objects.create(name="Akkaramal", slug="akkaramal")
+        self.main = User.objects.create_superuser("boss", "b@x.in", "Boss#12345")
+        self.sec = User.objects.create_user("akksec", password="Akk#12345", is_staff=True)
+        FamilyAccess.objects.update_or_create(user=self.sec, defaults={"family": self.other})
+        self.c = APIClient()
+
+    def test_public_family_info(self):
+        r = self.c.get("/api/families/akkaramal")
+        self.assertEqual((r.status_code, r.data["name"]), (200, "Akkaramal"))
+        self.assertEqual(self.c.get("/api/families/nope").status_code, 404)
+
+    def test_family_link_only_lets_that_family_in(self):
+        r = self.c.post("/api/auth/login", {"username": "akksec", "password": "Akk#12345", "family": "akkaramal"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["me"]["family"]["name"], "Akkaramal")
+        r = self.c.post("/api/auth/login", {"username": "akksec", "password": "Akk#12345", "family": "vamsham"}, format="json")
+        self.assertEqual(r.status_code, 403)
+        # the main admin may use any family's link
+        r = self.c.post("/api/auth/login", {"username": "boss", "password": "Boss#12345", "family": "akkaramal"}, format="json")
+        self.assertEqual(r.status_code, 200)
+
+    def test_main_admin_page(self):
+        r = self.c.post("/api/auth/login", {"username": "akksec", "password": "Akk#12345", "main": True}, format="json")
+        self.assertEqual(r.status_code, 403)
+        r = self.c.post("/api/auth/login", {"username": "boss", "password": "Boss#12345", "main": True}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data["me"]["is_main_admin"])
