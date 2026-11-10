@@ -198,7 +198,7 @@ class PasswordLoginView(APIView):
                 user = authenticate(request, username=u.get_username(), password=request.data.get("password"))
         if user is None:
             return Response({"detail": "Wrong username or password."}, status=400)
-        # the family's own sign-in link (/f/<family>) and the main-admin page only let the right people in
+        # the family's own sign-in link (/dashboard/<family>) and the main-admin page (/dashboard/admin) only let the right people in
         if request.data.get("main") in (True, "true", "1") and not user.is_superuser:
             return Response({"detail": "This page is only for the main Vamsham admin. Use your family's sign-in link."}, status=403)
         slug = str(request.data.get("family") or "").strip()

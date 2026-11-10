@@ -70,8 +70,19 @@ def family_payload(f, request):
             "is_active": f.is_active, "created_at": f.created_at, **family_numbers(f)}
 
 
+# A family's sign-in link is /dashboard/<slug>, so a slug can't be the name of a dashboard page.
+RESERVED_SLUGS = {
+    "admin", "admin-login", "main-login", "f", "login", "otp", "welcome", "pending", "index", "home", "me",
+    "events", "search", "tree", "settings", "notifications", "today", "reports", "relate", "branches", "blood",
+    "memories", "albums", "album", "event", "member", "add-member", "edit-profile", "face-find", "face-setup",
+    "assets", "_expo", "favicon", "dashboard", "api", "static", "media",
+}
+
+
 def unique_slug(name):
     base = slugify(name)[:34] or "family"
+    if base in RESERVED_SLUGS:
+        base = f"{base}-family"
     slug, n = base, 2
     while Family.objects.filter(slug=slug).exists():
         slug = f"{base}-{n}"

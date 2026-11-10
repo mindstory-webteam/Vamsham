@@ -747,6 +747,13 @@ class FamilyLinkLoginTests(TestCase):
         FamilyAccess.objects.update_or_create(user=self.sec, defaults={"family": self.other})
         self.c = APIClient()
 
+    def test_family_link_never_clashes_with_a_page(self):
+        r = self.c.post("/api/auth/login", {"username": "boss", "password": "Boss#12345", "main": True}, format="json")
+        self.c.credentials(HTTP_AUTHORIZATION="Bearer " + r.data["access"])
+        r = self.c.post("/api/super/families", {"name": "Admin"}, format="json")
+        self.assertEqual((r.status_code, r.data["slug"]), (201, "admin-family"))
+        self.c.credentials()
+
     def test_public_family_info(self):
         r = self.c.get("/api/families/akkaramal")
         self.assertEqual((r.status_code, r.data["name"]), (200, "Akkaramal"))

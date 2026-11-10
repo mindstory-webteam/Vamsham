@@ -1,0 +1,1 @@
+__d(function(g,r,i,a,m,e,d){"use strict";Object.defineProperty(e,'__esModule',{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return o}}),r(d[0]);var t=r(d[1]),n=r(d[2]),u=r(d[3]);function o(){const{family:o}=(0,t.useLocalSearchParams)();return(0,u.jsx)(n.DashLogin,{mode:"family",familySlug:o})}},754,[12,864,757,6]);
