@@ -33,10 +33,11 @@ BRANCH_DEFS = [
 
 
 class _Row:
-    __slots__ = ("id", "slug", "name", "table", "hidden", "sort_order")
+    __slots__ = ("id", "slug", "name", "table", "hidden", "sort_order", "family_id")
 
-    def __init__(self, id, slug, name, table, hidden, sort_order):  # noqa: A002
+    def __init__(self, id, slug, name, table, hidden, sort_order, family_id=None):  # noqa: A002
         self.id, self.slug, self.name, self.table, self.hidden, self.sort_order = id, slug, name, table, hidden, sort_order
+        self.family_id = family_id
 
 
 _cache = {"rows": None}
@@ -50,18 +51,36 @@ def invalidate(**_kwargs):
 request_started.connect(invalidate, dispatch_uid="vamsham_branches_cache")
 
 
-def rows():
-    """All branches (hidden ones too), in display order."""
+def all_family_rows():
+    """Every branch of every family (hidden ones too)."""
     if _cache["rows"] is None:
         try:
             from .models import FamilyBranch
             _cache["rows"] = [
-                _Row(b.id, b.slug, b.name, b.table, b.hidden, b.sort_order)
-                for b in FamilyBranch.objects.order_by("sort_order", "name")
+                _Row(b.id, b.slug, b.name, b.table, b.hidden, b.sort_order, b.family_id)
+                for b in FamilyBranch.all_objects.order_by("sort_order", "name")
             ]
         except (OperationalError, ProgrammingError):  # table not created yet (first migrate)
             return [_Row(None, s, label, m, False, i) for i, (s, m, label) in enumerate(BRANCH_DEFS)]
     return _cache["rows"]
+
+
+def rows():
+    """This family's branches (hidden ones too), in display order. Many families: see tenancy.py."""
+    from .tenancy import current_family_id
+    fid = current_family_id()
+    all_rows = all_family_rows()
+    return [r for r in all_rows if r.family_id == fid] if fid else all_rows
+
+
+def find_any(slug):
+    """A branch of any family (face search across families, main admin)."""
+    return next((r for r in all_family_rows() if r.slug == slug), None)
+
+
+def model_for_any(slug):
+    row = find_any(slug)
+    return _model_for(row) if row else None
 
 
 def visible_rows():

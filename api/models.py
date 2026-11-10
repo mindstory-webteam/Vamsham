@@ -8,6 +8,8 @@ people in `BranchMember`. A member is referred to everywhere in the API as
 """
 from django.conf import settings
 from django.db import models
+
+from .tenancy import FamilyScopedManager, current_family_id, default_family_id, fill_family
 from django.utils import timezone
 
 from family.models import BaseFamilyMember
@@ -17,8 +19,46 @@ from . import branches as _branches
 User = settings.AUTH_USER_MODEL
 
 
+class Family(models.Model):
+    """One family (association) on this server. Each has its own admins, members, tree and data."""
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=40, unique=True)
+    place = models.CharField(max_length=120, blank=True)
+    color = models.CharField(max_length=9, default="#3FD47A", help_text="Brand colour, e.g. #3FD47A")
+    logo = models.ImageField(upload_to="family_logos/", blank=True, null=True)
+    is_active = models.BooleanField(default=True, help_text="Paused families can't sign in")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name_plural = "Families"
+
+    def __str__(self):
+        return self.name
+
+
+class FamilyAccess(models.Model):
+    """Which family a person (member or family admin) belongs to."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="family_access")
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name="people")
+
+    class Meta:
+        verbose_name = "Family access"
+        verbose_name_plural = "Family access"
+
+    def __str__(self):
+        return f"{self.user} → {self.family}"
+
+
+def _family_fk():
+    return models.ForeignKey(Family, on_delete=models.CASCADE, null=True, blank=True, related_name="+")
+
+
 class FamilyBranch(models.Model):
     """A family branch. The committee can add, rename, hide or delete branches."""
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     slug = models.SlugField(max_length=20, unique=True, help_text="Short code used in links, e.g. 'lonappan'. Can't be changed.")
     name = models.CharField(max_length=100)
     table = models.CharField(max_length=40, blank=True, editable=False,
@@ -78,6 +118,9 @@ class PhoneOTP(models.Model):
 
 class MemberLink(models.Model):
     """Connects an app account to a person in the family tree."""
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="member_link")
     branch = models.CharField(max_length=20, blank=True)
     member_id = models.PositiveIntegerField(null=True, blank=True)
@@ -97,6 +140,9 @@ STATUS_CHOICES = (("pending", "Pending"), ("approved", "Approved"), ("declined",
 
 class ChangeRequest(models.Model):
     """A member suggests a correction to a profile in the tree."""
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="change_requests")
     branch = models.CharField(max_length=20)
     member_id = models.PositiveIntegerField()
@@ -115,6 +161,9 @@ class ChangeRequest(models.Model):
 
 class NewMemberRequest(models.Model):
     """A member asks to add a child / spouse / grandchild to the tree."""
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     RELATIONS = (("child", "Child"), ("spouse", "Husband / wife"))
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="new_member_requests")
     branch = models.CharField(max_length=20)
@@ -156,6 +205,9 @@ BLOOD_GROUPS = ("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
 
 
 class BloodRequest(models.Model):
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blood_requests")
     blood_group = models.CharField(max_length=4, choices=[(g, g) for g in BLOOD_GROUPS])
     units = models.PositiveSmallIntegerField(default=1)
@@ -206,6 +258,9 @@ class DeviceToken(models.Model):
 
 
 class Broadcast(models.Model):
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     audience = models.CharField(max_length=60)
     channels = models.JSONField(default=list)
@@ -219,6 +274,9 @@ class Broadcast(models.Model):
 
 
 class Payment(models.Model):
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     PURPOSES = (
         ("annual_fee", "Annual fee"),
         ("life_membership", "Life membership"),
@@ -256,7 +314,8 @@ class Payment(models.Model):
 
 
 class AssociationSettings(models.Model):
-    """One row of settings the committee can change from the dashboard (Settings page)."""
+    """Each family's settings the committee can change from the dashboard (Settings page)."""
+    family = models.OneToOneField(Family, on_delete=models.CASCADE, null=True, blank=True, related_name="settings")
     app_name = models.CharField(max_length=60, default="Vamsham")
     family_name = models.CharField(max_length=80, default="Vamsham")
     association_name = models.CharField(max_length=150, default="Vamsham Family Association")
@@ -276,21 +335,36 @@ class AssociationSettings(models.Model):
         return f"{self.app_name} · {self.association_name}"
 
     @classmethod
-    def load(cls):
-        obj, _ = cls.objects.get_or_create(pk=1)
+    def load(cls, family_id=None):
+        """This family's settings (created with the family's name the first time)."""
+        fid = family_id or current_family_id() or default_family_id()
+        obj = cls.objects.filter(family_id=fid).first()
+        if obj is None:
+            fam = Family.objects.filter(pk=fid).first()
+            name = fam.name if fam else "Vamsham"
+            obj = cls.objects.create(family_id=fid, family_name=name, association_name=f"{name} Family Association", upi_name=f"{name} Family Association")
         return obj
 
 
 class FaceProfile(models.Model):
     """A member's face code for face-scan sign in. Only numbers (SFace embeddings), never photos."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="face_profile")
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="face_profile", null=True, blank=True)
+    # set when a family admin scanned the member's face (the member may have no app account yet)
+    branch = models.CharField(max_length=20, blank=True)
+    member_id = models.PositiveIntegerField(null=True, blank=True)
     embeddings = models.JSONField(default=list)  # 3 x 128 floats (straight, left, right)
     consent_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["branch", "member_id"], condition=models.Q(member_id__isnull=False), name="one_face_per_member")]
+
     def __str__(self):
-        return f"Face code · {self.user}"
+        return f"Face code · {self.user or f'{self.branch}:{self.member_id}'}"
 
 
 class FaceDevice(models.Model):
@@ -305,3 +379,28 @@ class FaceDevice(models.Model):
 
     def __str__(self):
         return f"{self.user} · {self.name or 'phone'}"
+
+
+class FaceCheck(models.Model):
+    """A face found by face scan on a new phone, waiting for the last 4 digits of the person's phone."""
+    token = models.CharField(max_length=64, unique=True)
+    profile = models.ForeignKey(FaceProfile, on_delete=models.CASCADE, related_name="checks")
+    tries = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+
+# New family-owned rows belong to the current family.
+for _m in (FamilyBranch, MemberLink, ChangeRequest, NewMemberRequest, BloodRequest, Broadcast, Payment, FaceProfile, AssociationSettings):
+    models.signals.pre_save.connect(fill_family, sender=_m, dispatch_uid=f"fill_family_{_m.__name__}")
+
+
+def _give_family(sender, instance, created, **kwargs):
+    """Every new account belongs to a family: the current one, else the first (main admin can move it)."""
+    if created and not kwargs.get("raw"):
+        fid = current_family_id() or default_family_id()
+        if fid:
+            FamilyAccess.objects.get_or_create(user=instance, defaults={"family_id": fid})
+
+
+models.signals.post_save.connect(_give_family, sender=User, dispatch_uid="give_family")

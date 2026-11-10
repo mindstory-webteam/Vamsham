@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from mptt.admin import MPTTModelAdmin
 
-from .models import (BloodRequest, BranchMember, Broadcast, ChangeRequest, DeviceToken, EventRSVP, FaceDevice, FaceProfile, FamilyBranch,
+from .models import (Family, FamilyAccess, BloodRequest, BranchMember, Broadcast, ChangeRequest, DeviceToken, EventRSVP, FaceDevice, FaceProfile, FamilyBranch,
                      MemberLink, NewMemberRequest, Notification, Payment, PhoneOTP)
 
 
@@ -82,3 +82,20 @@ class FaceDeviceAdmin(admin.ModelAdmin):
     list_display = ("user", "name", "failed", "locked_until", "last_used", "created_at")
     exclude = ("key_hash",)
     readonly_fields = ("user", "name", "created_at", "last_used")
+
+
+@admin.register(Family)
+class FamilyAdmin(admin.ModelAdmin):
+    """Every family on this server. Use the dashboard's “Families” page for day-to-day work."""
+    list_display = ("name", "slug", "place", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("name", "slug", "place")
+
+
+@admin.register(FamilyAccess)
+class FamilyAccessAdmin(admin.ModelAdmin):
+    """Which family each account belongs to (change it here to move someone to another family)."""
+    list_display = ("user", "family")
+    list_filter = ("family",)
+    search_fields = ("user__username", "user__email", "user__first_name")
+    autocomplete_fields = ("user",)

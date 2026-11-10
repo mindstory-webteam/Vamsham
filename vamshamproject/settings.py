@@ -97,6 +97,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "api.tenancy.FamilyMiddleware",  # many families: which family this request is for
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -277,3 +278,13 @@ FACE_MATCH_THRESHOLD = float(env("FACE_MATCH_THRESHOLD", "0.42"))  # cosine; Ope
 FACE_MAX_FAILS = 5  # wrong faces in a row before face scan rests
 FACE_LOCK_MINUTES = 10
 DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024  # 3 camera photos (base64) for face set-up
+
+# The dashboard tells the API which family the main admin is looking at (X-Family header).
+from corsheaders.defaults import default_headers  # noqa: E402
+
+CORS_ALLOW_HEADERS = (*default_headers, "x-family")
+
+# Face scan that finds the person among all families: needs a closer match than unlocking
+# your own phone, and a clear gap to the next-closest person.
+FACE_IDENTIFY_THRESHOLD = float(env("FACE_IDENTIFY_THRESHOLD", "0.50"))
+FACE_IDENTIFY_MARGIN = float(env("FACE_IDENTIFY_MARGIN", "0.06"))

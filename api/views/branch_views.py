@@ -28,7 +28,7 @@ def branch_payload(b):
 def _unique_slug(name):
     base = (slugify(name).replace("-", "")[:16] or "branch")
     slug, n = base, 2
-    while FamilyBranch.objects.filter(slug=slug).exists():
+    while FamilyBranch.all_objects.filter(slug=slug).exists():  # slugs are unique across all families
         slug = f"{base[:16]}{n}"
         n += 1
     return slug

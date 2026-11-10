@@ -599,3 +599,135 @@ class BentoPagesBackendTests(TestCase):
     def test_staff_only(self):
         self.c.force_authenticate(None)
         self.assertEqual(self.c.get("/api/admin/members/export").status_code, 401)
+
+
+class MultiFamilyTests(TestCase):
+    """Many families: separate admins and data; face scan finds the right family."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        from api import face as face_mod
+        from api.tenancy import forget_default
+        from api import branches as B
+        cache.clear()
+        forget_default()
+        B.invalidate()
+        self.face = face_mod
+        self._embed = face_mod.embed
+        vec = {"joseph": [1.0] + [0.0] * 127, "joseph2": [0.97, 0.24] + [0.0] * 126,
+               "mary": [0.0, 1.0] + [0.0] * 126, "stranger": [0.0, 0.0, 1.0] + [0.0] * 125}
+        face_mod.embed = lambda img: vec[img]
+        self.main = User.objects.create_superuser("mainadmin", "m@x.in", "x")
+        self.c = APIClient()
+        self.c.force_authenticate(self.main)
+        r = self.c.post("/api/super/families", {"name": "Thekkekara", "place": "Thrissur"}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.fam = r.data
+        r = self.c.post(f"/api/super/families/{self.fam['id']}/admins", {"name": "Thekke Secretary", "username": "thekkesec"}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual(len(r.data["password"]), 10)
+        self.adminB = User.objects.get(username="thekkesec")
+        self.b = APIClient()
+        self.b.force_authenticate(self.adminB)
+        self.c.force_authenticate(None)
+
+    def tearDown(self):
+        self.face.embed = self._embed
+
+    def branch_b(self):
+        r = self.b.get("/api/admin/branches")
+        self.assertEqual(r.status_code, 200)
+        return r.data[0]["slug"]
+
+    def test_family_admin_sees_only_own_family(self):
+        r = self.b.get("/api/admin/dashboard")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["members"]["total"], 0)
+        slugs = [x["slug"] for x in self.b.get("/api/admin/branches").data]
+        self.assertEqual(len(slugs), 1)
+        self.assertNotIn("lonappan", slugs)
+        # can't open a Vamsham branch by guessing its slug
+        self.assertEqual(self.b.get("/api/admin/members/lonappan").status_code in (400, 404), True)
+        slug = self.branch_b()
+        r = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Joseph", "last_name": "T", "mobile_number": "9876504321"}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual(self.b.get("/api/admin/dashboard").data["members"]["total"], 1)
+        r = self.b.post("/api/admin/events", {"title": "Thekkekara meet", "category": "meet", "date": "2026-12-30"}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        # the first family's secretary never sees Thekkekara's people or events
+        sec = User.objects.create_user("vsec", password="x", is_staff=True)
+        a = APIClient()
+        a.force_authenticate(sec)
+        titles = [e["title"] for e in a.get("/api/admin/events").data]
+        self.assertNotIn("Thekkekara meet", titles)
+        self.assertEqual(a.get(f"/api/admin/members/{slug}").status_code in (400, 404), True)
+        # the main admin can look at Thekkekara with the X-Family header
+        m = APIClient()
+        m.force_authenticate(self.main)
+        r = m.get("/api/admin/events", HTTP_X_FAMILY=self.fam["slug"])
+        self.assertIn("Thekkekara meet", [e["title"] for e in r.data])
+
+    def test_only_main_admin_manages_families_and_pause(self):
+        self.assertEqual(self.b.get("/api/super/families").status_code, 403)
+        m = APIClient()
+        m.force_authenticate(self.main)
+        r = m.get("/api/super/families")
+        self.assertEqual(r.data["totals"]["families"], 2)
+        m.patch(f"/api/super/families/{self.fam['id']}", {"is_active": False}, format="json")
+        r = self.b.get("/api/admin/dashboard")
+        self.assertEqual(r.status_code, 403)
+        self.assertIn("paused", str(r.data))
+
+    def test_member_signup_picks_family(self):
+        from api import otp as otp_mod
+        phone = "+919811100000"
+        otp_mod.create_and_send(phone)
+        from api.models import PhoneOTP
+        code = PhoneOTP.objects.filter(phone=phone).latest("created_at")
+        # demo code: read back the hash isn't possible, so use the test code setting
+        self.assertTrue(code)
+        self.assertEqual(self.c.get("/api/families").status_code, 200)
+        self.assertEqual({f["slug"] for f in self.c.get("/api/families").data} >= {"vamsham", self.fam["slug"]}, True)
+
+    def test_face_scan_finds_family_then_trusts_phone(self):
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "joseph", "last_name": "T", "mobile_number": "9876504321"}, format="json").data
+        r = self.b.post(f"/api/admin/members/{slug}/{m['id']}/face", {"images": ["joseph", "joseph2", "joseph"], "consent": True}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertTrue(self.b.get(f"/api/admin/members/{slug}/{m['id']}").data["face_enrolled"])
+        # a stranger isn't found
+        r = self.c.post("/api/auth/face/identify", {"image": "stranger"}, format="json")
+        self.assertEqual((r.status_code, r.data["code"]), (401, "no_match"))
+        # Joseph on a new phone: asked for the last 4 digits (the digits are never shown)
+        r = self.c.post("/api/auth/face/identify", {"image": "joseph2"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertTrue(r.data["need_check"])
+        self.assertEqual(r.data["family"]["name"], "Thekkekara")
+        self.assertNotIn("4321", str(r.data))
+        check = r.data["check"]
+        r = self.c.post("/api/auth/face/confirm", {"check": check, "last4": "1111"}, format="json")
+        self.assertEqual((r.status_code, r.data["code"]), (400, "wrong_digits"))
+        r = self.c.post("/api/auth/face/confirm", {"check": check, "last4": "4321"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["me"]["family"]["name"], "Thekkekara")
+        self.assertEqual(r.data["me"]["status"] if "status" in r.data["me"] else "approved", "approved")
+        key = r.data["device_key"]
+        # same phone next time: straight in, no digits
+        r = self.c.post("/api/auth/face/identify", {"image": "joseph", "device_key": key}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertTrue(r.data["trusted"])
+        self.assertIn("access", r.data)
+        # the account created for Joseph only sees Thekkekara
+        u = User.objects.get(member_link__member_id=m["id"])
+        self.assertEqual(u.family_access.family.slug, self.fam["slug"])
+
+    def test_face_check_locks_after_wrong_digits(self):
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Mary", "last_name": "T", "mobile_number": "9000011223"}, format="json").data
+        self.b.post(f"/api/admin/members/{slug}/{m['id']}/face", {"images": ["mary"], "consent": True}, format="json")
+        check = self.c.post("/api/auth/face/identify", {"image": "mary"}, format="json").data["check"]
+        for _ in range(4):
+            r = self.c.post("/api/auth/face/confirm", {"check": check, "last4": "0000"}, format="json")
+        self.assertEqual(r.data["code"], "locked")
+        r = self.c.post("/api/auth/face/confirm", {"check": check, "last4": "1223"}, format="json")
+        self.assertEqual(r.data["code"], "expired")

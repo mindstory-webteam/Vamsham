@@ -5,6 +5,7 @@ from .views import admin as a
 from .views import auth, community as c, family as f, settings_views as st
 from .views import branch_views as br
 from .views import face as fc
+from .views import families as fm
 
 urlpatterns = [
     # ── Sign in ──────────────────────────────────────────────
@@ -12,9 +13,19 @@ urlpatterns = [
     path("auth/otp/verify", auth.OTPVerifyView.as_view()),
     path("auth/login", auth.PasswordLoginView.as_view()),
     path("auth/refresh", TokenRefreshView.as_view()),
+    path("families", fm.PublicFamiliesView.as_view()),
+    path("families/mine", fm.MyFamiliesView.as_view()),
+    path("super/families", fm.FamiliesView.as_view()),
+    path("super/families/<int:pk>", fm.FamilyDetailView.as_view()),
+    path("super/families/<int:pk>/admins", fm.FamilyAdminsView.as_view()),
+    path("super/families/<int:pk>/admins/<int:uid>", fm.FamilyAdminDetailView.as_view()),
+    path("super/families/<int:pk>/admins/<int:uid>/reset", fm.FamilyAdminDetailView.as_view()),
     path("auth/face", fc.FaceStatusView.as_view()),
     path("auth/face/enroll", fc.FaceEnrollView.as_view()),
     path("auth/face/login", fc.FaceLoginView.as_view()),
+    path("auth/face/identify", fc.FaceIdentifyView.as_view()),
+    path("auth/face/confirm", fc.FaceConfirmView.as_view()),
+    path("admin/members/<slug:branch>/<int:pk>/face", fc.AdminMemberFaceView.as_view()),
 
     # ── Me ───────────────────────────────────────────────────
     path("me", auth.MeView.as_view()),

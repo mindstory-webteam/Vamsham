@@ -13,7 +13,8 @@ from rest_framework.views import APIView
 from app1.models import Event, Profile
 
 from ..branches import BRANCH_LABELS, SLUGS, all_models, get_member, get_model
-from ..models import (AssociationSettings, BloodRequest, Broadcast, ChangeRequest, EventRSVP, MemberLink,
+from ..tenancy import family_users
+from ..models import (FaceProfile, AssociationSettings, BloodRequest, Broadcast, ChangeRequest, EventRSVP, MemberLink,
                       NewMemberRequest, Payment)
 from ..notify import notify
 from ..people import CATEGORY_LABELS, EDITABLE_FIELDS, detail, parse_ref, search, summary
@@ -66,11 +67,11 @@ def dashboard_data(request):
             "mobile": {"count": mobile, "percent": pct(mobile)},
             "blood_group": {"count": blood, "percent": pct(blood)},
         },
-        "app_users": Profile.objects.filter(is_approved=True).count(),
+        "app_users": Profile.objects.filter(is_approved=True, user__is_staff=False).count(),  # members, not the committee
         "next_event": event_payload(next_event, request) if next_event else None,
         "open_blood_requests": BloodRequest.objects.filter(is_open=True).count(),
         "payments": _payments_this_year(),
-        "new_app_users_this_month": Profile.objects.filter(
+        "new_app_users_this_month": Profile.objects.filter(user__is_staff=False).filter(
             is_approved=True, user__date_joined__gte=date.today().replace(day=1)).count(),
         "upcoming_events": Event.objects.filter(date__gte=date.today()).count(),
         "generations": _generations(),
@@ -209,7 +210,7 @@ class ApprovalDecisionView(APIView):
         note = str(request.data.get("note", ""))[:255]
 
         if kind == "signup":
-            user = User.objects.filter(pk=pk).first()
+            user = family_users(User.objects.filter(pk=pk)).first()
             profile = getattr(user, "profile", None) if user else None
             if not profile:
                 return Response({"detail": "Not found."}, status=404)
@@ -326,7 +327,10 @@ class AdminMemberListView(APIView):
 
     def get(self, request, branch=None):
         p = request.query_params
-        rows = search(query=p.get("q", "").strip(), branch=branch or p.get("branch") or None,
+        wanted = branch or p.get("branch") or None
+        if wanted and get_model(wanted) is None:  # not a branch of this family
+            return Response({"detail": "Not found."}, status=404)
+        rows = search(query=p.get("q", "").strip(), branch=wanted,
                       category=p.get("category") or None, blood=p.get("blood") or None, request=request)
         missing = p.get("missing")  # e.g. date_of_birth — show only people without it
         if missing in ("date_of_birth", "mobile_number", "blood_group", "photo", "place_of_birth", "baptism_date"):
@@ -403,6 +407,7 @@ class AdminMemberDetailView(APIView):
         link = MemberLink.objects.filter(branch=branch, member_id=m.pk).select_related("user").first()
         data["app_user"] = {"id": link.user_id, "username": link.user.get_username()} if link else None
         data["pending_changes"] = ChangeRequest.objects.filter(branch=branch, member_id=m.pk, status="pending").count()
+        data["face_enrolled"] = FaceProfile.objects.filter(branch=branch, member_id=m.pk).exists()
         return Response(data)
 
     def patch(self, request, branch, pk):
@@ -441,7 +446,7 @@ class AdminEventListView(APIView):
         ser.is_valid(raise_exception=True)
         e = ser.save()
         if request.data.get("notify"):
-            users = User.objects.filter(profile__is_approved=True, is_active=True)
+            users = family_users(User.objects.filter(profile__is_approved=True, is_active=True))
             notify(list(users), f"New event: {e.title}", f"{e.date:%d %b %Y}" + (f" · {e.location}" if e.location else ""),
                    kind="event", data={"event": e.id})
         return Response(event_payload(e, request, full=True), status=201)
@@ -481,7 +486,7 @@ def audience_users(audience):
     'all' | 'branch:<slug>' | 'life_members' | 'blood:<group>'
     Returns approved app users in that audience.
     """
-    users = User.objects.filter(is_active=True).filter(Q(profile__is_approved=True) | Q(is_staff=True))
+    users = family_users(User.objects.filter(is_active=True).filter(Q(profile__is_approved=True) | Q(is_staff=True)))
     if audience == "all":
         return list(users)
     links = MemberLink.objects.filter(user__in=users)

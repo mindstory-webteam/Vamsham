@@ -14,7 +14,8 @@ from app1.models import Profile
 
 from .. import otp
 from ..branches import BRANCH_LABELS, SLUGS, get_member
-from ..models import DeviceToken, FaceProfile, DonorStatus, MemberLink, Payment
+from ..tenancy import current_family_id, default_family_id, lock_to_user_family, set_current_family
+from ..models import Family, FamilyAccess, DeviceToken, FaceProfile, DonorStatus, MemberLink, Payment
 from ..people import summary
 from ..permissions import is_approved
 
@@ -32,6 +33,31 @@ class LoginThrottle(AnonRateThrottle):
 def tokens_for(user):
     refresh = RefreshToken.for_user(user)
     return {"access": str(refresh.access_token), "refresh": str(refresh)}
+
+
+def family_info(user, request=None):
+    """The family shown in the app header / dashboard (name, colour, logo)."""
+    from ..tenancy import current_family_id, family_for_user
+    fid = current_family_id() if user.is_superuser else None
+    fid = fid or family_for_user(user) or default_family_id()
+    f = Family.objects.filter(pk=fid).first()
+    if not f:
+        return None
+    logo = None
+    if f.logo:
+        logo = request.build_absolute_uri(f.logo.url) if request else f.logo.url
+    return {"id": f.id, "slug": f.slug, "name": f.name, "place": f.place, "color": f.color, "logo": logo}
+
+
+def family_paused(user):
+    """A message if the person's family is paused by the main admin (main admins are never blocked)."""
+    if user.is_superuser:
+        return None
+    from ..tenancy import family_for_user
+    fid = family_for_user(user)
+    if fid and not Family.objects.filter(pk=fid, is_active=True).exists():
+        return "Your family's Vamsham is paused. Please contact the Vamsham team."
+    return None
 
 
 def me_payload(user, request=None):
@@ -59,8 +85,11 @@ def me_payload(user, request=None):
         state = "approved"
     else:
         state = "pending"
+    fam = family_info(user, request)
     return {
         "id": user.pk,
+        "family": fam,
+        "is_main_admin": user.is_superuser,
         "username": user.get_username(),
         "name": (profile.full_name if profile else "") or user.get_full_name() or user.get_username(),
         "phone": profile.phone_number if profile else "",
@@ -83,7 +112,7 @@ def me_payload(user, request=None):
 
 
 def find_user_by_phone(phone):
-    for p in Profile.objects.select_related("user").exclude(phone_number=""):
+    for p in Profile.all_objects.select_related("user").exclude(phone_number=""):  # any family
         if otp.normalize_phone(p.phone_number) == phone:
             return p.user
     return None
@@ -130,13 +159,27 @@ class OTPVerifyView(APIView):
         if user is None:
             name = (request.data.get("name") or "").strip()[:150]
             username = "m" + phone.lstrip("+")
+            # which family they ask to join: picked in the app (family slug), else the only/first family
+            fam = None
+            slug = (request.data.get("family") or "").strip()
+            if slug:
+                fam = Family.objects.filter(slug=slug, is_active=True).first()
+                if fam is None:
+                    return Response({"detail": "That family isn't on Vamsham. Please pick your family again."}, status=400)
+            fam_id = fam.id if fam else (current_family_id() or default_family_id())
+            set_current_family(fam_id)  # the new account (and its profile) belong to this family
             user = User.objects.create_user(username=username, first_name=name.split(" ")[0] if name else "")
             user.set_unusable_password()
             user.save()
-            Profile.objects.create(user=user, full_name=name or phone, phone_number=phone, is_approved=False)
+            FamilyAccess.objects.update_or_create(user=user, defaults={"family_id": fam_id})
+            Profile.objects.create(user=user, full_name=name or phone, phone_number=phone, is_approved=False, family_id=fam_id)
             created = True
         if not user.is_active:
             return Response({"detail": "Your request to join was declined. Please contact the secretary."}, status=403)
+        blocked = family_paused(user)
+        if blocked:
+            return Response({"detail": blocked}, status=403)
+        lock_to_user_family(user)
         return Response({"created": created, **tokens_for(user), "me": me_payload(user, request)})
 
 
@@ -155,6 +198,10 @@ class PasswordLoginView(APIView):
                 user = authenticate(request, username=u.get_username(), password=request.data.get("password"))
         if user is None:
             return Response({"detail": "Wrong username or password."}, status=400)
+        blocked = family_paused(user)
+        if blocked:
+            return Response({"detail": blocked}, status=403)
+        lock_to_user_family(user)
         return Response({**tokens_for(user), "me": me_payload(user, request)})
 
 

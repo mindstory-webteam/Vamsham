@@ -1,4 +1,6 @@
 from django.db import models
+
+from api.tenancy import FamilyScopedManager, fill_family
 from django.urls import reverse
 from django.contrib.auth.models import User
 from mptt.models import MPTTModel, TreeForeignKey
@@ -106,6 +108,9 @@ class Comment(models.Model):
 # ── Memory ────────────────────────────────────────────────────────────────────
 
 class Memory(models.Model):
+    family = models.ForeignKey("api.Family", on_delete=models.CASCADE, null=True, blank=True, related_name="+")
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     name        = models.CharField(max_length=255)
     birth_date  = models.DateField()
     death_date  = models.DateField()
@@ -147,6 +152,9 @@ class Member(MPTTModel):
 # ── Profile ───────────────────────────────────────────────────────────────────
 
 class Profile(models.Model):
+    family = models.ForeignKey("api.Family", on_delete=models.CASCADE, null=True, blank=True, related_name="+")
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     user          = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name     = models.CharField(max_length=255)
     phone_number  = models.CharField(max_length=20)
@@ -185,6 +193,9 @@ class Advertisement(models.Model):
 # ── Event ─────────────────────────────────────────────────────────────────────
 
 class Event(models.Model):
+    family = models.ForeignKey("api.Family", on_delete=models.CASCADE, null=True, blank=True, related_name="+")
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     title       = models.CharField(max_length=200)
     category    = models.CharField(max_length=100)
     date        = models.DateField()
@@ -223,6 +234,9 @@ class EventImage(models.Model):
 # ── Family Photo (flat gallery, no albums) ────────────────────────────────────
 
 class FamilyPhoto(models.Model):
+    family = models.ForeignKey("api.Family", on_delete=models.CASCADE, null=True, blank=True, related_name="+")
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
     """
     A single photo in the family gallery.
     No album grouping — flat list filterable by year tag.
@@ -244,3 +258,6 @@ class FamilyPhoto(models.Model):
 
     def __str__(self):
         return self.title
+
+for _m in (Profile, Event, Memory, FamilyPhoto):
+    models.signals.pre_save.connect(fill_family, sender=_m, dispatch_uid=f"fill_family_{_m.__name__}")

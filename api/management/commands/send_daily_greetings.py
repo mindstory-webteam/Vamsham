@@ -18,6 +18,18 @@ class Command(BaseCommand):
     help = "Send today's birthdays / anniversaries / remembrance days as app notifications"
 
     def handle(self, *args, **opts):
+        # many families: each family only hears about its own people
+        from api.models import Family
+        from api.tenancy import reset_current_family, set_current_family
+        for fam in Family.objects.filter(is_active=True):
+            token = set_current_family(fam.id)
+            try:
+                self.stdout.write(f"{fam.name}: ")
+                self.one_family()
+            finally:
+                reset_current_family(token)
+
+    def one_family(self):
         t = today_items()
         lines = []
         for b in t["birthdays"]:
@@ -31,6 +43,7 @@ class Command(BaseCommand):
             self.stdout.write("Nothing to send today.")
             return
         User = get_user_model()
-        users = list(User.objects.filter(is_active=True).filter(Q(profile__is_approved=True) | Q(is_staff=True)))
+        from api.tenancy import family_users
+        users = list(family_users(User.objects.filter(is_active=True).filter(Q(profile__is_approved=True) | Q(is_staff=True))))
         n = notify(users, "Today in the family", " · ".join(lines)[:900], kind="today")
         self.stdout.write(self.style.SUCCESS(f"Sent to {n} people: {len(lines)} items"))

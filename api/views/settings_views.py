@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from app1.models import Event, EventImage, FamilyPhoto
 
+from ..tenancy import family_users
 from ..models import AssociationSettings
 from ..permissions import IsApproved, IsStaff
 from .community import abs_url
@@ -54,7 +55,7 @@ class CommitteeView(APIView):
 
     def get(self, request):
         out = []
-        for u in User.objects.filter(is_staff=True, is_active=True).order_by("-is_superuser", "username"):
+        for u in family_users(User.objects.filter(is_staff=True, is_active=True)).order_by("-is_superuser", "username"):
             profile = getattr(u, "profile", None)
             name = (getattr(profile, "full_name", "") or u.get_full_name() or u.get_username()).strip()
             out.append({"id": u.id, "name": name, "username": u.get_username(), "email": u.email,
