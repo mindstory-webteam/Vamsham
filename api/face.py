@@ -75,6 +75,37 @@ def decode_image(data):
     return img
 
 
+def _check(faces, w, h):
+    """The same rules embed() uses, as (code, message) — (None, None) when the face is good."""
+    if faces is None or len(faces) == 0:
+        return "no_face", "We couldn't see a face. Look straight at the camera in good light."
+    big = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
+    if len(big) > 1 and big[1][2] * big[1][3] > 0.45 * big[0][2] * big[0][3]:
+        return "many_faces", "More than one face is in the picture. Only one person, please."
+    if min(big[0][2], big[0][3]) < 0.16 * min(w, h):
+        return "too_far", "Come a little closer to the camera."
+    return None, None
+
+
+def detect(image):
+    """Where are the faces? For the live "detecting" box while scanning — cheap, no face code made.
+    → {width, height, faces: [{x, y, w, h, score}], ok, code, message}"""
+    cv2, det, _ = _load()
+    img = decode_image(image) if not hasattr(image, "shape") else image
+    h, w = img.shape[:2]
+    with _lock:
+        det.setInputSize((w, h))
+        _, faces = det.detect(img)
+    code, message = _check(faces, w, h)
+    found = sorted(faces if faces is not None else [], key=lambda f: f[2] * f[3], reverse=True)[:4]
+    return {
+        "width": w, "height": h, "ok": code is None, "code": code or "ok",
+        "message": message or "Face found.",
+        "faces": [{"x": round(float(f[0]) / w, 4), "y": round(float(f[1]) / h, 4), "w": round(float(f[2]) / w, 4),
+                   "h": round(float(f[3]) / h, 4), "score": round(float(f[14]), 3)} for f in found],
+    }
+
+
 def embed(image):
     """Photo → face code (list of 128 floats). Raises FaceError when there isn't exactly one clear face."""
     cv2, det, rec = _load()
@@ -83,14 +114,10 @@ def embed(image):
     with _lock:  # OpenCV DNN objects aren't thread-safe
         det.setInputSize((w, h))
         _, faces = det.detect(img)
-        if faces is None or len(faces) == 0:
-            raise FaceError("no_face", "We couldn't see a face. Look straight at the camera in good light.")
-        big = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
-        if len(big) > 1 and big[1][2] * big[1][3] > 0.45 * big[0][2] * big[0][3]:
-            raise FaceError("many_faces", "More than one face is in the picture. Only you, please.")
-        face = big[0]
-        if min(face[2], face[3]) < 0.16 * min(w, h):
-            raise FaceError("too_far", "Come a little closer to the camera.")
+        code, message = _check(faces, w, h)
+        if code:
+            raise FaceError(code, message)
+        face = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)[0]
         feat = rec.feature(rec.alignCrop(img, face))
     v = feat.flatten().astype(float)
     n = float((v ** 2).sum()) ** 0.5 or 1.0

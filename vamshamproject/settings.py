@@ -177,6 +177,7 @@ REST_FRAMEWORK = {
         "otp": env("OTP_THROTTLE", "30/hour"),
         "login": env("LOGIN_THROTTLE", "30/hour"),
         "face": env("FACE_THROTTLE", "60/hour"),
+        "face_detect": env("FACE_DETECT_THROTTLE", "3000/hour"),
         "anon": "120/hour",
     },
 }

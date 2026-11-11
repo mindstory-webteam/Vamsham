@@ -227,6 +227,25 @@ def family_brief(fid, request):
             "logo": request.build_absolute_uri(f.logo.url) if f.logo else None}
 
 
+class FaceDetectThrottle(AnonRateThrottle):
+    scope = "face_detect"
+
+
+class FaceDetectView(APIView):
+    """POST /auth/face/detect {image} → where the face is (x, y, w, h as 0..1 of the photo) and whether
+    it's good enough to scan. Called about once a second while the camera is open, so the app can draw
+    the "detecting" box and scan by itself the moment a face is found. Makes no face code, keeps nothing."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [FaceDetectThrottle]
+
+    def post(self, request):
+        try:
+            return Response(face.detect(request.data.get("image")))
+        except face.FaceError as exc:
+            return face_error(exc)
+
+
 class FaceIdentifyView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []

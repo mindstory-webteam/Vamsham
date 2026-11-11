@@ -547,6 +547,16 @@ class FaceEngineTests(TestCase):
         with self.assertRaises(face.FaceError):
             face.embed(jpg(cv2.cvtColor(data.coffee(), cv2.COLOR_RGB2BGR)))
 
+        # the live "detecting" check: where the face is, and whether it's good enough to scan
+        import base64
+        r = APIClient().post("/api/auth/face/detect", {"image": base64.b64encode(jpg(astro)).decode()}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertTrue(r.data["ok"])
+        box = r.data["faces"][0]
+        self.assertTrue(0.3 < box["x"] + box["w"] / 2 < 0.6 and 0 < box["y"] < 0.4, box)
+        r = APIClient().post("/api/auth/face/detect", {"image": base64.b64encode(jpg(cv2.cvtColor(data.coffee(), cv2.COLOR_RGB2BGR))).decode()}, format="json")
+        self.assertEqual((r.data["ok"], r.data["code"], r.data["faces"]), (False, "no_face", []))
+
 
 class DashboardWeekTests(TestCase):
     def test_dashboard_has_seven_days(self):

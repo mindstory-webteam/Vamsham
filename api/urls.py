@@ -25,6 +25,7 @@ urlpatterns = [
     path("auth/face/enroll", fc.FaceEnrollView.as_view()),
     path("auth/face/login", fc.FaceLoginView.as_view()),
     path("auth/face/identify", fc.FaceIdentifyView.as_view()),
+    path("auth/face/detect", fc.FaceDetectView.as_view()),
     path("auth/face/confirm", fc.FaceConfirmView.as_view()),
     path("admin/members/<slug:branch>/<int:pk>/face", fc.AdminMemberFaceView.as_view()),
 
