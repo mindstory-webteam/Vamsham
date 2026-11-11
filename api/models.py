@@ -176,6 +176,11 @@ class NewMemberRequest(models.Model):
     decided_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     decided_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # optional face scan done on the spot: face codes (numbers only) + one photo for the profile.
+    # Used only if the family admin approves; removed straight away on decline.
+    face_codes = models.JSONField(default=list, blank=True)
+    face_photo = models.ImageField(upload_to="requests/", null=True, blank=True)
+    face_consent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

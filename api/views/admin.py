@@ -1,6 +1,7 @@
 """Endpoints for committee members (is_staff) — the admin panel."""
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Count, Q, Sum
@@ -170,9 +171,41 @@ def approval_items(request):
             "relative": summary(rel, n.branch, request) if rel else None,
             "requested_by": getattr(getattr(n.requested_by, "profile", None), "full_name", "") or n.requested_by.get_username(),
             "created_at": n.created_at,
+            "mobile": n.data.get("mobile_number", ""),
+            "face": {"scanned": bool(n.face_codes), "photo": request.build_absolute_uri(n.face_photo.url) if n.face_photo else None},
+            "checks": new_member_checks(n),
         })
     items.sort(key=lambda i: i["created_at"], reverse=True)
     return items
+
+
+def new_member_checks(n):
+    """What the admin should know before approving: is the number free, does the face match someone?"""
+    from .family import who_has_mobile
+    mobile = n.data.get("mobile_number", "")
+    taken = who_has_mobile(mobile, skip_request=n.pk) if mobile else ""
+    out = {"mobile_ok": bool(mobile) and not taken, "mobile_used_by": taken, "has_mobile": bool(mobile),
+           "face_ok": None, "face_like": "", "consent": bool(n.face_consent_at)}
+    if n.face_codes:
+        try:
+            from .face import person_of, search_faces
+            best, score, _second = search_faces(n.face_codes[0])
+            if best is not None and score >= settings.FACE_IDENTIFY_THRESHOLD:
+                _u, m, _p = person_of(best)
+                out["face_like"] = f"{m.first_name} {m.last_name}".strip() if m else "someone already on Vamsham"
+            out["face_ok"] = not out["face_like"]
+        except Exception:  # noqa: BLE001  (face models missing: just don't show the check)
+            out["face_ok"] = None
+    return out
+
+
+def _drop_request_face(n):
+    """Delete the request's face code and photo (after decline, or once copied to the member)."""
+    if n.face_photo:
+        name, storage = n.face_photo.name, n.face_photo.storage
+        transaction.on_commit(lambda: storage.delete(name))
+    n.face_photo = None
+    n.face_codes = []
 
 
 class ApprovalListView(APIView):
@@ -262,11 +295,34 @@ class ApprovalDecisionView(APIView):
             if ok:
                 Model, relative = member_or_404(n.branch, n.relative_id)
                 d = dict(n.data)
-                dob = date.fromisoformat(d["date_of_birth"]) if d.get("date_of_birth") else None
+                # the admin may correct the details before approving ("Edit details")
+                from .family import ten_digits, who_has_mobile
+                fix = request.data.get("data") if isinstance(request.data.get("data"), dict) else {}
+                for k in ("first_name", "last_name", "place_of_birth"):
+                    if k in fix:
+                        d[k] = str(fix[k] or "").strip()[:100 if k != "place_of_birth" else 255]
+                if fix.get("gender") in ("M", "F", "O"):
+                    d["gender"] = fix["gender"]
+                if "date_of_birth" in fix:
+                    d["date_of_birth"] = fix["date_of_birth"] or None
+                if "mobile_number" in fix:
+                    d["mobile_number"] = ten_digits(fix["mobile_number"])
+                    if not d["mobile_number"]:
+                        return Response({"detail": "Please enter a 10-digit mobile number."}, status=400)
+                if not d.get("first_name"):
+                    return Response({"detail": "First name is required."}, status=400)
+                taken = who_has_mobile(d.get("mobile_number", ""), skip_request=n.pk)
+                if taken:
+                    return Response({"detail": f"This mobile number is already used by {taken}."}, status=400)
+                try:
+                    dob = date.fromisoformat(d["date_of_birth"]) if d.get("date_of_birth") else None
+                except ValueError:
+                    return Response({"detail": "Date of birth must look like 2024-03-18."}, status=400)
+                n.data = d
                 created = Model(
                     first_name=d.get("first_name", ""), last_name=d.get("last_name", ""),
                     gender=d.get("gender", "M"), date_of_birth=dob, place_of_birth=d.get("place_of_birth") or None,
-                    membership_category="NM",
+                    membership_category="NM", mobile_number=d.get("mobile_number") or None,
                 )
                 if n.relation == "child":
                     created.parent = relative
@@ -276,12 +332,25 @@ class ApprovalDecisionView(APIView):
                 if n.relation == "spouse":
                     created.spouses.add(relative)
                 n.created_member_id = created.pk
+                # the face scan done with the request: profile photo + face sign-in
+                if n.face_photo:
+                    from django.core.files.base import ContentFile
+                    with n.face_photo.open("rb") as fh:
+                        created.photo.save(f"face-{n.branch}-{created.pk}.jpg", ContentFile(fh.read()), save=False)
+                    created.save(update_fields=["photo"])
+                if n.face_codes:
+                    FaceProfile.objects.create(branch=n.branch, member_id=created.pk, embeddings=n.face_codes,
+                                               consent_at=n.face_consent_at or timezone.now())
+                _drop_request_face(n)
+            else:
+                _drop_request_face(n)
             n.status = "approved" if ok else "declined"
             n.decided_by, n.decided_at, n.note = request.user, timezone.now(), note or n.note
             n.save()
             notify([n.requested_by],
                    f"{n.data.get('first_name')} was added to the tree" if ok else "Your request was not accepted",
-                   "" if ok else note, kind="approval")
+                   ("They can now open Vamsham by looking at the camera." if ok and created and FaceProfile.objects.filter(branch=n.branch, member_id=created.pk).exists() else "")
+                   if ok else note, kind="approval")
             return Response({"ok": True, "status": n.status,
                              "member": summary(created, n.branch, request) if created else None})
 

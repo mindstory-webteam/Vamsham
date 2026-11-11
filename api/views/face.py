@@ -397,7 +397,23 @@ class AdminMemberFaceView(APIView):
         if link and p.user_id is None:
             p.user = link.user
         p.save()
-        return Response({"enrolled": True, "since": p.updated_at, "has_phone": len(digits(m.mobile_number)) >= 4}, status=201)
+        photo = None
+        if request.data.get("set_photo") in (True, "true", "1", 1):
+            # the straight-on scan photo becomes the member's profile picture (cut around the face)
+            from django.core.files.base import ContentFile
+            try:
+                jpg = face.portrait(request.data["images"][0])
+            except face.FaceError:
+                jpg = None
+            if jpg:
+                old = m.photo.name if m.photo else None
+                m.photo.save(f"face-{branch}-{pk}-{secrets.token_hex(4)}.jpg", ContentFile(jpg), save=False)
+                m.save(update_fields=["photo"])
+                if old and old != m.photo.name:
+                    transaction.on_commit(lambda: m.photo.storage.delete(old))
+                photo = request.build_absolute_uri(m.photo.url)
+        return Response({"enrolled": True, "since": p.updated_at, "has_phone": len(digits(m.mobile_number)) >= 4,
+                         "photo": photo}, status=201)
 
     def delete(self, request, branch, pk):
         if self._member(branch, pk) is None:

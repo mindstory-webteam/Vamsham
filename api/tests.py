@@ -166,11 +166,22 @@ class ApiFlowTests(TestCase):
         r = self.c.post("/api/requests/new-member", {"relative_ref": f"lonappan:{self.anil.pk}", "relation": "child",
                                                      "first_name": "Ethan", "last_name": "Anil", "gender": "M",
                                                      "date_of_birth": "2026-10-05"}, format="json")
+        self.assertEqual((r.status_code, r.data.get("field")), (400, "mobile_number"))  # the mobile number is required
+        r = self.c.post("/api/requests/new-member", {"relative_ref": f"lonappan:{self.anil.pk}", "relation": "child",
+                                                     "first_name": "Ethan", "last_name": "Anil", "gender": "M",
+                                                     "date_of_birth": "2026-10-05", "mobile_number": "+91 98470 11122"}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
         rid = r.data["id"]
+        # the same number can't be used twice (here: by the request still waiting)
+        r2 = self.c.post("/api/requests/new-member", {"relative_ref": f"lonappan:{self.anil.pk}", "relation": "child",
+                                                      "first_name": "Eva", "mobile_number": "9847011122"}, format="json")
+        self.assertEqual(r2.status_code, 400)
+        item = [i for i in self.c.get("/api/admin/approvals").data["results"] if i["type"] == "new_member"][0]
+        self.assertEqual((item["mobile"], item["checks"]["mobile_ok"], item["face"]["scanned"]), ("9847011122", True, False))
         r = self.c.post(f"/api/admin/approvals/new_member/{rid}/approve", {}, format="json")
         self.assertEqual(r.data["member"]["generation"], 4)
         self.assertEqual(NewMemberRequest.objects.get(pk=rid).status, "approved")
-        self.assertTrue(LonappanFamily.objects.filter(first_name="Ethan", parent=self.anil).exists())
+        self.assertTrue(LonappanFamily.objects.filter(first_name="Ethan", parent=self.anil, mobile_number="9847011122").exists())
 
     # ── Membership numbers never repeat ─────────────────────
     def test_membership_number_after_delete(self):
@@ -557,6 +568,11 @@ class FaceEngineTests(TestCase):
         r = APIClient().post("/api/auth/face/detect", {"image": base64.b64encode(jpg(cv2.cvtColor(data.coffee(), cv2.COLOR_RGB2BGR))).decode()}, format="json")
         self.assertEqual((r.data["ok"], r.data["code"], r.data["faces"]), (False, "no_face", []))
 
+        # the scan's straight photo → a square profile picture cut around the face
+        out = cv2.imdecode(__import__("numpy").frombuffer(face.portrait(jpg(astro)), "uint8"), cv2.IMREAD_COLOR)
+        self.assertEqual(out.shape[:2], (512, 512))
+        self.assertTrue(face.detect(out)["ok"])
+
 
 class DashboardWeekTests(TestCase):
     def test_dashboard_has_seven_days(self):
@@ -730,6 +746,40 @@ class MultiFamilyTests(TestCase):
         # the account created for Joseph only sees Thekkekara
         u = User.objects.get(member_link__member_id=m["id"])
         self.assertEqual(u.family_access.family.slug, self.fam["slug"])
+
+    def test_new_member_request_with_face_scan(self):
+        """A member adds someone with mobile + face scan → admin edits and approves → face sign-in works."""
+        slug = self.branch_b()
+        parent = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Aiswarya", "last_name": "T"}, format="json").data
+        body = {"relative_ref": f"{slug}:{parent['id']}", "relation": "child", "first_name": "Jo", "last_name": "T",
+                "mobile_number": "9876504321", "face_images": ["joseph", "joseph2", "joseph"]}
+        r = self.b.post("/api/requests/new-member", body, format="json")
+        self.assertEqual((r.status_code, r.data.get("code")), (400, "consent"))
+        r = self.b.post("/api/requests/new-member", {**body, "face_consent": True}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertTrue(r.data["face"])
+        item = [i for i in self.b.get("/api/admin/approvals").data["results"] if i["type"] == "new_member"][0]
+        self.assertTrue(item["face"]["scanned"])
+        self.assertEqual((item["checks"]["mobile_ok"], item["checks"]["face_ok"], item["checks"]["consent"]), (True, True, True))
+        # the face can't sign in before approval
+        self.assertEqual(self.c.post("/api/auth/face/identify", {"image": "joseph2"}, format="json").status_code, 401)
+        r = self.b.post(f"/api/admin/approvals/new_member/{item['id']}/approve", {"data": {"first_name": "Joseph"}}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        from api.models import NewMemberRequest
+        n = NewMemberRequest.all_objects.get(pk=item["id"])
+        self.assertEqual((n.face_codes, bool(n.face_photo)), ([], False))  # copied to the member, removed from the request
+        m = self.b.get(f"/api/admin/members/{slug}/{r.data['member']['id']}").data
+        self.assertEqual((m["first_name"], m["face_enrolled"]), ("Joseph", True))
+        r = self.c.post("/api/auth/face/identify", {"image": "joseph2"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        r = self.c.post("/api/auth/face/confirm", {"check": r.data["check"], "last4": "4321"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        # a declined request keeps nothing
+        r = self.b.post("/api/requests/new-member", {**body, "first_name": "Mary", "mobile_number": "9000011223",
+                                                     "face_images": ["mary"], "face_consent": True}, format="json")
+        rid = r.data["id"]
+        self.b.post(f"/api/admin/approvals/new_member/{rid}/decline", {}, format="json")
+        self.assertEqual(NewMemberRequest.all_objects.get(pk=rid).face_codes, [])
 
     def test_face_check_locks_after_wrong_digits(self):
         slug = self.branch_b()

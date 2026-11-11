@@ -106,6 +106,30 @@ def detect(image):
     }
 
 
+def portrait(image, size=512):
+    """A square profile picture cut around the face (head and a little of the shoulders) → JPEG bytes."""
+    cv2, det, _ = _load()
+    img = decode_image(image) if not hasattr(image, "shape") else image
+    h, w = img.shape[:2]
+    with _lock:
+        det.setInputSize((w, h))
+        _, faces = det.detect(img)
+    code, message = _check(faces, w, h)
+    if code:
+        raise FaceError(code, message)
+    x, y, fw, fh = [float(v) for v in sorted(faces, key=lambda f: f[2] * f[3], reverse=True)[0][:4]]
+    side = min(max(fw, fh) * 2.2, w, h)
+    cx, cy = x + fw / 2, y + fh / 2 + fh * 0.12  # a little lower: room for the chin and shoulders
+    left = int(min(max(cx - side / 2, 0), w - side))
+    top = int(min(max(cy - side / 2, 0), h - side))
+    crop = img[top:top + int(side), left:left + int(side)]
+    crop = cv2.resize(crop, (size, size), interpolation=cv2.INTER_AREA if side > size else cv2.INTER_CUBIC)
+    ok, buf = cv2.imencode(".jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 88])
+    if not ok:
+        raise FaceError("bad_image", "That photo couldn't be saved.")
+    return buf.tobytes()
+
+
 def embed(image):
     """Photo → face code (list of 128 floats). Raises FaceError when there isn't exactly one clear face."""
     cv2, det, rec = _load()

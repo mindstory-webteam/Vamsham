@@ -1,6 +1,8 @@
 """Family tree, directory search, relationships and member-submitted requests."""
 from datetime import date
 
+from django.utils import timezone
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -187,8 +189,42 @@ class ChangeRequestView(APIView):
         return Response({"id": cr.id, "status": cr.status}, status=201)
 
 
+def ten_digits(raw):
+    """Indian mobile → its 10 digits ('' if it isn't a valid 10-digit number)."""
+    import re
+    d = re.sub(r"\D", "", str(raw or ""))
+    if len(d) == 12 and d.startswith("91"):
+        d = d[2:]
+    elif len(d) == 11 and d.startswith("0"):
+        d = d[1:]
+    return d if len(d) == 10 and d[0] in "6789" else ""
+
+
+def who_has_mobile(phone10, skip_request=None):
+    """Name of someone in this family (tree or waiting request) already using this mobile, else ''."""
+    from .. import branches as B
+    if not phone10:
+        return ""
+    for r in B.rows():
+        M = B._model_for(r)
+        if M is None:
+            continue
+        for m in M.objects.filter(mobile_number__contains=phone10[-4:]).only("first_name", "last_name", "mobile_number"):
+            if ten_digits(m.mobile_number) == phone10:
+                return f"{m.first_name} {m.last_name}".strip()
+    for n in NewMemberRequest.objects.filter(status="pending").exclude(pk=skip_request):
+        if n.data.get("mobile_number") == phone10:
+            return f"{n.data.get('first_name', '')} {n.data.get('last_name', '')}".strip() + " (waiting for approval)"
+    return ""
+
+
 class NewMemberRequestView(APIView):
-    """POST {relative_ref, relation: child|spouse, first_name, last_name, gender, date_of_birth?, place_of_birth?}"""
+    """POST {relative_ref, relation: child|spouse, first_name, last_name, gender, mobile_number,
+    date_of_birth?, place_of_birth?, face_images?: [3 photos], face_consent?}
+
+    The mobile number is required. The face scan is optional: the photos are turned into face codes
+    right away and one photo is kept for the profile picture — all of it is only used if the family
+    admin approves (and deleted if they decline)."""
     permission_classes = [IsApproved]
 
     def post(self, request):
@@ -206,15 +242,45 @@ class NewMemberRequestView(APIView):
                 date.fromisoformat(dob)
             except ValueError:
                 return Response({"detail": "date_of_birth must be YYYY-MM-DD"}, status=400)
+        mobile = ten_digits(request.data.get("mobile_number"))
+        if not mobile:
+            return Response({"detail": "Please enter their 10-digit mobile number.", "field": "mobile_number"}, status=400)
+        taken = who_has_mobile(mobile)
+        if taken:
+            return Response({"detail": f"This mobile number is already used by {taken}.", "field": "mobile_number"}, status=400)
         data = {
             "first_name": first[:100],
             "last_name": str(request.data.get("last_name", ""))[:100],
             "gender": request.data.get("gender") if request.data.get("gender") in ("M", "F", "O") else "M",
             "date_of_birth": dob,
             "place_of_birth": str(request.data.get("place_of_birth", ""))[:255],
+            "mobile_number": mobile,
         }
-        req = NewMemberRequest.objects.create(
+
+        # optional face scan, done on the spot
+        codes, jpg = [], None
+        images = request.data.get("face_images") or []
+        if images:
+            if request.data.get("face_consent") not in (True, "true", "1", 1):
+                return Response({"detail": "Tick the box to show they agree to face sign-in.", "code": "consent"}, status=400)
+            from .. import face
+            from .face import codes_from_images
+            codes, err = codes_from_images(images)
+            if err is not None:
+                return err
+            try:
+                jpg = face.portrait(images[0])
+            except face.FaceError:
+                jpg = None
+
+        req = NewMemberRequest(
             requested_by=request.user, branch=branch, relative_id=relative.pk,
             relation=relation, data=data, note=str(request.data.get("note", ""))[:255],
+            face_codes=codes, face_consent_at=timezone.now() if codes else None,
         )
-        return Response({"id": req.id, "status": req.status}, status=201)
+        if jpg:
+            import secrets
+            from django.core.files.base import ContentFile
+            req.face_photo.save(f"new-{secrets.token_hex(6)}.jpg", ContentFile(jpg), save=False)
+        req.save()
+        return Response({"id": req.id, "status": req.status, "face": bool(codes)}, status=201)
