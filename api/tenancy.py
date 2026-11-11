@@ -36,8 +36,12 @@ def reset_current_family(token):
     _current.reset(token)
 
 
+# A signed-in person who belongs to no family (their family was deleted): they see nothing.
+NO_FAMILY = -1
+
+
 def default_family_id():
-    """The first family (today's Vamsham data)."""
+    """The first family (the main admin's starting point when no family is picked)."""
     if _default["id"] is None:
         from .models import Family
         f = Family.objects.order_by("id").values_list("id", flat=True).first()
@@ -70,7 +74,8 @@ def resolve_family_id(user, header_value):
                 if f:
                     return f
             return family_for_user(user) or default_family_id()
-        return family_for_user(user) or default_family_id()
+        # a family member / family admin only ever sees their own family (never "the first one")
+        return family_for_user(user) or NO_FAMILY
     if header_value:
         return Family.objects.filter(slug=header_value, is_active=True).values_list("id", flat=True).first()
     return None
@@ -92,7 +97,8 @@ class FamilyScopedManager(models.Manager.from_queryset(FamilyScopedQuerySet)):
 def fill_family(sender, instance, **kwargs):
     """New rows belong to the current family (or the first family outside a request)."""
     if getattr(instance, "family_id", None) is None:
-        instance.family_id = current_family_id() or default_family_id()
+        fid = current_family_id()
+        instance.family_id = fid if fid and fid > 0 else default_family_id()
 
 
 class FamilyMiddleware:
@@ -135,4 +141,4 @@ def family_users(qs=None):
 
 def lock_to_user_family(user):
     """After signing someone in, work with their family for the rest of the request."""
-    set_current_family(family_for_user(user) or default_family_id())
+    set_current_family(family_for_user(user) or (default_family_id() if user.is_superuser else NO_FAMILY))

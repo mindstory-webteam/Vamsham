@@ -39,7 +39,7 @@ def family_info(user, request=None):
     """The family shown in the app header / dashboard (name, colour, logo)."""
     from ..tenancy import current_family_id, family_for_user
     fid = current_family_id() if user.is_superuser else None
-    fid = fid or family_for_user(user) or default_family_id()
+    fid = fid or family_for_user(user) or (default_family_id() if user.is_superuser else None)
     f = Family.objects.filter(pk=fid).first()
     if not f:
         return None
@@ -55,7 +55,9 @@ def family_paused(user):
         return None
     from ..tenancy import family_for_user
     fid = family_for_user(user)
-    if fid and not Family.objects.filter(pk=fid, is_active=True).exists():
+    if not fid:
+        return "Your account isn't part of a family on Vamsham any more. Please contact your family admin."
+    if not Family.objects.filter(pk=fid, is_active=True).exists():
         return "Your family's Vamsham is paused. Please contact the Vamsham team."
     return None
 
@@ -202,10 +204,13 @@ class PasswordLoginView(APIView):
         if request.data.get("main") in (True, "true", "1") and not user.is_superuser:
             return Response({"detail": "This page is only for the main Vamsham admin. Use your family's sign-in link."}, status=403)
         slug = str(request.data.get("family") or "").strip()
-        if slug and not user.is_superuser:
+        if slug and user.is_superuser:
+            # the main admin has their own page; a family's page is only for that family's committee
+            return Response({"detail": "You're the main admin — sign in at /dashboard/admin, then open this family from All families."}, status=403)
+        if slug:
             from ..tenancy import family_for_user
             fam = Family.objects.filter(slug=slug).first()
-            if fam is None or family_for_user(user) != fam.id:
+            if fam is None or family_for_user(user) != fam.id or not user.is_staff:
                 name = fam.name if fam else "this family"
                 return Response({"detail": f"This account isn't on the {name} committee. Use your own family's sign-in link."}, status=403)
         blocked = family_paused(user)

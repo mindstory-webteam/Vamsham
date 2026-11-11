@@ -23,6 +23,9 @@ class ApiConfig(AppConfig):
                 fid = resolve_family_id(user, request.headers.get("X-Family"))
                 if fid and not user.is_superuser:
                     from .models import Family
+                    from .tenancy import NO_FAMILY
+                    if fid == NO_FAMILY:
+                        raise PermissionDenied("Your account isn't part of a family on Vamsham any more.")
                     if not Family.objects.filter(pk=fid, is_active=True).exists():
                         raise PermissionDenied("Your family's Vamsham is paused. Please contact the Vamsham team.")
                 set_current_family(fid)

@@ -337,10 +337,13 @@ class AssociationSettings(models.Model):
     @classmethod
     def load(cls, family_id=None):
         """This family's settings (created with the family's name the first time)."""
-        fid = family_id or current_family_id() or default_family_id()
+        cur = current_family_id()
+        fid = family_id or (cur if cur and cur > 0 else None) or default_family_id()
+        fam = Family.objects.filter(pk=fid).first() if fid else None
+        if fam is None:
+            return cls(family_name="Vamsham", association_name="Vamsham")  # no family: defaults, not saved
         obj = cls.objects.filter(family_id=fid).first()
         if obj is None:
-            fam = Family.objects.filter(pk=fid).first()
             name = fam.name if fam else "Vamsham"
             obj = cls.objects.create(family_id=fid, family_name=name, association_name=f"{name} Family Association", upi_name=f"{name} Family Association")
         return obj
@@ -396,9 +399,11 @@ for _m in (FamilyBranch, MemberLink, ChangeRequest, NewMemberRequest, BloodReque
 
 
 def _give_family(sender, instance, created, **kwargs):
-    """Every new account belongs to a family: the current one, else the first (main admin can move it)."""
-    if created and not kwargs.get("raw"):
-        fid = current_family_id() or default_family_id()
+    """Every new account belongs to a family: the current one, else the first. The main admin
+    (superuser) belongs to no family — Vamsham is the app, not a family."""
+    if created and not kwargs.get("raw") and not instance.is_superuser:
+        fid = current_family_id()
+        fid = fid if fid and fid > 0 else default_family_id()
         if fid:
             FamilyAccess.objects.get_or_create(user=instance, defaults={"family_id": fid})
 

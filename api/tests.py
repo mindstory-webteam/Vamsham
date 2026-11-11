@@ -765,9 +765,20 @@ class FamilyLinkLoginTests(TestCase):
         self.assertEqual(r.data["me"]["family"]["name"], "Akkaramal")
         r = self.c.post("/api/auth/login", {"username": "akksec", "password": "Akk#12345", "family": "vamsham"}, format="json")
         self.assertEqual(r.status_code, 403)
-        # the main admin may use any family's link
+        # a family's page is only for that family's committee: not the main admin, not another family's admin
         r = self.c.post("/api/auth/login", {"username": "boss", "password": "Boss#12345", "family": "akkaramal"}, format="json")
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 403)
+        from api.models import Family, FamilyAccess
+        thekke = Family.objects.create(name="Thekkekara", slug="thekkekara")
+        sec2 = User.objects.create_user("thksec", password="Thk#12345", is_staff=True)
+        FamilyAccess.objects.update_or_create(user=sec2, defaults={"family": thekke})
+        r = self.c.post("/api/auth/login", {"username": "thksec", "password": "Thk#12345", "family": "akkaramal"}, format="json")
+        self.assertEqual(r.status_code, 403)
+        # a family member (not on the committee) can't use the dashboard link either
+        mem = User.objects.create_user("akkmem", password="Mem#12345")
+        FamilyAccess.objects.update_or_create(user=mem, defaults={"family": self.other})
+        r = self.c.post("/api/auth/login", {"username": "akkmem", "password": "Mem#12345", "family": "akkaramal"}, format="json")
+        self.assertEqual(r.status_code, 403)
 
     def test_main_admin_page(self):
         r = self.c.post("/api/auth/login", {"username": "akksec", "password": "Akk#12345", "main": True}, format="json")
@@ -775,3 +786,62 @@ class FamilyLinkLoginTests(TestCase):
         r = self.c.post("/api/auth/login", {"username": "boss", "password": "Boss#12345", "main": True}, format="json")
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.data["me"]["is_main_admin"])
+
+
+class DeleteFamilyTests(TestCase):
+    """The main admin deletes a family: everything in it goes, other families are untouched."""
+
+    def setUp(self):
+        from api.tenancy import forget_default
+        from api import branches as B
+        forget_default(); B.invalidate()
+        self.main = User.objects.create_superuser("boss", "b@x.in", "Boss#12345")
+        self.c = APIClient()
+        self.c.force_authenticate(self.main)
+        self.a = self.c.post("/api/super/families", {"name": "Akkaramal"}, format="json").data
+        self.t = self.c.post("/api/super/families", {"name": "Thekkekara"}, format="json").data
+        self.c.post(f"/api/super/families/{self.a['id']}/admins", {"name": "Akk Sec", "username": "akksec", "password": "Akk#12345"}, format="json")
+        self.c.post(f"/api/super/families/{self.t['id']}/admins", {"name": "Thk Sec", "username": "thksec", "password": "Thk#12345"}, format="json")
+        for uname in ("akksec", "thksec"):
+            cl = APIClient(); cl.force_authenticate(User.objects.get(username=uname))
+            br = cl.get("/api/admin/branches").data[0]["slug"]
+            r = cl.post(f"/api/admin/members/{br}", {"first_name": f"Person of {uname}", "last_name": "K", "gender": "M"}, format="json")
+            self.assertIn(r.status_code, (200, 201), r.data)
+            cl.post("/api/admin/events", {"title": f"Feast {uname}", "category": "meet", "date": "2026-12-25"}, format="json")
+
+    def test_delete_needs_the_name(self):
+        r = self.c.delete(f"/api/super/families/{self.a['id']}", {"confirm": "akk"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        from api.models import Family
+        self.assertTrue(Family.objects.filter(pk=self.a["id"]).exists())
+
+    def test_delete_family(self):
+        from api.models import BranchMember, Family, FamilyBranch
+        from app1.models import Event
+        before = Family.objects.count()
+        r = self.c.delete(f"/api/super/families/{self.a['id']}", {"confirm": "akkaramal"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual((r.data["people"], r.data["accounts"]), (1, 1))
+        self.assertFalse(Family.objects.filter(pk=self.a["id"]).exists())
+        self.assertFalse(User.objects.filter(username="akksec").exists())
+        self.assertFalse(FamilyBranch.all_objects.filter(family_id=self.a["id"]).exists())
+        # the other family is untouched; the main admin keeps their account
+        self.assertTrue(User.objects.filter(username="thksec").exists())
+        self.assertEqual(BranchMember.objects.filter(branch__family_id=self.t["id"]).count(), 1)
+        self.assertTrue(Event.all_objects.filter(family_id=self.t["id"]).exists())
+        self.assertFalse(Event.all_objects.filter(family_id=self.a["id"]).exists())
+        self.assertTrue(User.objects.filter(username="boss").exists())
+        self.assertEqual(self.c.get("/api/super/families").data["totals"]["families"], before - 1)
+
+    def test_main_admin_belongs_to_no_family(self):
+        from api.models import FamilyAccess
+        self.assertFalse(FamilyAccess.objects.filter(user=self.main).exists())
+
+    def test_account_without_family_sees_nothing(self):
+        from api.models import FamilyAccess
+        sec = User.objects.get(username="thksec")
+        FamilyAccess.objects.filter(user=sec).delete()
+        cl = APIClient(); cl.force_authenticate(User.objects.get(pk=sec.pk))
+        self.assertEqual(cl.get("/api/admin/branches").status_code, 403)
+        r = APIClient().post("/api/auth/login", {"username": "thksec", "password": "Thk#12345"}, format="json")
+        self.assertEqual(r.status_code, 403)
