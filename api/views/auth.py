@@ -113,8 +113,13 @@ def me_payload(user, request=None):
     }
 
 
-def find_user_by_phone(phone):
-    for p in Profile.all_objects.select_related("user").exclude(phone_number=""):  # any family
+def find_user_by_phone(phone, family_id=None):
+    """The account with this phone number. With family_id: only a normal account of that family
+    (never the main admin, never someone of another family) — used by face sign-in."""
+    qs = Profile.all_objects.select_related("user").exclude(phone_number="")
+    if family_id is not None:
+        qs = qs.filter(user__family_access__family_id=family_id, user__is_superuser=False)
+    for p in qs:
         if otp.normalize_phone(p.phone_number) == phone:
             return p.user
     return None

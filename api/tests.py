@@ -665,6 +665,47 @@ class MultiFamilyTests(TestCase):
         self.assertEqual(r.status_code, 200)
         return r.data[0]["slug"]
 
+    def test_face_opens_the_right_family_when_phone_is_used_elsewhere(self):
+        """Same phone number on the main admin and on an account in the first family: Joseph's face,
+        scanned in Thekkekara, must open Thekkekara — never those other accounts."""
+        from api.models import FaceDevice, Family, FamilyAccess, MemberLink
+        from app1.models import Profile
+        first = Family.objects.exclude(pk=self.fam["id"]).first()
+        Profile.all_objects.create(user=self.main, full_name="Main", phone_number="+919876504321", is_approved=True, family=first)
+        other = User.objects.create_user("vjoseph", password="x")
+        FamilyAccess.objects.update_or_create(user=other, defaults={"family": first})
+        Profile.all_objects.update_or_create(user=other, defaults={"full_name": "Joseph V", "phone_number": "+919876504321",
+                                                                  "is_approved": True, "family": first})
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Joseph", "last_name": "T", "mobile_number": "9876504321"}, format="json").data
+        # an old wrong link (from before the fix) to the other family's account
+        MemberLink.all_objects.update_or_create(user=other, defaults={"branch": slug, "member_id": m["id"], "family": first})
+        r = self.b.post(f"/api/admin/members/{slug}/{m['id']}/face", {"images": ["joseph", "joseph2", "joseph"], "consent": True}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        r = self.c.post("/api/auth/face/identify", {"image": "joseph2"}, format="json")
+        self.assertEqual((r.status_code, r.data["family"]["slug"]), (200, self.fam["slug"]), r.data)
+        r = self.c.post("/api/auth/face/confirm", {"check": r.data["check"], "last4": "4321"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        me = r.data["me"]
+        self.assertEqual(me["family"]["slug"], self.fam["slug"])
+        self.assertFalse(me.get("is_main_admin"))
+        u = User.objects.get(pk=me["id"])
+        self.assertNotIn(u.pk, (self.main.pk, other.pk))
+        self.assertFalse(MemberLink.all_objects.filter(user=other, member_id=m["id"]).exists())  # wrong link removed
+        # the next time on this phone: straight into Thekkekara
+        r = self.c.post("/api/auth/face/identify", {"image": "joseph", "device_key": r.data["device_key"]}, format="json")
+        self.assertEqual((r.data.get("trusted"), r.data["me"]["family"]["slug"]), (True, self.fam["slug"]))
+        # a phone that was trusted for the wrong account is reset (fresh face check)
+        FaceDevice.objects.all().delete()
+        import secrets as _s
+        from api.views.face import key_hash
+        key = _s.token_urlsafe(16)
+        FaceDevice.objects.create(user=other, key_hash=key_hash(key))
+        from api.models import FaceProfile
+        FaceProfile.all_objects.filter(member_id=m["id"]).update(user=other)
+        r = self.c.post("/api/auth/face/login", {"image": "joseph", "device_key": key}, format="json")
+        self.assertEqual((r.status_code, r.data.get("code")), (401, "unknown_device"))
+
     def test_family_admin_sees_only_own_family(self):
         r = self.b.get("/api/admin/dashboard")
         self.assertEqual(r.status_code, 200, r.data)

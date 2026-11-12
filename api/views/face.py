@@ -123,7 +123,12 @@ class FaceLoginView(APIView):
         if not user.is_active:
             return Response({"detail": "Your request to join was declined. Please contact the secretary.",
                              "code": "declined"}, status=403)
-        profile = FaceProfile.objects.filter(user=user).first()
+        profile = FaceProfile.all_objects.filter(user=user).first()
+        if profile is not None and profile.member_id and family_account(user, profile.family_id) is None:
+            # this phone was tied to an account of another family (or the main admin) for a family
+            # member's face — start over with a fresh face check so they land in the right family
+            device.delete()
+            return Response({"detail": "Please scan again to open your family.", "code": "unknown_device"}, status=401)
         if profile is None:
             device.delete()
             return Response({"detail": "Face scan was turned off. Please use your phone number.",
@@ -215,6 +220,15 @@ def person_of(profile):
     return user, member, phone
 
 
+def family_account(user, family_id):
+    """`user` only if it is a normal account of this family. A face matched in one family must never
+    sign in to an account of another family, or to the main admin (same phone number, old links…)."""
+    if user is None or user.is_superuser:
+        return None
+    from ..tenancy import family_for_user
+    return user if family_for_user(user) == family_id else None
+
+
 def digits(s):
     return "".join(ch for ch in str(s or "") if ch.isdigit())
 
@@ -264,6 +278,7 @@ class FaceIdentifyView(APIView):
             return Response({"detail": "We aren't sure it's you. Please use your phone number this time.",
                              "code": "unsure"}, status=401)
         user, member, phone = person_of(best)
+        user = family_account(user, best.family_id)
         if user is not None and not user.is_active:
             return Response({"detail": "Your request to join was declined. Please contact the secretary.", "code": "declined"}, status=403)
 
@@ -306,6 +321,7 @@ class FaceConfirmView(APIView):
             return Response({"detail": "This face scan has expired. Please scan again.", "code": "expired"}, status=400)
         p = check.profile
         user, member, phone = person_of(p)
+        user = family_account(user, p.family_id)  # only an account of the family the face belongs to
         if digits(request.data.get("last4"))[-4:] != digits(phone)[-4:] or len(digits(request.data.get("last4"))) != 4:
             check.tries += 1
             if check.tries >= CHECK_TRIES:
@@ -323,7 +339,7 @@ class FaceConfirmView(APIView):
             norm = otp.normalize_phone(phone) or phone
             from ..tenancy import set_current_family
             set_current_family(p.family_id)  # the new account belongs to the member's family
-            user = find_user_by_phone(norm)
+            user = find_user_by_phone(norm, family_id=p.family_id)
             if user is None:
                 name = f"{member.first_name or ''} {member.last_name or ''}".strip() if member is not None else norm
                 base = "m" + digits(norm)
@@ -340,6 +356,10 @@ class FaceConfirmView(APIView):
                                            decided_at=timezone.now(), family_id=p.family_id)
             if p.member_id and not MemberLink.all_objects.filter(user=user).exists():
                 MemberLink.all_objects.create(user=user, branch=p.branch, member_id=p.member_id, family_id=p.family_id)
+        if p.member_id:
+            # links made earlier from another family's account to this person are wrong: remove them
+            MemberLink.all_objects.filter(branch=p.branch, member_id=p.member_id).exclude(user=user) \
+                .exclude(user__family_access__family_id=p.family_id).delete()
         if not user.is_active:
             return Response({"detail": "Your request to join was declined. Please contact the secretary.", "code": "declined"}, status=403)
         blocked = family_paused(user)
@@ -347,13 +367,15 @@ class FaceConfirmView(APIView):
             return Response({"detail": blocked, "code": "paused"}, status=403)
 
         # the face code now belongs to this account (merge with one they made themselves)
-        own = FaceProfile.all_objects.filter(user=user).exclude(pk=p.pk).first()
+        own = FaceProfile.all_objects.filter(user=user, family_id=p.family_id).exclude(pk=p.pk).first()
         if own is not None:
             own.embeddings = (own.embeddings or []) + (p.embeddings or [])
             own.branch, own.member_id = p.branch or own.branch, p.member_id or own.member_id
             p.delete()
             own.save()
-        elif p.user_id is None:
+        elif p.user_id != user.id:
+            # (also fixes a face code that was tied to another family's account)
+            FaceProfile.all_objects.filter(user=user).exclude(pk=p.pk).update(user=None)
             p.user = user
             p.save(update_fields=["user"])
 
