@@ -706,6 +706,45 @@ class MultiFamilyTests(TestCase):
         r = self.c.post("/api/auth/face/login", {"image": "joseph", "device_key": key}, format="json")
         self.assertEqual((r.status_code, r.data.get("code")), (401, "unknown_device"))
 
+    def test_same_face_in_two_families_asks_which(self):
+        """Face saved in the first family (own account) and in Thekkekara (added by its admin):
+        the app asks which family; picking Thekkekara opens Thekkekara."""
+        from api.models import FaceProfile, Family, FamilyAccess
+        from app1.models import Profile
+        first = Family.objects.exclude(pk=self.fam["id"]).first()
+        mine = User.objects.create_user("vjoseph", password="x")
+        FamilyAccess.objects.update_or_create(user=mine, defaults={"family": first})
+        Profile.all_objects.update_or_create(user=mine, defaults={"full_name": "Joseph V", "phone_number": "+919876504321",
+                                                                 "is_approved": True, "family": first})
+        from django.utils import timezone as _tz
+        FaceProfile.all_objects.create(user=mine, embeddings=[[1.0] + [0.0] * 127], family=first, consent_at=_tz.now())
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Joseph", "last_name": "T", "mobile_number": "9876504321"}, format="json").data
+        self.b.post(f"/api/admin/members/{slug}/{m['id']}/face", {"images": ["joseph", "joseph2", "joseph"], "consent": True}, format="json")
+
+        r = self.c.post("/api/auth/face/identify", {"image": "joseph2"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertTrue(r.data["need_family"])
+        fams = {c["family"]["slug"]: c for c in r.data["choices"]}
+        self.assertEqual(set(fams), {first.slug, self.fam["slug"]})
+        pick = fams[self.fam["slug"]]
+        self.assertFalse(pick["trusted"])
+        r = self.c.post("/api/auth/face/confirm", {"check": pick["check"]}, format="json")
+        self.assertEqual(r.data.get("code"), "need_digits")
+        r = self.c.post("/api/auth/face/confirm", {"check": pick["check"], "last4": "4321"}, format="json")
+        self.assertEqual((r.status_code, r.data["me"]["family"]["slug"]), (200, self.fam["slug"]), r.data)
+        key = r.data["device_key"]
+        # next time on this phone: choose again, Thekkekara is trusted → no digits
+        r = self.c.post("/api/auth/face/identify", {"image": "joseph", "device_key": key}, format="json")
+        pick = {c["family"]["slug"]: c for c in r.data["choices"]}[self.fam["slug"]]
+        self.assertTrue(pick["trusted"])
+        r = self.c.post("/api/auth/face/confirm", {"check": pick["check"], "device_key": key}, format="json")
+        self.assertEqual((r.status_code, r.data["me"]["family"]["slug"], r.data["device_key"]), (200, self.fam["slug"], key))
+        # "Welcome back" unlock on this phone also offers the other family
+        r = self.c.post("/api/auth/face/login", {"image": "joseph", "device_key": key}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual([a["family"]["slug"] for a in r.data["also"]], [first.slug])
+
     def test_family_admin_sees_only_own_family(self):
         r = self.b.get("/api/admin/dashboard")
         self.assertEqual(r.status_code, 200, r.data)

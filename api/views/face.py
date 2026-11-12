@@ -155,7 +155,11 @@ class FaceLoginView(APIView):
         device.locked_until = None
         device.last_used = now
         device.save(update_fields=["failed", "locked_until", "last_used"])
-        return Response({**tokens_for(user), "me": me_payload(user, request)})
+        # the same face in other families too? → the app asks "Which family?" before opening
+        from ..tenancy import family_for_user
+        mine = family_for_user(user)
+        also = [family_choice(p, request, key) for p, _ in family_matches(rank_faces(code)) if p.family_id != mine]
+        return Response({**tokens_for(user), "me": me_payload(user, request), "also": also})
 
 
 
@@ -182,23 +186,61 @@ def codes_from_images(images):
     return codes, None
 
 
-def search_faces(code):
-    """Best and second-best matching people among every active family's face codes."""
+def rank_faces(code):
+    """[(face profile, score)] of every active family, best first."""
     import numpy as np
     profiles = list(FaceProfile.all_objects.filter(family__is_active=True).exclude(embeddings=[]))
     if not profiles:
-        return None, 0.0, 0.0
+        return []
     q = np.asarray(code, dtype=np.float32)
     q /= (np.linalg.norm(q) or 1.0)
-    scores = []
+    out = []
     for p in profiles:
         m = np.asarray(p.embeddings, dtype=np.float32)
         m /= np.linalg.norm(m, axis=1, keepdims=True).clip(min=1e-6)
-        scores.append(float((m @ q).max()))
-    order = sorted(range(len(profiles)), key=lambda i: scores[i], reverse=True)
-    best = profiles[order[0]]
-    second = scores[order[1]] if len(order) > 1 else 0.0
-    return best, scores[order[0]], second
+        out.append((p, float((m @ q).max())))
+    return sorted(out, key=lambda x: x[1], reverse=True)
+
+
+def search_faces(code):
+    """Best and second-best matching people among every active family's face codes."""
+    ranked = rank_faces(code)
+    if not ranked:
+        return None, 0.0, 0.0
+    return ranked[0][0], ranked[0][1], ranked[1][1] if len(ranked) > 1 else 0.0
+
+
+def family_matches(ranked):
+    """The same face can be in more than one family (a daughter married into another family, or
+    someone added by two families). → [(profile, score)] — the best match in each family, best family
+    first — leaving out a family where two different people look too alike to tell apart."""
+    t, margin = settings.FACE_IDENTIFY_THRESHOLD, settings.FACE_IDENTIFY_MARGIN
+    out, seen = [], set()
+    for p, sc in ranked:
+        if sc < t:
+            break
+        if p.family_id in seen:
+            continue
+        seen.add(p.family_id)
+        rival = next((s2 for p2, s2 in ranked if p2.family_id == p.family_id and p2.pk != p.pk), 0.0)
+        if sc - rival >= margin:
+            out.append((p, sc))
+    return out
+
+
+def trusted_on(key, user):
+    """Is this phone (face device key) already trusted for this account?"""
+    return bool(key and user is not None and FaceDevice.objects.filter(key_hash=key_hash(key), user=user).exists())
+
+
+def family_choice(p, request, key=None):
+    """One "Which family?" option: a short face check for that family's person."""
+    user, member, _phone = person_of(p)
+    user = family_account(user, p.family_id)
+    check = FaceCheck.objects.create(token=secrets.token_urlsafe(32), profile=p)
+    first = (member.first_name if member is not None else (user.first_name if user else "")) or ""
+    return {"check": check.token, "family": family_brief(p.family_id, request), "first_name": first.strip().title(),
+            "trusted": trusted_on(key, user)}
 
 
 def person_of(profile):
@@ -270,13 +312,20 @@ class FaceIdentifyView(APIView):
             code = face.embed(request.data.get("image"))
         except face.FaceError as exc:
             return face_error(exc)
-        best, score, second = search_faces(code)
-        if best is None or score < settings.FACE_IDENTIFY_THRESHOLD:
+        ranked = rank_faces(code)
+        if not ranked or ranked[0][1] < settings.FACE_IDENTIFY_THRESHOLD:
             return Response({"detail": "We couldn't find you. Try again in good light, or use your phone number.",
                              "code": "no_match"}, status=401)
-        if score - second < settings.FACE_IDENTIFY_MARGIN:
+        matches = family_matches(ranked)
+        if not matches:
             return Response({"detail": "We aren't sure it's you. Please use your phone number this time.",
                              "code": "unsure"}, status=401)
+        if len(matches) > 1:
+            # the same face is in more than one family: let the person choose which to open
+            key = request.data.get("device_key")
+            return Response({"need_family": True, "choices": [family_choice(p, request, key) for p, _ in matches],
+                             "expires_in": CHECK_MINUTES * 60})
+        best = matches[0][0]
         user, member, phone = person_of(best)
         user = family_account(user, best.family_id)
         if user is not None and not user.is_active:
@@ -322,7 +371,12 @@ class FaceConfirmView(APIView):
         p = check.profile
         user, member, phone = person_of(p)
         user = family_account(user, p.family_id)  # only an account of the family the face belongs to
-        if digits(request.data.get("last4"))[-4:] != digits(phone)[-4:] or len(digits(request.data.get("last4"))) != 4:
+        trusted = trusted_on(request.data.get("device_key"), user)  # chosen from "Which family?" on a trusted phone
+        if not trusted and (digits(request.data.get("last4"))[-4:] != digits(phone)[-4:] or len(digits(request.data.get("last4"))) != 4):
+            if not request.data.get("last4"):
+                return Response({"detail": "Enter the last 4 digits of your phone number.", "code": "need_digits",
+                                 "first_name": ((member.first_name if member is not None else "") or "").strip().title(),
+                                 "family": family_brief(p.family_id, request)}, status=400)
             check.tries += 1
             if check.tries >= CHECK_TRIES:
                 check.used = True
@@ -379,9 +433,13 @@ class FaceConfirmView(APIView):
             p.user = user
             p.save(update_fields=["user"])
 
-        key = secrets.token_urlsafe(32)
-        FaceDevice.objects.create(user=user, key_hash=key_hash(key), name=str(request.data.get("device_name", ""))[:60],
-                                  last_used=timezone.now())
+        if trusted:
+            key = request.data.get("device_key")
+            FaceDevice.objects.filter(key_hash=key_hash(key), user=user).update(last_used=timezone.now(), failed=0)
+        else:
+            key = secrets.token_urlsafe(32)
+            FaceDevice.objects.create(user=user, key_hash=key_hash(key), name=str(request.data.get("device_name", ""))[:60],
+                                      last_used=timezone.now())
         lock_to_user_family(user)
         return Response({**tokens_for(user), "me": me_payload(user, request), "device_key": key})
 
