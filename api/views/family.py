@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..branches import BRANCH_LABELS, all_models, get_model
-from ..models import ChangeRequest, MemberLink, NewMemberRequest
+from ..models import ChangeRequest, MemberLink, NewMemberRequest, RemoveRequest
 from ..notify import notify
 from ..people import (SELF_EDITABLE_FIELDS, detail, parse_ref, relationship, search,
                       today_items, tree)
@@ -187,6 +187,25 @@ class ChangeRequestView(APIView):
             note=str(request.data.get("note", ""))[:255],
         )
         return Response({"id": cr.id, "status": cr.status}, status=201)
+
+
+class RemoveRequestView(APIView):
+    """POST {member_ref, reason: duplicate|wrong|not_family|other, note?} — ask the family admin to take
+    a person off the tree. Nothing is deleted until the admin approves."""
+    permission_classes = [IsApproved]
+
+    def post(self, request):
+        branch, pk = parse_ref(request.data.get("member_ref"))
+        _M, m = member_or_404(branch, pk)
+        reason = request.data.get("reason") if request.data.get("reason") in dict(RemoveRequest.REASONS) else "other"
+        note = str(request.data.get("note", "")).strip()[:255]
+        if reason == "other" and not note:
+            return Response({"detail": "Please tell the family admin why."}, status=400)
+        if RemoveRequest.objects.filter(branch=branch, member_id=m.pk, status="pending").exists():
+            return Response({"detail": "Someone already asked to remove this person — the family admin will decide."}, status=400)
+        r = RemoveRequest.objects.create(requested_by=request.user, branch=branch, member_id=m.pk,
+                                         member_name=f"{m.first_name} {m.last_name}".strip(), reason=reason, note=note)
+        return Response({"id": r.id, "status": r.status}, status=201)
 
 
 def ten_digits(raw):

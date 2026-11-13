@@ -45,6 +45,7 @@ urlpatterns = [
     path("today", f.TodayView.as_view()),
     path("requests/change", f.ChangeRequestView.as_view()),
     path("requests/new-member", f.NewMemberRequestView.as_view()),
+    path("requests/remove-member", f.RemoveRequestView.as_view()),
 
     # ── Community ────────────────────────────────────────────
     path("events", c.EventListView.as_view()),

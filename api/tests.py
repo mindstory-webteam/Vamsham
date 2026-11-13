@@ -827,6 +827,55 @@ class MultiFamilyTests(TestCase):
         u = User.objects.get(member_link__member_id=m["id"])
         self.assertEqual(u.family_access.family.slug, self.fam["slug"])
 
+    def test_delete_member_and_removal_requests(self):
+        """Admin deletes directly; a member's removal request only deletes once the admin approves."""
+        from api.models import FaceProfile, MemberLink, RemoveRequest
+        slug = self.branch_b()
+        dad = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Rauf", "last_name": "P", "mobile_number": "9876500001"}, format="json").data
+        kid = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Son", "last_name": "P", "parent": dad["id"]}, format="json").data
+        dup = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Rauf", "last_name": "P"}, format="json").data
+        self.b.post(f"/api/admin/members/{slug}/{dup['id']}/face", {"images": ["joseph"], "consent": True}, format="json")
+        # admin: a person with people below needs force
+        r = self.b.delete(f"/api/admin/members/{slug}/{dad['id']}")
+        self.assertEqual((r.status_code, r.data["code"]), (400, "has_children"))
+
+        # a member (non-staff, approved) asks to remove the duplicate
+        mem = User.objects.create_user("thkmem", password="x")
+        from api.models import FamilyAccess
+        from app1.models import Profile
+        FamilyAccess.objects.update_or_create(user=mem, defaults={"family_id": self.fam["id"]})
+        Profile.all_objects.update_or_create(user=mem, defaults={"full_name": "Mem", "is_approved": True, "family_id": self.fam["id"]})
+        mc = APIClient(); mc.force_authenticate(User.objects.get(pk=mem.pk))
+        self.assertEqual(mc.post("/api/requests/remove-member", {"member_ref": f"{slug}:{dup['id']}", "reason": "other"}, format="json").status_code, 400)
+        r = mc.post("/api/requests/remove-member", {"member_ref": f"{slug}:{dup['id']}", "reason": "duplicate"}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual(mc.post("/api/requests/remove-member", {"member_ref": f"{slug}:{dup['id']}", "reason": "duplicate"}, format="json").status_code, 400)
+        # still on the tree until approved
+        self.assertEqual(self.b.get(f"/api/admin/members/{slug}/{dup['id']}").status_code, 200)
+        item = [i for i in self.b.get("/api/admin/approvals").data["results"] if i["type"] == "remove_member"][0]
+        self.assertEqual((item["reason"], item["below"]), ("duplicate", 0))
+        self.assertEqual(self.b.get("/api/admin/dashboard").data["pending"]["removals"], 1)
+        r = self.b.post(f"/api/admin/approvals/remove_member/{item['id']}/approve", {}, format="json")
+        self.assertEqual((r.status_code, r.data["removed"]), (200, 1), r.data)
+        self.assertEqual(self.b.get(f"/api/admin/members/{slug}/{dup['id']}").status_code, 404)
+        self.assertFalse(FaceProfile.all_objects.filter(branch=slug, member_id=dup["id"]).exists())
+
+        # asking to remove someone with people below: admin must tick "also the people below"
+        r = mc.post("/api/requests/remove-member", {"member_ref": f"{slug}:{dad['id']}", "reason": "wrong"}, format="json")
+        item = [i for i in self.b.get("/api/admin/approvals").data["results"] if i["type"] == "remove_member"][0]
+        self.assertEqual((item["below"], item["below_names"]), (1, ["Son P"]))
+        r = self.b.post(f"/api/admin/approvals/remove_member/{item['id']}/approve", {}, format="json")
+        self.assertEqual(r.data.get("code"), "has_children")
+        # decline: nothing removed
+        r = self.b.post(f"/api/admin/approvals/remove_member/{item['id']}/decline", {"note": "He is family"}, format="json")
+        self.assertEqual(r.data["status"], "declined")
+        self.assertEqual(self.b.get(f"/api/admin/members/{slug}/{dad['id']}").status_code, 200)
+        self.assertEqual(RemoveRequest.all_objects.get(pk=item["id"]).status, "declined")
+        # admin deletes directly with the people below
+        r = self.b.delete(f"/api/admin/members/{slug}/{dad['id']}?force=1")
+        self.assertEqual(r.status_code, 204)
+        self.assertEqual(self.b.get(f"/api/admin/members/{slug}/{kid['id']}").status_code, 404)
+
     def test_new_member_request_with_face_scan(self):
         """A member adds someone with mobile + face scan → admin edits and approves → face sign-in works."""
         slug = self.branch_b()

@@ -16,7 +16,7 @@ from app1.models import Event, Profile
 from ..branches import BRANCH_LABELS, SLUGS, all_models, get_member, get_model
 from ..tenancy import family_users
 from ..models import (FaceProfile, AssociationSettings, BloodRequest, Broadcast, ChangeRequest, EventRSVP, MemberLink,
-                      NewMemberRequest, Payment)
+                      NewMemberRequest, Payment, RemoveRequest)
 from ..notify import notify
 from ..people import CATEGORY_LABELS, EDITABLE_FIELDS, detail, parse_ref, search, summary
 from ..permissions import IsStaff
@@ -53,6 +53,7 @@ def dashboard_data(request):
     pending_signups = Profile.objects.filter(is_approved=False, user__is_active=True, user__is_staff=False).count()
     pending_changes = ChangeRequest.objects.filter(status="pending").count()
     pending_new = NewMemberRequest.objects.filter(status="pending").count()
+    pending_remove = RemoveRequest.objects.filter(status="pending").count()
     next_event = Event.objects.filter(date__gte=date.today()).order_by("date").first()
     pct = lambda x: round(x * 100 / total) if total else 0  # noqa: E731
     return {
@@ -61,7 +62,7 @@ def dashboard_data(request):
         "membership": [{"code": k, "label": CATEGORY_LABELS.get(k, k), "count": v}
                        for k, v in sorted(cats.items(), key=lambda kv: -kv[1])],
         "pending": {"signups": pending_signups, "changes": pending_changes, "new_members": pending_new,
-                    "total": pending_signups + pending_changes + pending_new},
+                    "removals": pending_remove, "total": pending_signups + pending_changes + pending_new + pending_remove},
         "completeness": {
             "date_of_birth": {"count": dob, "percent": pct(dob)},
             "photo": {"count": photo, "percent": pct(photo)},
@@ -161,6 +162,18 @@ def approval_items(request):
             "requested_by": getattr(getattr(c.requested_by, "profile", None), "full_name", "") or c.requested_by.get_username(),
             "created_at": c.created_at,
         })
+    for r in RemoveRequest.objects.filter(status="pending").select_related("requested_by"):
+        m = get_member(r.branch, r.member_id)
+        below = people_below(m) if m else []
+        items.append({
+            "type": "remove_member", "id": r.id, "name": f"{m.first_name} {m.last_name}".strip() if m else r.member_name,
+            "member": summary(m, r.branch, request) if m else None, "branch": r.branch,
+            "branch_label": BRANCH_LABELS.get(r.branch, r.branch),
+            "reason": r.reason, "reason_label": dict(RemoveRequest.REASONS).get(r.reason, r.reason), "note": r.note,
+            "below": len(below), "below_names": [f"{x.first_name} {x.last_name}".strip() for x in below[:8]],
+            "requested_by": getattr(getattr(r.requested_by, "profile", None), "full_name", "") or r.requested_by.get_username(),
+            "created_at": r.created_at,
+        })
     for n in NewMemberRequest.objects.filter(status="pending").select_related("requested_by"):
         rel = get_member(n.branch, n.relative_id)
         items.append({
@@ -177,6 +190,38 @@ def approval_items(request):
         })
     items.sort(key=lambda i: i["created_at"], reverse=True)
     return items
+
+
+def people_below(m):
+    """Everyone under this person in the tree (children, grandchildren…)."""
+    try:
+        return list(m.get_descendants())
+    except Exception:  # noqa: BLE001
+        return list(m.get_children())
+
+
+def remove_member(branch, m, with_below=False, by=None, why="Removed from the tree"):
+    """Delete a person from the tree, tidily: their face sign-in goes, app accounts linked to them are
+    un-linked (the account stays), and requests waiting about them are closed.
+    with_below: also the people under them; otherwise refused while they have children.
+    → number of people removed, or None when refused."""
+    below = people_below(m)
+    if below and not with_below:
+        return None
+    ids = [m.pk] + [x.pk for x in below]
+    files = [x.photo for x in [m, *below] if getattr(x, "photo", None)]
+    FaceProfile.all_objects.filter(branch=branch, member_id__in=ids).delete()
+    MemberLink.all_objects.filter(branch=branch, member_id__in=ids).update(member_id=None)
+    now = timezone.now()
+    for Model in (ChangeRequest, RemoveRequest):
+        Model.all_objects.filter(branch=branch, member_id__in=ids, status="pending") \
+            .update(status="declined", decided_by=by, decided_at=now, note=why[:255])
+    NewMemberRequest.all_objects.filter(branch=branch, relative_id__in=ids, status="pending") \
+        .update(status="declined", decided_by=by, decided_at=now, note=why[:255])
+    m.delete()  # the tree removes the people below with them
+    names = [(f.storage, f.name) for f in files if f]
+    transaction.on_commit(lambda: [s.delete(n) for s, n in names])
+    return len(ids)
 
 
 def new_member_checks(n):
@@ -225,7 +270,7 @@ def decided_this_month():
             approved += 1
         else:
             declined += 1
-    for Model in (ChangeRequest, NewMemberRequest):
+    for Model in (ChangeRequest, NewMemberRequest, RemoveRequest):
         approved += Model.objects.filter(decided_at__gte=start, status="approved").count()
         declined += Model.objects.filter(decided_at__gte=start, status="declined").count()
     return {"approved": approved, "declined": declined, "total": approved + declined}
@@ -353,6 +398,28 @@ class ApprovalDecisionView(APIView):
                    if ok else note, kind="approval")
             return Response({"ok": True, "status": n.status,
                              "member": summary(created, n.branch, request) if created else None})
+
+        if kind == "remove_member":
+            r = RemoveRequest.objects.select_for_update().filter(pk=pk, status="pending").first()
+            if not r:
+                return Response({"detail": "Not found or already decided."}, status=404)
+            m = get_member(r.branch, r.member_id)
+            name = f"{m.first_name} {m.last_name}".strip() if m else r.member_name
+            removed = 0
+            if ok and m is not None:
+                with_below = request.data.get("with_below") in (True, "true", "1", 1)
+                removed = remove_member(r.branch, m, with_below=with_below, by=request.user, why=f"{name} was removed from the tree")
+                if removed is None:
+                    n = len(people_below(m))
+                    return Response({"detail": f"{name} has {n} {'person' if n == 1 else 'people'} below them in the tree. "
+                                               "Tick “also remove the people below” to delete them too, or move them first.",
+                                     "code": "has_children", "below": n}, status=400)
+            r.status = "approved" if ok else "declined"
+            r.decided_by, r.decided_at, r.note = request.user, timezone.now(), note or r.note
+            r.save()
+            notify([r.requested_by], f"{name} was removed from the tree" if ok else f"{name} stays on the tree",
+                   "" if ok else note, kind="approval")
+            return Response({"ok": True, "status": r.status, "removed": removed})
 
         return Response({"detail": "Unknown approval type."}, status=404)
 
@@ -486,12 +553,16 @@ class AdminMemberDetailView(APIView):
         m = ser.save()
         return Response(detail(m, branch, request))
 
+    @transaction.atomic
     def delete(self, request, branch, pk):
         _M, m = member_or_404(branch, pk)
-        if m.get_children().exists() and request.query_params.get("force") != "1":
-            return Response({"detail": "This person has children in the tree. Move or remove them first, "
-                                       "or add ?force=1 to delete the whole branch below them."}, status=400)
-        m.delete()
+        name = f"{m.first_name} {m.last_name}".strip()
+        removed = remove_member(branch, m, with_below=request.query_params.get("force") == "1", by=request.user,
+                                why=f"{name} was removed from the tree")
+        if removed is None:
+            n = len(people_below(m))
+            return Response({"detail": f"{name} has {n} {'person' if n == 1 else 'people'} below them in the tree. "
+                                       "Move them first, or delete them too.", "code": "has_children", "below": n}, status=400)
         return Response(status=204)
 
 

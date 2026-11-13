@@ -159,6 +159,29 @@ class ChangeRequest(models.Model):
         ordering = ["-created_at"]
 
 
+class RemoveRequest(models.Model):
+    """A member asks to take a person off the tree (duplicate, wrong person…). Only the family admin
+    can approve it — nothing is deleted before that."""
+    REASONS = [("duplicate", "Added twice"), ("wrong", "Wrong person / mistake"),
+               ("not_family", "Not part of this family"), ("other", "Something else")]
+    family = _family_fk()
+    objects = FamilyScopedManager()
+    all_objects = models.Manager()
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="remove_requests")
+    branch = models.CharField(max_length=20)
+    member_id = models.PositiveIntegerField()
+    member_name = models.CharField(max_length=200, blank=True)  # kept for the history after deletion
+    reason = models.CharField(max_length=20, choices=REASONS, default="other")
+    note = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    decided_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    decided_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+
 class NewMemberRequest(models.Model):
     """A member asks to add a child / spouse / grandchild to the tree."""
     family = _family_fk()
@@ -399,7 +422,7 @@ class FaceCheck(models.Model):
 
 
 # New family-owned rows belong to the current family.
-for _m in (FamilyBranch, MemberLink, ChangeRequest, NewMemberRequest, BloodRequest, Broadcast, Payment, FaceProfile, AssociationSettings):
+for _m in (FamilyBranch, MemberLink, ChangeRequest, RemoveRequest, NewMemberRequest, BloodRequest, Broadcast, Payment, FaceProfile, AssociationSettings):
     models.signals.pre_save.connect(fill_family, sender=_m, dispatch_uid=f"fill_family_{_m.__name__}")
 
 
