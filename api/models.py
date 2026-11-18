@@ -139,7 +139,11 @@ STATUS_CHOICES = (("pending", "Pending"), ("approved", "Approved"), ("declined",
 
 
 class ChangeRequest(models.Model):
-    """A member suggests a correction to a profile in the tree."""
+    """A member suggests a correction to a profile in the tree.
+
+    field == "face": a new face scan for the person (face sign-in + optionally the profile picture).
+    The face codes and the photo are kept here, on the request, and only copied to the person when the
+    family admin approves — they are deleted when declined."""
     family = _family_fk()
     objects = FamilyScopedManager()
     all_objects = models.Manager()
@@ -151,6 +155,10 @@ class ChangeRequest(models.Model):
     new_value = models.TextField(blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     note = models.CharField(max_length=255, blank=True)
+    face_codes = models.JSONField(default=list, blank=True)
+    face_photo = models.ImageField(upload_to="requests/", null=True, blank=True)
+    face_consent_at = models.DateTimeField(null=True, blank=True)
+    face_set_photo = models.BooleanField(default=False, help_text="Also use the face photo as the profile picture")
     decided_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     decided_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,6 +1,7 @@
 """Family tree, directory search, relationships and member-submitted requests."""
 from datetime import date
 
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework.response import Response
@@ -79,8 +80,13 @@ class MemberDetailView(APIView):
     permission_classes = [IsApproved]
 
     def get(self, request, branch, pk):
+        from ..models import FaceProfile
         _Model, m = member_or_404(branch, pk)
-        return Response(detail(m, branch, request))
+        data = detail(m, branch, request)
+        # for "Suggest an edit": is face sign-in on for them, and is a new face scan waiting?
+        data["face_enrolled"] = FaceProfile.objects.filter(branch=branch, member_id=m.pk).exists()
+        data["face_pending"] = ChangeRequest.objects.filter(branch=branch, member_id=m.pk, field="face", status="pending").exists()
+        return Response(data)
 
 
 class TreeView(APIView):
@@ -164,7 +170,11 @@ class WishView(APIView):
 
 
 class ChangeRequestView(APIView):
-    """POST {member_ref, field, value, note?} — suggest a correction; the committee approves it."""
+    """POST {member_ref, field, value, note?} — suggest a correction; the committee approves it.
+
+    A new face scan:  POST {member_ref, field: "face", face_images: [1–5 photos], face_consent: true,
+    set_photo?: bool, note?}. The photos are checked and turned into face codes now (so a bad photo is
+    told straight away), but nothing about the person changes until the family admin approves."""
     permission_classes = [IsApproved]
 
     def get(self, request):
@@ -177,6 +187,8 @@ class ChangeRequestView(APIView):
     def post(self, request):
         branch, pk = parse_ref(request.data.get("member_ref"))
         field = request.data.get("field")
+        if field == "face":
+            return self.face(request, branch, pk)
         if field not in SELF_EDITABLE_FIELDS:
             return Response({"detail": f"This field can't be changed here. Allowed: {', '.join(SELF_EDITABLE_FIELDS)}"}, status=400)
         _M, m = member_or_404(branch, pk)
@@ -187,6 +199,55 @@ class ChangeRequestView(APIView):
             note=str(request.data.get("note", ""))[:255],
         )
         return Response({"id": cr.id, "status": cr.status}, status=201)
+
+    def face(self, request, branch, pk):
+        from django.core.files.base import ContentFile
+        from .. import face
+        from ..models import FaceProfile
+        from .face import codes_from_images
+        _M, m = member_or_404(branch, pk)
+        if request.data.get("face_consent") not in (True, "true", "1", 1):
+            return Response({"detail": "Tick the box to show they agree to face sign-in.", "code": "consent"}, status=400)
+        if not face.available():
+            return Response({"detail": "Face scan isn't available right now. Please try later.", "code": "unavailable"}, status=503)
+        images = request.data.get("face_images") or []
+        codes, err = codes_from_images(images)
+        if err is not None:
+            return err
+        try:
+            jpg = face.portrait(images[0])
+        except face.FaceError:
+            jpg = None
+        name = f"{m.first_name} {m.last_name}".strip()
+        had = FaceProfile.objects.filter(branch=branch, member_id=m.pk).exists()
+        with transaction.atomic():
+            # only the newest face scan for a person waits for the admin
+            for old in ChangeRequest.objects.select_for_update().filter(branch=branch, member_id=m.pk, field="face", status="pending"):
+                drop_request_face(old)
+                old.status, old.decided_at, old.note = "declined", timezone.now(), "Replaced by a newer face scan"
+                old.save()
+            cr = ChangeRequest(
+                requested_by=request.user, branch=branch, member_id=m.pk, field="face",
+                old_value="Face sign-in on" if had else "No face sign-in",
+                new_value="New face scan" + (" + profile photo" if request.data.get("set_photo") in (True, "true", "1", 1) and jpg else ""),
+                note=str(request.data.get("note", ""))[:255], face_codes=codes, face_consent_at=timezone.now(),
+                face_set_photo=bool(jpg) and request.data.get("set_photo") in (True, "true", "1", 1),
+            )
+            if jpg:
+                import secrets
+                cr.face_photo.save(f"edit-{secrets.token_hex(6)}.jpg", ContentFile(jpg), save=False)
+            cr.save()
+        return Response({"id": cr.id, "status": cr.status, "face": True,
+                         "detail": f"{name}’s face scan was sent to the family admin."}, status=201)
+
+
+def drop_request_face(r):
+    """Delete a request's face codes and photo (after decline, or once copied to the person)."""
+    if r.face_photo:
+        name, storage = r.face_photo.name, r.face_photo.storage
+        transaction.on_commit(lambda: storage.delete(name))
+    r.face_photo = None
+    r.face_codes = []
 
 
 class RemoveRequestView(APIView):

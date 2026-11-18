@@ -1107,6 +1107,61 @@ class MultiFamilyTests(TestCase):
         self.b.post(f"/api/admin/approvals/new_member/{rid}/decline", {}, format="json")
         self.assertEqual(NewMemberRequest.all_objects.get(pk=rid).face_codes, [])
 
+    def test_suggest_an_edit_with_face_scan(self):
+        """Suggest an edit → new face scan waits for the admin; nothing changes before approval; approve
+        → face sign-in + profile photo; a newer scan replaces a waiting one; decline keeps nothing."""
+        from api.models import ChangeRequest
+        tiny = bytes.fromhex("ffd8ffe000104a46494600010100000100010000ffd9")  # stand-in profile photo
+        real_portrait = self.face.portrait
+        self.face.portrait = lambda img, size=512: tiny
+        self.addCleanup(setattr, self.face, "portrait", real_portrait)
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Aiswarya", "last_name": "V", "mobile_number": "7306898888"}, format="json").data
+        ref = f"{slug}:{m['id']}"
+        body = {"member_ref": ref, "field": "face", "face_images": ["joseph", "joseph2", "joseph"], "set_photo": True}
+        r = self.b.post("/api/requests/change", body, format="json")
+        self.assertEqual((r.status_code, r.data.get("code")), (400, "consent"))
+        r = self.b.post("/api/requests/change", {**body, "face_consent": True}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        d = self.b.get(f"/api/members/{slug}/{m['id']}").data
+        self.assertEqual((d["face_enrolled"], d["face_pending"]), (False, True))
+        # a newer scan replaces the waiting one
+        r2 = self.b.post("/api/requests/change", {**body, "face_consent": True}, format="json")
+        old = ChangeRequest.all_objects.get(pk=r.data["id"])
+        self.assertEqual((old.status, old.face_codes, bool(old.face_photo)), ("declined", [], False))
+        # an ordinary field change goes with it
+        self.b.post("/api/requests/change", {"member_ref": ref, "field": "blood_group", "value": "O+"}, format="json")
+        items = [i for i in self.b.get("/api/admin/approvals").data["results"] if i["type"] == "change"]
+        self.assertEqual(sorted(i["field"] for i in items), ["blood_group", "face"])
+        item = [i for i in items if i["field"] == "face"][0]
+        self.assertEqual(item["id"], r2.data["id"])
+        self.assertTrue(item["face"]["photo"] and item["face"]["set_photo"])
+        self.assertFalse(item["face"]["had_face"])
+        self.assertEqual((item["checks"]["face_ok"], item["checks"]["consent"]), (True, True))
+        # not usable before approval
+        self.assertEqual(self.c.post("/api/auth/face/identify", {"image": "joseph2"}, format="json").status_code, 401)
+        r = self.b.post(f"/api/admin/approvals/change/{item['id']}/approve", {}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        a = self.b.get(f"/api/admin/members/{slug}/{m['id']}").data
+        self.assertTrue(a["face_enrolled"])
+        self.assertTrue(a.get("photo"))
+        cr = ChangeRequest.all_objects.get(pk=item["id"])
+        self.assertEqual((cr.status, cr.face_codes, bool(cr.face_photo)), ("approved", [], False))
+        self.assertEqual(self.c.post("/api/auth/face/identify", {"image": "joseph2"}, format="json").status_code, 200)
+        # an update of the same person's face is fine; someone else's face is flagged
+        self.b.post("/api/requests/change", {**body, "face_images": ["joseph"], "face_consent": True}, format="json")
+        item = [i for i in self.b.get("/api/admin/approvals").data["results"] if i["type"] == "change" and i["field"] == "face"][0]
+        self.assertEqual((item["checks"]["face_ok"], item["checks"]["same_as_before"], item["face"]["had_face"]), (True, True, True))
+        other = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Mary", "last_name": "T"}, format="json").data
+        r = self.b.post("/api/requests/change", {"member_ref": f"{slug}:{other['id']}", "field": "face", "face_images": ["joseph"], "face_consent": True}, format="json")
+        item = [i for i in self.b.get("/api/admin/approvals").data["results"] if i["type"] == "change" and i["id"] == r.data["id"]][0]
+        self.assertEqual((item["checks"]["face_ok"], item["checks"]["face_like"]), (False, "Aiswarya V"))
+        # decline keeps nothing
+        self.b.post(f"/api/admin/approvals/change/{item['id']}/decline", {}, format="json")
+        cr = ChangeRequest.all_objects.get(pk=item["id"])
+        self.assertEqual((cr.status, cr.face_codes), ("declined", []))
+        self.assertFalse(self.b.get(f"/api/admin/members/{slug}/{other['id']}").data["face_enrolled"])
+
     def test_face_check_locks_after_wrong_digits(self):
         slug = self.branch_b()
         m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Mary", "last_name": "T", "mobile_number": "9000011223"}, format="json").data

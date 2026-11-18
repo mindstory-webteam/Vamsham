@@ -155,13 +155,22 @@ def approval_items(request):
         })
     for c in ChangeRequest.objects.filter(status="pending").select_related("requested_by"):
         m = get_member(c.branch, c.member_id)
-        items.append({
+        item = {
             "type": "change", "id": c.id, "name": f"{m.first_name} {m.last_name}" if m else "(deleted)",
             "member": summary(m, c.branch, request) if m else None,
             "field": c.field, "old_value": c.old_value, "new_value": c.new_value, "note": c.note,
             "requested_by": getattr(getattr(c.requested_by, "profile", None), "full_name", "") or c.requested_by.get_username(),
             "created_at": c.created_at,
-        })
+        }
+        if c.field == "face":
+            item["face"] = {
+                "photo": request.build_absolute_uri(c.face_photo.url) if c.face_photo else None,
+                "set_photo": c.face_set_photo,
+                "had_face": FaceProfile.objects.filter(branch=c.branch, member_id=c.member_id).exists(),
+                "by_self": MemberLink.objects.filter(user=c.requested_by, branch=c.branch, member_id=c.member_id).exists(),
+            }
+            item["checks"] = face_change_checks(c)
+        items.append(item)
     for r in RemoveRequest.objects.filter(status="pending").select_related("requested_by"):
         m = get_member(r.branch, r.member_id)
         below = people_below(m) if m else []
@@ -213,6 +222,9 @@ def remove_member(branch, m, with_below=False, by=None, why="Removed from the tr
     FaceProfile.all_objects.filter(branch=branch, member_id__in=ids).delete()
     MemberLink.all_objects.filter(branch=branch, member_id__in=ids).update(member_id=None)
     now = timezone.now()
+    for c in ChangeRequest.all_objects.filter(branch=branch, member_id__in=ids, status="pending", field="face"):
+        _drop_request_face(c)  # their waiting face scans go too
+        c.save(update_fields=["face_photo", "face_codes"])
     for Model in (ChangeRequest, RemoveRequest):
         Model.all_objects.filter(branch=branch, member_id__in=ids, status="pending") \
             .update(status="declined", decided_by=by, decided_at=now, note=why[:255])
@@ -242,6 +254,46 @@ def new_member_checks(n):
         except Exception:  # noqa: BLE001  (face models missing: just don't show the check)
             out["face_ok"] = None
     return out
+
+
+def face_change_checks(c):
+    """A new face scan for a person: does the face look like SOMEONE ELSE already on Vamsham? (Looking
+    like the same person's old face scan is fine — that's an update.)"""
+    out = {"face_ok": None, "face_like": "", "consent": bool(c.face_consent_at), "same_as_before": None}
+    if not c.face_codes:
+        return out
+    try:
+        from .. import face
+        from .face import person_of, rank_faces
+        code = c.face_codes[0]
+        for p, score in rank_faces(code):
+            if score < settings.FACE_IDENTIFY_THRESHOLD:
+                break
+            if p.branch == c.branch and p.member_id == c.member_id:
+                continue
+            _u, m, _p = person_of(p)
+            if m is not None and m.pk == c.member_id and p.branch == c.branch:
+                continue
+            out["face_like"] = f"{m.first_name} {m.last_name}".strip() if m else "someone already on Vamsham"
+            break
+        out["face_ok"] = not out["face_like"]
+        old = FaceProfile.all_objects.filter(branch=c.branch, member_id=c.member_id).first()
+        if old and old.embeddings:
+            out["same_as_before"] = face.best_match(code, old.embeddings) >= settings.FACE_MATCH_THRESHOLD
+    except Exception:  # noqa: BLE001  (face models missing: just don't show the check)
+        out["face_ok"] = None
+    return out
+
+
+def save_member_face(branch, m, codes, consent_at=None):
+    """Turn face sign-in on for this person with these face codes (replacing an older face scan)."""
+    fp = FaceProfile.all_objects.filter(branch=branch, member_id=m.pk).first()
+    if fp is None:
+        FaceProfile.objects.create(branch=branch, member_id=m.pk, embeddings=codes, consent_at=consent_at or timezone.now())
+    else:
+        fp.embeddings = codes
+        fp.consent_at = consent_at or timezone.now()
+        fp.save()
 
 
 def _drop_request_face(n):
@@ -312,9 +364,35 @@ class ApprovalDecisionView(APIView):
             return Response({"ok": True, "status": "approved" if ok else "declined"})
 
         if kind == "change":
-            c = ChangeRequest.objects.filter(pk=pk, status="pending").first()
+            c = ChangeRequest.objects.select_for_update().filter(pk=pk, status="pending").first()
             if not c:
                 return Response({"detail": "Not found or already decided."}, status=404)
+            if c.field == "face":
+                _M, m = member_or_404(c.branch, c.member_id)
+                name = m.first_name or "They"
+                if ok:
+                    if not c.face_codes:
+                        return Response({"detail": "This face scan has no face codes. Please ask for a new scan."}, status=400)
+                    save_member_face(c.branch, m, c.face_codes, c.face_consent_at)
+                    if c.face_set_photo and c.face_photo:
+                        from django.core.files.base import ContentFile
+                        old = m.photo.name if getattr(m, "photo", None) else None
+                        with c.face_photo.open("rb") as fh:
+                            m.photo.save(f"face-{c.branch}-{m.pk}.jpg", ContentFile(fh.read()), save=False)
+                        m.save(update_fields=["photo"])
+                        if old and old != m.photo.name:
+                            storage = m.photo.storage
+                            transaction.on_commit(lambda: storage.delete(old))
+                _drop_request_face(c)
+                c.status = "approved" if ok else "declined"
+                c.decided_by, c.decided_at, c.note = request.user, timezone.now(), note or c.note
+                c.save()
+                people = [c.requested_by] + [l.user for l in MemberLink.objects.filter(branch=c.branch, member_id=m.pk)
+                                             .select_related("user") if l.user_id != c.requested_by_id]
+                notify(people, "Face scan " + ("approved" if ok else "not accepted"),
+                       f"{name} can now open Vamsham by looking at the camera." if ok else (note or f"{name}'s face scan was not accepted."),
+                       kind="approval")
+                return Response({"ok": True, "status": c.status})
             if ok:
                 _M, m = member_or_404(c.branch, c.member_id)
                 value = c.new_value or None
