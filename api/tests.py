@@ -573,6 +573,50 @@ class FaceEngineTests(TestCase):
         self.assertEqual(out.shape[:2], (512, 512))
         self.assertTrue(face.detect(out)["ok"])
 
+    def test_hard_photos(self):
+        """Sideways / upside-down photos are turned upright and still match; too dark and blurry photos
+        are refused with a clear reason instead of making a bad face code."""
+        try:
+            import cv2
+            import numpy as np
+            from skimage import data
+        except ImportError:
+            self.skipTest("OpenCV / scikit-image not installed")
+        from api import face
+        if not face.available():
+            self.skipTest("face models missing")
+        jpg = lambda im: cv2.imencode(".jpg", im)[1].tobytes()  # noqa: E731
+        astro = cv2.cvtColor(data.astronaut(), cv2.COLOR_RGB2BGR)
+        selfie = cv2.resize(astro, (480, 640))
+        ref = face.embed(jpg(astro))
+        for how in (cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_90_COUNTERCLOCKWISE, cv2.ROTATE_180):
+            turned = jpg(cv2.rotate(selfie, how))
+            d = face.detect(turned)
+            self.assertTrue(d["ok"], d)
+            self.assertIn(d["turned"], (90, 180, 270))
+            self.assertEqual((d["width"], d["height"]), (480, 640))  # boxes are for the upright photo
+            self.assertGreater(face.similarity(ref, face.embed(turned)), 0.7)
+        self.assertEqual(face.detect(jpg(selfie))["turned"], 0)
+
+        dark = jpg((selfie * 0.2).astype(np.uint8))
+        self.assertEqual(face.detect(dark)["code"], "too_dark")
+        with self.assertRaises(face.FaceError) as e:
+            face.embed(dark)
+        self.assertEqual(e.exception.code, "too_dark")
+
+        blurry = jpg(cv2.GaussianBlur(selfie, (0, 0), 4))
+        self.assertEqual(face.detect(blurry)["code"], "blurry")
+        with self.assertRaises(face.FaceError) as e:
+            face.embed(blurry)
+        self.assertEqual(e.exception.code, "blurry")
+
+        # small and slightly soft photos (a phone's live frame) are still fine
+        for ok in (cv2.resize(selfie, (240, 320)), cv2.GaussianBlur(selfie, (0, 0), 1.2)):
+            self.assertTrue(face.detect(jpg(ok))["ok"])
+        # a sideways photo also gives an upright profile picture
+        out = cv2.imdecode(np.frombuffer(face.portrait(jpg(cv2.rotate(selfie, cv2.ROTATE_90_CLOCKWISE))), "uint8"), cv2.IMREAD_COLOR)
+        self.assertEqual(face.detect(out)["turned"], 0)
+
 
 class DashboardWeekTests(TestCase):
     def test_dashboard_has_seven_days(self):
