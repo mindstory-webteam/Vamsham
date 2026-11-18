@@ -9,6 +9,10 @@ On a phone that was set up with face scan:
   DELETE /api/auth/face         (signed in)  → removes the face code and every face-scan phone
 
 Find the person by face, in any family (no phone number, no family to pick):
+  POST /api/auth/face/scan      (anyone)  {image, mode: "identify" | "login", device_key?}
+        ONE request per camera frame: checks the face and — the moment it's good — matches it too.
+        → {seen}                 face not good yet (where it is + why), keep scanning
+        → {seen, outcome: {status, data}}   the answer /identify or /login would have given — stop
   POST /api/auth/face/detect    (anyone)  {image} → where the face is, and whether it's good enough
   POST /api/auth/face/identify  (anyone)  {image, device_key?}
         → one family, trusted phone: tokens + me (straight to Home)
@@ -183,29 +187,72 @@ def codes_from_images(images):
     return codes, None
 
 
+# Every face code of every active family, as one ready-made matrix — rebuilt only when a face code is
+# added, changed or deleted, or a family is switched on/off (one tiny query tells). Matching a face is
+# then a single matrix multiply (well under 1 ms for thousands of people) instead of reading and
+# parsing every face code from the database on every scan.
+_bank = {"key": None, "rows": None, "starts": None, "ids": None}
+_bank_lock = __import__("threading").Lock()
+RANK_FLOOR = 0.25   # people less alike than this are never a match or a rival: not loaded at all
+RANK_MAX = 40       # at most this many people are loaded per scan
+
+
+def _bank_queryset():
+    return (FaceProfile.all_objects.filter(family__is_active=True).exclude(embeddings=[])
+            .exclude(member_id__isnull=True, user__isnull=True)                  # leads to nobody
+            .exclude(member_id__isnull=True, user__is_superuser=True))           # the main admin's own face
+
+
+def _face_bank():
+    """→ (rows: N×128 unit vectors, starts: first row of each profile, ids: profile ids)."""
+    import numpy as np
+    from django.db.models import Count, Max, Sum
+    qs = _bank_queryset()
+    agg = qs.aggregate(n=Count("id"), s=Sum("id"), t=Max("updated_at"))
+    active = tuple(Family.objects.filter(is_active=True).order_by("id").values_list("id", flat=True)) \
+        if hasattr(Family, "is_active") else ()
+    key = (agg["n"], agg["s"], agg["t"], active)
+    with _bank_lock:
+        if _bank["key"] == key:
+            return _bank["rows"], _bank["starts"], _bank["ids"]
+    rows, starts, ids = [], [], []
+    for pid, emb in qs.order_by("id").values_list("id", "embeddings"):
+        try:
+            m = np.asarray(emb, dtype=np.float32).reshape(-1, 128)
+        except (ValueError, TypeError):
+            continue  # a damaged face code: skip it
+        if not len(m):
+            continue
+        starts.append(sum(len(r) for r in rows))
+        rows.append(m)
+        ids.append(pid)
+    mat = np.concatenate(rows) if rows else np.zeros((0, 128), np.float32)
+    mat /= np.linalg.norm(mat, axis=1, keepdims=True).clip(min=1e-6)
+    out = (mat, np.asarray(starts, dtype=np.int64), ids)
+    with _bank_lock:
+        _bank.update(key=key, rows=out[0], starts=out[1], ids=out[2])
+    return out
+
+
 def rank_faces(code):
     """[(face code, score)] from EVERY active family, best first. score = how alike (cosine, −1…1),
-    using the closest of that person's saved photos."""
+    using the closest of that person's saved photos. Only the people that could matter (score ≥
+    RANK_FLOOR, at least the best two) are loaded from the database."""
     import numpy as np
-    profiles = list(
-        FaceProfile.all_objects.filter(family__is_active=True).exclude(embeddings=[])
-        .exclude(member_id__isnull=True, user__isnull=True)                  # leads to nobody
-        .exclude(member_id__isnull=True, user__is_superuser=True)            # the main admin's own face
-        .select_related("user", "family")
-    )
-    if not profiles:
+    rows, starts, ids = _face_bank()
+    if not ids:
         return []
-    q = np.asarray(code, dtype=np.float32)
+    q = np.asarray(code, dtype=np.float32).reshape(-1)
+    if q.shape[0] != rows.shape[1]:
+        return []
     q /= (np.linalg.norm(q) or 1.0)
-    out = []
-    for p in profiles:
-        try:
-            m = np.asarray(p.embeddings, dtype=np.float32).reshape(-1, q.shape[0])
-        except ValueError:
-            continue  # a damaged face code: skip it
-        m /= np.linalg.norm(m, axis=1, keepdims=True).clip(min=1e-6)
-        out.append((p, float((m @ q).max())))
-    return sorted(out, key=lambda x: x[1], reverse=True)
+    per = np.maximum.reduceat(rows @ q, starts)         # best photo of each person
+    order = np.argsort(-per)
+    keep = [i for i in order[:RANK_MAX] if per[i] >= RANK_FLOOR] or list(order[:2])
+    keep = keep if len(keep) >= 2 else list(order[:2])
+    want = {ids[i]: float(per[i]) for i in keep}
+    profiles = _bank_queryset().filter(id__in=list(want)).select_related("user", "family")
+    return sorted(((p, want[p.id]) for p in profiles), key=lambda x: x[1], reverse=True)
 
 
 def search_faces(code):
@@ -311,6 +358,60 @@ class FaceEnrollView(APIView):
         return Response({"device_key": key, "enrolled": True}, status=201)
 
 
+def login_answer(request, key, get_code):
+    """"Welcome back" for the phone with this device_key. get_code() → the face code (or FaceError).
+    → Response. Shared by /face/login and /face/scan."""
+    device = FaceDevice.objects.select_related("user").filter(key_hash=key_hash(key)).first() if key else None
+    if device is None:
+        return Response({"detail": "Face scan isn't set up on this phone. Please use your phone number.",
+                         "code": "unknown_device"}, status=401)
+    now = timezone.now()
+    if device.locked_until and device.locked_until > now:
+        mins = max(1, int((device.locked_until - now).total_seconds() // 60) + 1)
+        return Response({"detail": f"Too many tries. Face scan is resting — try again in {mins} min or use your phone number.",
+                         "code": "locked", "retry_in": mins * 60}, status=429)
+    user = device.user
+    if not user.is_active:
+        return Response({"detail": "Your request to join was declined. Please contact the secretary.",
+                         "code": "declined"}, status=403)
+    profile = FaceProfile.all_objects.filter(user=user).first()
+    if profile is not None and profile.member_id and family_account(user, profile.family_id) is None:
+        # this phone was tied to an account of another family (or the main admin) for a family
+        # member's face — start over with a fresh face check so they land in the right family
+        device.delete()
+        return Response({"detail": "Please scan again to open your family.", "code": "unknown_device"}, status=401)
+    if profile is None or not profile.embeddings:
+        device.delete()
+        return Response({"detail": "Face scan was turned off. Please use your phone number.",
+                         "code": "unknown_device"}, status=401)
+    try:
+        code = get_code()
+    except face.FaceError as exc:
+        return face_error(exc)  # no face / too dark / blurry: doesn't count as a wrong try
+
+    score = face.best_match(code, profile.embeddings)
+    if score < settings.FACE_MATCH_THRESHOLD:
+        device.failed += 1
+        left = settings.FACE_MAX_FAILS - device.failed
+        if left <= 0:
+            device.failed = 0
+            device.locked_until = now + timedelta(minutes=settings.FACE_LOCK_MINUTES)
+            device.save(update_fields=["failed", "locked_until"])
+            return Response({"detail": f"Face not matched. Face scan is resting for {settings.FACE_LOCK_MINUTES} minutes — use your phone number.",
+                             "code": "locked", "retry_in": settings.FACE_LOCK_MINUTES * 60}, status=429)
+        device.save(update_fields=["failed"])
+        return Response({"detail": "We couldn't match your face.", "code": "no_match", "tries_left": left}, status=401)
+
+    device.failed = 0
+    device.locked_until = None
+    device.last_used = now
+    device.save(update_fields=["failed", "locked_until", "last_used"])
+    # the same face in other families too? → the app asks "Which family?" before opening
+    mine = family_of_user(user)
+    also = [family_choice(p, request, key) for p, _ in family_matches(rank_faces(code)) if p.family_id != mine]
+    return Response({**tokens_for(user), "me": me_payload(user, request), "also": also})
+
+
 class FaceLoginView(APIView):
     """"Welcome back" — 1:1 check of the face against the account this phone is set up for."""
     permission_classes = [AllowAny]
@@ -318,56 +419,7 @@ class FaceLoginView(APIView):
     throttle_classes = [FaceThrottle]
 
     def post(self, request):
-        key = request.data.get("device_key")
-        device = FaceDevice.objects.select_related("user").filter(key_hash=key_hash(key)).first() if key else None
-        if device is None:
-            return Response({"detail": "Face scan isn't set up on this phone. Please use your phone number.",
-                             "code": "unknown_device"}, status=401)
-        now = timezone.now()
-        if device.locked_until and device.locked_until > now:
-            mins = max(1, int((device.locked_until - now).total_seconds() // 60) + 1)
-            return Response({"detail": f"Too many tries. Face scan is resting — try again in {mins} min or use your phone number.",
-                             "code": "locked", "retry_in": mins * 60}, status=429)
-        user = device.user
-        if not user.is_active:
-            return Response({"detail": "Your request to join was declined. Please contact the secretary.",
-                             "code": "declined"}, status=403)
-        profile = FaceProfile.all_objects.filter(user=user).first()
-        if profile is not None and profile.member_id and family_account(user, profile.family_id) is None:
-            # this phone was tied to an account of another family (or the main admin) for a family
-            # member's face — start over with a fresh face check so they land in the right family
-            device.delete()
-            return Response({"detail": "Please scan again to open your family.", "code": "unknown_device"}, status=401)
-        if profile is None or not profile.embeddings:
-            device.delete()
-            return Response({"detail": "Face scan was turned off. Please use your phone number.",
-                             "code": "unknown_device"}, status=401)
-        try:
-            code = face.embed(request.data.get("image"))
-        except face.FaceError as exc:
-            return face_error(exc)  # no face / too dark / blurry: doesn't count as a wrong try
-
-        score = face.best_match(code, profile.embeddings)
-        if score < settings.FACE_MATCH_THRESHOLD:
-            device.failed += 1
-            left = settings.FACE_MAX_FAILS - device.failed
-            if left <= 0:
-                device.failed = 0
-                device.locked_until = now + timedelta(minutes=settings.FACE_LOCK_MINUTES)
-                device.save(update_fields=["failed", "locked_until"])
-                return Response({"detail": f"Face not matched. Face scan is resting for {settings.FACE_LOCK_MINUTES} minutes — use your phone number.",
-                                 "code": "locked", "retry_in": settings.FACE_LOCK_MINUTES * 60}, status=429)
-            device.save(update_fields=["failed"])
-            return Response({"detail": "We couldn't match your face.", "code": "no_match", "tries_left": left}, status=401)
-
-        device.failed = 0
-        device.locked_until = None
-        device.last_used = now
-        device.save(update_fields=["failed", "locked_until", "last_used"])
-        # the same face in other families too? → the app asks "Which family?" before opening
-        mine = family_of_user(user)
-        also = [family_choice(p, request, key) for p, _ in family_matches(rank_faces(code)) if p.family_id != mine]
-        return Response({**tokens_for(user), "me": me_payload(user, request), "also": also})
+        return login_answer(request, request.data.get("device_key"), lambda: face.embed(request.data.get("image")))
 
 
 # ── Find the person by face, in any family ───────────────────────────────────
@@ -387,55 +439,95 @@ class FaceDetectView(APIView):
             return face_error(exc)
 
 
+def identify_answer(request, get_code):
+    """Find whose face this is, in any family. get_code() → the face code (or FaceError). → Response.
+    Shared by /face/identify and /face/scan."""
+    try:
+        code = get_code()  # exactly one clear face, or why not
+    except face.FaceError as exc:
+        return face_error(exc)
+    ranked = rank_faces(code)
+    if not ranked or ranked[0][1] < settings.FACE_IDENTIFY_THRESHOLD:
+        return Response({"detail": "We couldn't find you. Try again in good light, or use your phone number.",
+                         "code": "no_match"}, status=401)
+    matches = family_matches(ranked)
+    if not matches:
+        if not any(is_live(p) for p, s in ranked if s >= settings.FACE_IDENTIFY_THRESHOLD):
+            return Response({"detail": "We couldn't find you. Try again in good light, or use your phone number.",
+                             "code": "no_match"}, status=401)
+        return Response({"detail": "We aren't sure it's you. Please use your phone number this time.",
+                         "code": "unsure"}, status=401)
+    key = request.data.get("device_key")
+    if len(matches) > 1:
+        # the same face is in more than one family: let the person choose which to open
+        return Response({"need_family": True, "choices": [family_choice(p, request, key) for p, _ in matches],
+                         "expires_in": CHECK_MINUTES * 60})
+    best = matches[0][0]
+    user, member, phone = person_of(best)
+    if user is not None and not user.is_active:
+        return Response({"detail": "Your request to join was declined. Please contact the secretary.", "code": "declined"}, status=403)
+
+    # a phone already trusted for this person → straight in
+    if key and user is not None:
+        dev = FaceDevice.objects.filter(key_hash=key_hash(key), user=user).first()
+        if dev:
+            dev.last_used, dev.failed = timezone.now(), 0
+            dev.save(update_fields=["last_used", "failed"])
+            from ..tenancy import lock_to_user_family
+            lock_to_user_family(user)
+            return Response({**tokens_for(user), "me": me_payload(user, request), "trusted": True,
+                             "family": family_brief(best.family_id, request)})
+
+    if len(digits(phone)) < 4:
+        return Response({"detail": "We found you, but there's no phone number on your record. "
+                                   "Ask your family admin to add it, or sign in with your phone number.",
+                         "code": "no_phone", "family": family_brief(best.family_id, request)}, status=409)
+    check = FaceCheck.objects.create(token=secrets.token_urlsafe(32), profile=best)
+    return Response({"need_check": True, "check": check.token, "first_name": first_name_of(member, user),
+                     "family": family_brief(best.family_id, request), "expires_in": CHECK_MINUTES * 60})
+
+
 class FaceIdentifyView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
     throttle_classes = [FaceThrottle]
 
     def post(self, request):
+        return identify_answer(request, lambda: face.embed(request.data.get("image")))
+
+
+class FaceScanView(APIView):
+    """POST /auth/face/scan {image, mode, device_key?} — one request per camera frame. The photo is
+    opened and checked once; if the face is good it is matched straight away from the same photo (no
+    second upload, no second request). The app stops scanning the moment "outcome" comes back."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [FaceDetectThrottle]
+
+    def post(self, request):
+        mode = request.data.get("mode") or "identify"
+        if mode not in ("identify", "login"):
+            return Response({"detail": "mode must be identify or login", "code": "bad_mode"}, status=400)
         try:
-            code = face.embed(request.data.get("image"))  # exactly one clear face, or why not
+            a = face.analyse(request.data.get("image"))
         except face.FaceError as exc:
             return face_error(exc)
-        ranked = rank_faces(code)
-        if not ranked or ranked[0][1] < settings.FACE_IDENTIFY_THRESHOLD:
-            return Response({"detail": "We couldn't find you. Try again in good light, or use your phone number.",
-                             "code": "no_match"}, status=401)
-        matches = family_matches(ranked)
-        if not matches:
-            if not any(is_live(p) for p, s in ranked if s >= settings.FACE_IDENTIFY_THRESHOLD):
-                return Response({"detail": "We couldn't find you. Try again in good light, or use your phone number.",
-                                 "code": "no_match"}, status=401)
-            return Response({"detail": "We aren't sure it's you. Please use your phone number this time.",
-                             "code": "unsure"}, status=401)
-        key = request.data.get("device_key")
-        if len(matches) > 1:
-            # the same face is in more than one family: let the person choose which to open
-            return Response({"need_family": True, "choices": [family_choice(p, request, key) for p, _ in matches],
-                             "expires_in": CHECK_MINUTES * 60})
-        best = matches[0][0]
-        user, member, phone = person_of(best)
-        if user is not None and not user.is_active:
-            return Response({"detail": "Your request to join was declined. Please contact the secretary.", "code": "declined"}, status=403)
-
-        # a phone already trusted for this person → straight in
-        if key and user is not None:
-            dev = FaceDevice.objects.filter(key_hash=key_hash(key), user=user).first()
-            if dev:
-                dev.last_used, dev.failed = timezone.now(), 0
-                dev.save(update_fields=["last_used", "failed"])
-                from ..tenancy import lock_to_user_family
-                lock_to_user_family(user)
-                return Response({**tokens_for(user), "me": me_payload(user, request), "trusted": True,
-                                 "family": family_brief(best.family_id, request)})
-
-        if len(digits(phone)) < 4:
-            return Response({"detail": "We found you, but there's no phone number on your record. "
-                                       "Ask your family admin to add it, or sign in with your phone number.",
-                             "code": "no_phone", "family": family_brief(best.family_id, request)}, status=409)
-        check = FaceCheck.objects.create(token=secrets.token_urlsafe(32), profile=best)
-        return Response({"need_check": True, "check": check.token, "first_name": first_name_of(member, user),
-                         "family": family_brief(best.family_id, request), "expires_in": CHECK_MINUTES * 60})
+        seen = face.seen_of(a)
+        if not seen["ok"]:
+            return Response({"seen": seen})
+        # a real try at matching: counts against the (much smaller) face-match limit
+        limit = FaceThrottle()
+        if not limit.allow_request(request, self):
+            wait = limit.wait()
+            return Response({"seen": seen, "outcome": {"status": 429, "data": {
+                "detail": "Too many tries. Please wait a little, or use your phone number.", "code": "throttled",
+                "retry_in": int(wait or 60)}}})
+        get_code = lambda: face.code_of(a)  # noqa: E731
+        if mode == "login":
+            r = login_answer(request, request.data.get("device_key"), get_code)
+        else:
+            r = identify_answer(request, get_code)
+        return Response({"seen": seen, "outcome": {"status": r.status_code, "data": r.data}})
 
 
 class FaceConfirmView(APIView):

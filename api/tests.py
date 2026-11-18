@@ -618,6 +618,52 @@ class FaceEngineTests(TestCase):
         self.assertEqual(face.detect(out)["turned"], 0)
 
 
+    def test_one_request_scan_matches_and_stops(self):
+        """/face/scan: a frame without a good face only says why; a good frame is matched straight away
+        from the same photo, with the same face code /identify would make; deleted faces drop out."""
+        try:
+            import cv2
+            from skimage import data
+        except ImportError:
+            self.skipTest("OpenCV / scikit-image not installed")
+        import base64
+        from django.utils import timezone
+        from api import face
+        from api.models import FaceProfile, Family, FamilyAccess
+        from app1.models import Profile
+        if not face.available():
+            self.skipTest("face models missing")
+        b64 = lambda im: base64.b64encode(cv2.imencode(".jpg", im)[1].tobytes()).decode()  # noqa: E731
+        astro = cv2.cvtColor(data.astronaut(), cv2.COLOR_RGB2BGR)
+        frame = b64(cv2.resize(astro, (480, 640)))
+        # the fast path gives the same face code as before (saved face codes keep matching)
+        self.assertGreater(face.similarity(face.embed(frame), face.code_of(face.analyse(frame))), 0.999)
+
+        fam = Family.objects.first()
+        u = User.objects.create_user("eileen", password="x", first_name="Eileen")
+        FamilyAccess.objects.update_or_create(user=u, defaults={"family": fam})
+        Profile.all_objects.update_or_create(user=u, defaults={"full_name": "Eileen", "phone_number": "+919800012345",
+                                                               "is_approved": True, "family": fam})
+        fp = FaceProfile.all_objects.create(user=u, embeddings=[face.embed(b64(astro))], consent_at=timezone.now(), family=fam)
+
+        c = APIClient()
+        r = c.post("/api/auth/face/scan", {"image": b64(cv2.cvtColor(data.coffee(), cv2.COLOR_RGB2BGR)), "mode": "identify"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual((r.data["seen"]["code"], "outcome" in r.data), ("no_face", False))
+        r = c.post("/api/auth/face/scan", {"image": frame, "mode": "identify"}, format="json")
+        self.assertTrue(r.data["seen"]["ok"])
+        self.assertEqual(r.data["outcome"]["status"], 200, r.data)
+        self.assertTrue(r.data["outcome"]["data"]["need_check"])
+        self.assertEqual(r.data["outcome"]["data"]["first_name"], "Eileen")
+        # login mode with an unknown phone: a clear answer, not a crash
+        r = c.post("/api/auth/face/scan", {"image": frame, "mode": "login", "device_key": "nope"}, format="json")
+        self.assertEqual(r.data["outcome"]["data"]["code"], "unknown_device")
+        # the face bank notices the face code was removed
+        fp.delete()
+        r = c.post("/api/auth/face/scan", {"image": frame, "mode": "identify"}, format="json")
+        self.assertEqual((r.data["outcome"]["status"], r.data["outcome"]["data"]["code"]), (401, "no_match"))
+
+
 class DashboardWeekTests(TestCase):
     def test_dashboard_has_seven_days(self):
         staff = User.objects.create_user("wk", password="x", is_staff=True)

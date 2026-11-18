@@ -15,6 +15,12 @@ Every photo goes through one check (analyse) before anything is decided:
   4. Sharpness: a blurry face (phone moving) gives an unreliable face code → "blurry" (hold still).
 Only a photo that passes all of these is used to make, or check, a face code. The live "detecting"
 check (detect) uses the same rules, so the app scans only when a frame will really work.
+
+Speed: the live check looks for the face on a small copy of the photo (320 px — about 5 ms, as sure
+as at full size). The face code itself is made from a full-size look at the face (exactly as before, so
+saved face codes keep matching), using the "which way up" answer from the live check — no second search.
+An upright face's box is taller than wide; a sideways one's isn't — so the turn search only runs for
+photos that really look turned (it used to run on almost every frame).
 """
 import base64
 import binascii
@@ -25,9 +31,11 @@ from django.conf import settings
 YUNET = "face_detection_yunet_2023mar.onnx"
 SFACE = "face_recognition_sface_2021dec.onnx"
 MAX_SIDE = 640          # photos are made smaller first: faster, and plenty for a selfie
+DETECT_SIDE = 320       # the live "where is the face" check runs on a copy this size (≈4× faster)
 MIN_SIDE = 320          # very small photos are made bigger, so a face in them can still be found
 DET_SCORE = 0.8         # how sure YuNet must be that it is a face
-UPRIGHT_SCORE = 0.93    # below this, the photo is also tried turned (it may have come in sideways)
+UPRIGHT_SCORE = 0.93    # this sure → upright, no question
+UPRIGHT_SHAPE = 1.12    # face box this much taller than wide (and DET_SCORE sure) → upright too
 TURN_GAIN = 0.02        # a turned photo must be at least this much clearer to be used
 MIN_FACE = 0.16         # face must be at least this part of the photo's short side ("come closer")
 SECOND_FACE = 0.45      # another face this big (vs. the main face) means two people in the picture
@@ -66,6 +74,8 @@ def _load():
             _models["cv2"] = cv2
             _models["det"] = cv2.FaceDetectorYN.create(str(d / YUNET), "", (320, 320), DET_SCORE, 0.3, 5000)
             _models["rec"] = cv2.FaceRecognizerSF.create(str(d / SFACE), "")
+            if getattr(settings, "FACE_CV_THREADS", None):
+                cv2.setNumThreads(int(settings.FACE_CV_THREADS))  # e.g. 1 per worker on a small server
             # each way a photo can be turned, and how to turn it back upright
             _models["turns"] = [
                 (90, cv2.ROTATE_90_COUNTERCLOCKWISE),
@@ -131,35 +141,50 @@ def _faces(img):
     return sorted(found, key=lambda f: float(f[2] * f[3]), reverse=True)
 
 
-def _upright(img):
-    """Find the faces; if the face isn't clearly upright, also try the photo turned and keep the way up
-    where the face is clearest. → (photo, faces, degrees it was turned). Call under _lock."""
+def _small(img):
+    """A copy at most DETECT_SIDE px, and the factor to scale its boxes back to `img`."""
     cv2 = _models["cv2"]
-    faces = _faces(img)
-    best = max((float(f[14]) for f in faces), default=0.0)
-    if best >= UPRIGHT_SCORE:
-        return img, faces, 0
-    # Which way up? Compare the ways on a half-size copy (about 4× cheaper), then look properly once.
     h, w = img.shape[:2]
-    s = min(1.0, 320 / max(h, w))
-    small = cv2.resize(img, (round(w * s), round(h * s)), interpolation=cv2.INTER_AREA) if s < 1 else img
+    s = min(1.0, DETECT_SIDE / max(h, w))
+    if s >= 1.0:
+        return img, 1.0
+    return cv2.resize(img, (round(w * s), round(h * s)), interpolation=cv2.INTER_AREA), 1.0 / s
 
-    def score(im):
-        return max((float(x[14]) for x in _faces(im)), default=0.0)
 
-    base = score(small)
-    pick, pick_score = None, base
-    for degrees, how in _models["turns"]:
-        sc = score(cv2.rotate(small, how))
-        if sc > pick_score + TURN_GAIN:
-            pick, pick_score = (degrees, how), sc
-    if pick is None:
-        return img, faces, 0
-    turned = cv2.rotate(img, pick[1])
-    turned_faces = _faces(turned)
-    if max((float(x[14]) for x in turned_faces), default=0.0) <= best:
-        return img, faces, 0
-    return turned, turned_faces, pick[0]
+def _looks_upright(faces):
+    if not faces:
+        return False
+    main = faces[0]
+    score = float(main[14])
+    return score >= UPRIGHT_SCORE or (score >= DET_SCORE and float(main[3]) >= UPRIGHT_SHAPE * float(main[2]))
+
+
+def _upright(img):
+    """Find the faces on a small copy; if the face doesn't look upright, also try the copy turned and keep
+    the way up where the face is clearest. → (photo turned upright, faces in its coordinates, degrees).
+    Call under _lock."""
+    cv2 = _models["cv2"]
+    small, back = _small(img)
+    faces = _faces(small)
+    turned, how = 0, None
+    if not _looks_upright(faces):
+        best = max((float(f[14]) for f in faces), default=0.0)
+        for degrees, rot in _models["turns"]:
+            f = _faces(cv2.rotate(small, rot))
+            sc = max((float(x[14]) for x in f), default=0.0)
+            if sc > best + TURN_GAIN:
+                best, faces, turned, how = sc, f, degrees, rot
+    if how is not None:
+        img = cv2.rotate(img, how)
+    if back != 1.0:
+        faces = [_scaled(f, back) for f in faces]
+    return img, faces, turned
+
+
+def _scaled(f, k):
+    g = f.copy()
+    g[:14] *= k  # box and landmarks; the score stays
+    return g
 
 
 def _quality(img, face):
@@ -224,11 +249,8 @@ def _need_good(a):
     return a["faces"][0]
 
 
-def detect(image):
-    """Where are the faces? For the live "detecting" box while scanning — cheap, no face code made.
-    Boxes are fractions (0..1) of the upright photo; width/height are the upright photo's size.
-    → {width, height, faces: [{x, y, w, h, score}], ok, code, message, turned, light, sharp}"""
-    a = analyse(image)
+def seen_of(a):
+    """The live-check answer for an analysed photo (what detect() returns)."""
     img = a["img"]
     h, w = img.shape[:2]
     code = a["code"]
@@ -239,6 +261,31 @@ def detect(image):
         "faces": [{"x": round(float(f[0]) / w, 4), "y": round(float(f[1]) / h, 4), "w": round(float(f[2]) / w, 4),
                    "h": round(float(f[3]) / h, 4), "score": round(float(f[14]), 3)} for f in a["faces"][:4]],
     }
+
+
+def code_of(a):
+    """Face code from an analysed photo that passed. The face is looked at once more at full size (its
+    eyes, nose and mouth as precisely as the saved face codes were made), without any turn search."""
+    _, _, rec = _load()
+    face = _need_good(a)
+    with _lock:
+        full = _faces(a["img"])
+        if full:
+            # the full-size face that is the same face the quick look found
+            cx, cy = float(face[0] + face[2] / 2), float(face[1] + face[3] / 2)
+            near = [f for f in full if f[0] <= cx <= f[0] + f[2] and f[1] <= cy <= f[1] + f[3]]
+            face = near[0] if near else face
+        feat = rec.feature(rec.alignCrop(a["img"], face))
+    v = feat.flatten().astype(float)
+    n = float((v ** 2).sum()) ** 0.5 or 1.0
+    return [round(x / n, 6) for x in v]
+
+
+def detect(image):
+    """Where are the faces? For the live "detecting" box while scanning — cheap, no face code made.
+    Boxes are fractions (0..1) of the upright photo; width/height are the upright photo's size.
+    → {width, height, faces: [{x, y, w, h, score}], ok, code, message, turned, light, sharp}"""
+    return seen_of(analyse(image))
 
 
 def portrait(image, size=512):
@@ -265,14 +312,7 @@ def portrait(image, size=512):
 def embed(image):
     """Photo → face code (list of 128 floats). Raises FaceError unless there is exactly one clear,
     bright-enough, sharp face (the photo is turned upright first if needed)."""
-    _, _, rec = _load()
-    a = analyse(image)
-    face = _need_good(a)
-    with _lock:
-        feat = rec.feature(rec.alignCrop(a["img"], face))
-    v = feat.flatten().astype(float)
-    n = float((v ** 2).sum()) ** 0.5 or 1.0
-    return [round(x / n, 6) for x in v]
+    return code_of(analyse(image))
 
 
 def similarity(a, b):
