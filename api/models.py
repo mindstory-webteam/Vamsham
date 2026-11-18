@@ -397,6 +397,29 @@ class FaceProfile(models.Model):
     def __str__(self):
         return f"Face code · {self.user or f'{self.branch}:{self.member_id}'}"
 
+    def true_family_id(self):
+        """The family this face really belongs to: the family of the person on the tree (their branch),
+        else the family of the account. Never "whatever family the request happened to be in"."""
+        if self.member_id and self.branch:
+            fid = FamilyBranch.all_objects.filter(slug=self.branch).values_list("family_id", flat=True).first()
+            if fid:
+                return fid
+        if self.user_id:
+            fid = FamilyAccess.objects.filter(user_id=self.user_id).values_list("family_id", flat=True).first()
+            if fid:
+                return fid
+        return self.family_id
+
+    def save(self, *args, **kwargs):
+        # A face code always lives in its person's family — so a face scanned in Akkaramal is found in
+        # Akkaramal, whatever account or family the scan was done from.
+        fid = self.true_family_id()
+        if fid and fid != self.family_id:
+            self.family_id = fid
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"family"}
+        super().save(*args, **kwargs)
+
 
 class FaceDevice(models.Model):
     """A phone that may sign in with face scan. The phone keeps the secret key; we keep its hash."""

@@ -789,6 +789,113 @@ class MultiFamilyTests(TestCase):
         self.assertEqual(r.status_code, 200, r.data)
         self.assertEqual([a["family"]["slug"] for a in r.data["also"]], [first.slug])
 
+    # ── face matching across families (the bugs behind "Akkaramal: 0 faces") ──────────────
+
+    def _first_family_account(self, username="vjoseph", phone="+919876504321", face_image=None):
+        from api.models import FaceProfile, Family, FamilyAccess
+        from app1.models import Profile
+        from django.utils import timezone
+        first = Family.objects.exclude(pk=self.fam["id"]).first()
+        u = User.objects.create_user(username, password="x")
+        FamilyAccess.objects.update_or_create(user=u, defaults={"family": first})
+        Profile.all_objects.update_or_create(user=u, defaults={"full_name": "Joseph V", "phone_number": phone,
+                                                              "is_approved": True, "family": first})
+        if face_image:
+            from api import face as face_mod
+            FaceProfile.all_objects.create(user=u, embeddings=[face_mod.embed(face_image)], family=first, consent_at=timezone.now())
+        return first, User.objects.get(pk=u.pk)
+
+    def test_admin_scan_is_saved_in_the_members_own_family(self):
+        """The member is (wrongly) linked to an account of another family that has its own face code:
+        the admin's scan must be saved in the member's family, and must not touch the other family's code."""
+        from api.models import FaceProfile, MemberLink
+        first, other = self._first_family_account(face_image="joseph")
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Joseph", "last_name": "T", "mobile_number": "9876504321"}, format="json").data
+        MemberLink.all_objects.update_or_create(user=other, defaults={"branch": slug, "member_id": m["id"], "family": first})
+        r = self.b.post(f"/api/admin/members/{slug}/{m['id']}/face", {"images": ["joseph", "joseph2"], "consent": True}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual(r.data["family"]["slug"], self.fam["slug"])
+        mine = FaceProfile.all_objects.get(branch=slug, member_id=m["id"])
+        self.assertEqual((mine.family_id, mine.user_id), (self.fam["id"], None))
+        theirs = FaceProfile.all_objects.get(user=other)
+        self.assertEqual((theirs.family_id, theirs.member_id), (first.id, None))
+        boss = APIClient(); boss.force_authenticate(self.main)
+        r = boss.get("/api/super/families"); self.assertEqual(r.status_code, 200, r.data)
+        families = {f["slug"]: f for f in r.data["results"]}
+        self.assertEqual(families[self.fam["slug"]]["faces"], 1)
+        # the face is in both families → "Which family?" offers both
+        r = APIClient().post("/api/auth/face/identify", {"image": "joseph2"}, format="json")
+        self.assertEqual({c["family"]["slug"] for c in r.data["choices"]}, {first.slug, self.fam["slug"]})
+
+    def test_member_found_in_another_family_than_the_request(self):
+        """No family is picked anywhere: a member scanned in Thekkekara is found from a fresh phone."""
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Mary", "last_name": "T", "mobile_number": "9000011223"}, format="json").data
+        self.b.post(f"/api/admin/members/{slug}/{m['id']}/face", {"images": ["mary"], "consent": True}, format="json")
+        anon = APIClient()
+        anon.credentials(HTTP_X_FAMILY="does-not-matter")
+        r = anon.post("/api/auth/face/identify", {"image": "mary"}, format="json")
+        self.assertEqual((r.status_code, r.data.get("first_name"), r.data["family"]["slug"]), (200, "Mary", self.fam["slug"]), r.data)
+        r = anon.post("/api/auth/face/identify", {"image": "stranger"}, format="json")
+        self.assertEqual((r.status_code, r.data["code"]), (401, "no_match"))
+
+    def test_two_face_codes_of_the_same_person_are_not_unsure(self):
+        """Own set-up (account face) + the admin's scan of the same person, same family → found, not "unsure"."""
+        from api.models import FaceProfile, FamilyAccess, MemberLink
+        from app1.models import Profile
+        from django.utils import timezone
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Joseph", "last_name": "T", "mobile_number": "9876504321"}, format="json").data
+        u = User.objects.create_user("thkjoseph", password="x")
+        FamilyAccess.objects.update_or_create(user=u, defaults={"family_id": self.fam["id"]})
+        Profile.all_objects.update_or_create(user=u, defaults={"full_name": "Joseph T", "phone_number": "+919876504321", "is_approved": True, "family_id": self.fam["id"]})
+        MemberLink.all_objects.update_or_create(user=u, defaults={"branch": slug, "member_id": m["id"], "family_id": self.fam["id"]})
+        FaceProfile.all_objects.create(user=u, embeddings=[[0.99, 0.1] + [0.0] * 126], family_id=self.fam["id"], consent_at=timezone.now())
+        FaceProfile.all_objects.create(branch=slug, member_id=m["id"], embeddings=[[1.0] + [0.0] * 127], family_id=self.fam["id"], consent_at=timezone.now())
+        r = APIClient().post("/api/auth/face/identify", {"image": "joseph2"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual((r.data.get("need_check"), r.data["family"]["slug"]), (True, self.fam["slug"]))
+
+    def test_deleted_people_and_main_admin_are_not_matched(self):
+        from api.models import FaceProfile
+        from django.utils import timezone
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Gone", "last_name": "T", "mobile_number": "9000000009"}, format="json").data
+        p = FaceProfile.all_objects.create(branch=slug, member_id=m["id"], embeddings=[[1.0] + [0.0] * 127], family_id=self.fam["id"], consent_at=timezone.now())
+        from api import branches as B
+        B.get_model(slug).objects.filter(pk=m["id"]).delete()  # deleted the old way, face code left behind
+        FaceProfile.all_objects.create(user=self.main, embeddings=[[0.0, 1.0] + [0.0] * 126], family_id=self.fam["id"], consent_at=timezone.now())
+        self.assertEqual(APIClient().post("/api/auth/face/identify", {"image": "joseph"}, format="json").data["code"], "no_match")
+        self.assertEqual(APIClient().post("/api/auth/face/identify", {"image": "mary"}, format="json").data["code"], "no_match")
+        # the repair command removes the left-behind face code
+        from django.core.management import call_command
+        from io import StringIO
+        call_command("repair_face_codes", stdout=StringIO())
+        self.assertFalse(FaceProfile.all_objects.filter(pk=p.pk).exists())
+
+    def test_repair_command_moves_misfiled_face_codes(self):
+        """Old data: a Thekkekara member's face filed under the first family, tied to that family's account."""
+        from io import StringIO
+        from django.core.management import call_command
+        from api.models import FaceProfile, MemberLink
+        first, other = self._first_family_account(face_image=None)
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Joseph", "last_name": "T", "mobile_number": "9876504321"}, format="json").data
+        p = FaceProfile.all_objects.create(user=other, branch=slug, member_id=m["id"], embeddings=[[1.0] + [0.0] * 127], family_id=self.fam["id"],
+                                           consent_at=__import__("django.utils.timezone", fromlist=["now"]).now())
+        FaceProfile.all_objects.filter(pk=p.pk).update(family_id=first.id)  # how the old code left it
+        MemberLink.all_objects.update_or_create(user=other, defaults={"branch": slug, "member_id": m["id"], "family": first})
+        out = StringIO()
+        call_command("repair_face_codes", "--dry-run", stdout=out)
+        self.assertEqual(FaceProfile.all_objects.get(pk=p.pk).family_id, first.id)  # dry run changes nothing
+        call_command("repair_face_codes", stdout=out)
+        p.refresh_from_db()
+        self.assertEqual((p.family_id, p.user_id), (self.fam["id"], None))
+        self.assertFalse(MemberLink.all_objects.filter(user=other, member_id=m["id"]).exists())
+        r = APIClient().post("/api/auth/face/identify", {"image": "joseph2"}, format="json")
+        self.assertEqual((r.status_code, r.data["family"]["slug"]), (200, self.fam["slug"]), r.data)
+
     def test_family_admin_sees_only_own_family(self):
         r = self.b.get("/api/admin/dashboard")
         self.assertEqual(r.status_code, 200, r.data)
