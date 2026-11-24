@@ -684,3 +684,42 @@ class AdminMemberFaceView(APIView):
             return Response({"detail": "Not found."}, status=404)
         FaceProfile.all_objects.filter(branch=branch, member_id=pk).delete()
         return Response(status=204)
+
+
+class AdminFaceCheckView(APIView):
+    """Add a member, face first: is this face clear, and does it look like someone ALREADY in this family?
+    POST {image} → {ok, matches: [{branch, id, name, branch_label, photo, alike, same}]}  (best first, at most 3).
+    `same` = alike enough that it is very likely the same person (the admin is warned before adding a duplicate)."""
+    permission_classes = [IsStaff]
+    throttle_classes = [FaceDetectThrottle]
+
+    def post(self, request):
+        from ..tenancy import current_family_id
+        img = request.data.get("image")
+        if not img:
+            return Response({"detail": "No photo.", "code": "bad_image"}, status=400)
+        try:
+            code = face.embed(img)
+        except face.FaceError as exc:
+            return face_error(exc)
+        fid = current_family_id()
+        t = settings.FACE_IDENTIFY_THRESHOLD
+        out, seen = [], set()
+        for p, score in rank_faces(code):
+            if score < t - 0.12 or len(out) >= 3:
+                break
+            if fid is not None and p.family_id != fid:
+                continue
+            m = member_of(p)
+            if m is None or (p.branch, p.member_id) in seen:
+                continue
+            seen.add((p.branch, p.member_id))
+            from ..branches import find_any
+            row = find_any(p.branch)
+            out.append({
+                "branch": p.branch, "id": p.member_id, "name": f"{m.first_name} {m.last_name}".strip(),
+                "branch_label": getattr(row, "label", None) or (row.get("label") if isinstance(row, dict) else None) or p.branch,
+                "photo": request.build_absolute_uri(m.photo.url) if getattr(m, "photo", None) else None,
+                "alike": max(0, min(100, round(score * 100))), "same": score >= t,
+            })
+        return Response({"ok": True, "matches": out})

@@ -755,6 +755,26 @@ class MultiFamilyTests(TestCase):
         self.assertEqual(r.status_code, 200)
         return r.data[0]["slug"]
 
+    def test_add_member_face_check_finds_people_in_this_family_only(self):
+        """Add member, face first: /admin/face/check says who already looks like this face —
+        only people in the admin's own family, never another family's."""
+        from api.models import FaceProfile, Family
+        from django.utils import timezone
+        slug = self.branch_b()
+        m = self.b.post(f"/api/admin/members/{slug}", {"first_name": "Joseph", "last_name": "T"}, format="json").data
+        self.b.post(f"/api/admin/members/{slug}/{m['id']}/face", {"images": ["joseph"], "consent": True}, format="json")
+        # a "Mary" face in ANOTHER family must not show up for this family's admin
+        other = Family.objects.exclude(pk=self.fam["id"]).first()
+        FaceProfile.all_objects.create(branch="elsewhere", member_id=1, embeddings=[[0.0, 1.0] + [0.0] * 126], consent_at=timezone.now(), family=other)
+        r = self.b.post("/api/admin/face/check", {"image": "joseph2"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual([(x["name"], x["same"]) for x in r.data["matches"]], [("Joseph T", True)])
+        r = self.b.post("/api/admin/face/check", {"image": "mary"}, format="json")
+        self.assertEqual(r.data["matches"], [])
+        r = self.b.post("/api/admin/face/check", {"image": "stranger"}, format="json")
+        self.assertEqual((r.status_code, r.data["matches"]), (200, []))
+        self.assertEqual(APIClient().post("/api/admin/face/check", {"image": "joseph"}, format="json").status_code, 401)
+
     def test_face_opens_the_right_family_when_phone_is_used_elsewhere(self):
         """Same phone number on the main admin and on an account in the first family: Joseph's face,
         scanned in Thekkekara, must open Thekkekara — never those other accounts."""

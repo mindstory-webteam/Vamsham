@@ -29,6 +29,7 @@ urlpatterns = [
     path("auth/face/scan", fc.FaceScanView.as_view()),
     path("auth/face/confirm", fc.FaceConfirmView.as_view()),
     path("admin/members/<slug:branch>/<int:pk>/face", fc.AdminMemberFaceView.as_view()),
+    path("admin/face/check", fc.AdminFaceCheckView.as_view()),
 
     # ── Me ───────────────────────────────────────────────────
     path("me", auth.MeView.as_view()),
