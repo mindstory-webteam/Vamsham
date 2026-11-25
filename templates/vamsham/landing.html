@@ -1,0 +1,314 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vamsham — every branch, one family</title>
+<meta name="description" content="Vamsham keeps a whole family together: the family tree, birthdays, gatherings, blood help, photos and fees — in one app for members and one dashboard for the committee.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230F3D3A'/%3E%3Cpath d='M50 30V70M50 46 37 36M50 46 63 36' stroke='%23F4B13B' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M50 54 37 64M50 54 63 64' stroke='%23E0745E' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root{--ink:#141414;--mu:#6B7079;--line:#ECEDEF;--soft:#F5F5F6;--blue:#E8EDFD;--cream:#FDF3DC;--lav:#E6E5FB;--mint:#DDF3EC;--rose:#FBE4E1;--grey:#F1F2F0;--lilac:#EFEBFC;--green:#1E8A66}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'DM Sans',system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  .row{display:flex;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;height:50px;padding:0 22px;border-radius:15px;font-size:16px;font-weight:500;transition:transform .15s,background .15s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.dark{background:var(--ink);color:#fff}
+  .btn.soft{background:var(--soft)}
+  .caps{font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:var(--mu)}
+  h1{font-weight:500;font-size:clamp(40px,6vw,68px);line-height:1.04;letter-spacing:-1.6px}
+  h2{font-weight:500;font-size:clamp(30px,4vw,44px);line-height:1.1;letter-spacing:-1px}
+  h3{font-weight:500;font-size:20px;letter-spacing:-.2px}
+  p.lead{font-size:18px;color:var(--mu);max-width:560px}
+  section{padding:96px 0}
+  /* nav */
+  header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav{height:72px;justify-content:space-between}
+  .brand{gap:10px;font-weight:700;letter-spacing:2.4px;font-size:18px}
+  .links{gap:30px;font-size:15px;color:#3D4148}
+  .links a:hover{color:var(--ink)}
+  .menu-btn{display:none;width:44px;height:44px;border-radius:13px;background:var(--soft);border:0;align-items:center;justify-content:center;cursor:pointer}
+  /* hero */
+  .hero{padding:72px 0 40px}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+  .tag{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border-radius:999px;padding:7px 14px;font-size:14px;margin-bottom:22px}
+  .tag i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+  .hero .cta{gap:10px;margin-top:30px;flex-wrap:wrap}
+  .ticks{gap:22px;margin-top:28px;flex-wrap:wrap;font-size:14.5px;color:#3D4148}
+  .ticks span{display:inline-flex;align-items:center;gap:8px}
+  /* phone mock */
+  .phone{width:330px;margin:0 auto;border:9px solid #111;border-radius:46px;background:#fff;padding:20px 16px 18px;box-shadow:0 40px 80px rgba(20,20,20,.14);position:relative}
+  .phone .bar{justify-content:space-between;font-size:12px;font-weight:600;padding:0 8px 12px}
+  .p-row{display:flex;gap:9px}
+  .p-card{flex:1;border-radius:16px;padding:12px}
+  .p-card b{display:block;font-weight:400;font-size:17px;line-height:1.2;margin:8px 0 2px}
+  .p-card small{font-size:11px;color:#3D4148}
+  .p-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 4px;margin:14px 0 6px}
+  .p-grid div{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px}
+  .p-grid span{width:48px;height:48px;border-radius:15px;display:grid;place-items:center}
+  .p-today{border-radius:18px;background:var(--lav);padding:14px;margin-top:10px}
+  .float{position:absolute;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:0 18px 40px rgba(20,20,20,.10);font-size:13px;display:flex;gap:10px;align-items:center}
+  .float .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center}
+  /* features */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:44px}
+  .feat{border-radius:22px;padding:22px;min-height:220px;display:flex;flex-direction:column;justify-content:space-between}
+  .feat .ic{width:52px;height:52px;border-radius:15px;background:#fff;display:grid;place-items:center}
+  .feat p{font-size:14.5px;color:#3D4148;margin-top:6px}
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:44px;counter-reset:s}
+  .step{border:1px solid var(--line);border-radius:22px;padding:24px;position:relative}
+  .step .n{width:40px;height:40px;border-radius:12px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:500;margin-bottom:40px}
+  .step p{font-size:14.5px;color:var(--mu);margin-top:6px}
+  /* two columns */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:44px}
+  .panel{border-radius:26px;padding:34px}
+  .panel ul{list-style:none;margin-top:22px;display:grid;gap:14px}
+  .panel li{display:flex;gap:12px;align-items:flex-start;font-size:16px}
+  .panel li i{flex:none;width:24px;height:24px;border-radius:8px;background:#fff;display:grid;place-items:center;margin-top:1px}
+  /* why */
+  .why{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
+  .why div{border:1px solid var(--line);border-radius:22px;padding:24px}
+  .why .ic{width:46px;height:46px;border-radius:14px;background:var(--soft);display:grid;place-items:center;margin-bottom:26px}
+  .why p{font-size:14.5px;color:var(--mu);margin-top:6px}
+  /* faq */
+  .faq{max-width:820px;margin:40px auto 0}
+  details{border-bottom:1px solid var(--line);padding:22px 4px}
+  summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:500}
+  summary::-webkit-details-marker{display:none}
+  summary .pm{width:36px;height:36px;border-radius:11px;background:var(--soft);display:grid;place-items:center;flex:none;transition:transform .2s}
+  details[open] summary .pm{transform:rotate(45deg)}
+  details p{color:var(--mu);margin-top:12px;font-size:16px;max-width:700px}
+  /* cta + footer */
+  .cta-box{border-radius:30px;background:var(--cream);padding:60px 40px;text-align:center}
+  .cta-box .row{justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap}
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--mu);font-size:14px}
+  footer .row{justify-content:space-between;flex-wrap:wrap;gap:16px}
+  .center{text-align:center}.center p.lead{margin:14px auto 0}
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr}.phone-wrap{margin-top:10px}
+    .grid4,.steps{grid-template-columns:repeat(2,1fr)}
+    .why{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}
+    .float{display:none}
+  }
+  @media (max-width:760px){
+    .links{display:none;position:absolute;top:72px;left:0;right:0;background:#fff;flex-direction:column;align-items:flex-start;padding:16px 24px 22px;gap:16px;border-bottom:1px solid var(--line)}
+    .links.open{display:flex}.menu-btn{display:inline-flex}
+    .nav-cta .soft{display:none}.nav-cta .dark{padding:0 16px;font-size:15px}.brand{font-size:16px}
+    .feat{min-height:0;gap:26px}
+    section{padding:70px 0}
+    .grid4,.steps,.why{grid-template-columns:1fr}
+    .phone{width:300px}
+  }
+</style>
+</head>
+<body>
+
+{% comment %} The Vamsham mark (same as the app): a tree — branches above, roots below — on a dark-green tile {% endcomment %}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="vbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A4F4B"/><stop offset="1" stop-color="#0F3D3A"/></linearGradient>
+    <symbol id="logo" viewBox="0 0 100 100">
+      <rect width="100" height="100" rx="24" fill="url(#vbg)"/>
+      <g transform="translate(10 10) scale(.8)">
+        <circle cx="50" cy="50" r="38" stroke="rgba(216,255,84,.3)" stroke-width="5" fill="none"/>
+        <path d="M50 20V80" stroke="#F4B13B" stroke-width="6" stroke-linecap="round"/>
+        <path d="M50 40 34 28M50 40 66 28M50 32 42 22M50 32 58 22" stroke="#F4B13B" stroke-width="5" stroke-linecap="round"/>
+        <path d="M50 60 34 72M50 60 66 72M50 68 42 78M50 68 58 78" stroke="#E0745E" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="50" cy="50" r="7" fill="#E0745E" stroke="#0F3D3A" stroke-width="3"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <nav class="wrap row">
+    <a href="#top" class="row brand" aria-label="Vamsham home"><svg width="36" height="36"><use href="#logo"/></svg>VAMSHAM</a>
+    <div class="row links" id="links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#why">Why Vamsham</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="row nav-cta" style="gap:10px">
+      <a class="btn soft" href="/dashboard/sign-in" style="height:44px">Sign in</a>
+      <a class="btn dark" href="/dashboard/welcome" style="height:44px">Open the app</a>
+      <button class="menu-btn" aria-label="Menu" aria-expanded="false" onclick="var l=document.getElementById('links');l.classList.toggle('open');this.setAttribute('aria-expanded',l.classList.contains('open'))">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="tag"><i></i>For family associations</span>
+        <h1>Every branch.<br>One family.</h1>
+        <p class="lead" style="margin-top:20px">Vamsham keeps your whole family together — the family tree, birthdays, gatherings, blood help, photos and fees. One app for members, one dashboard for the committee.</p>
+        <div class="row cta">
+          <a class="btn dark" href="/dashboard/welcome">Open the family app
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn soft" href="#how">See how it works</a>
+        </div>
+        <div class="row ticks">
+          <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E8A66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Sign in with your face</span>
+          <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E8A66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>English &amp; മലയാളം</span>
+          <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E8A66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Phone &amp; web</span>
+        </div>
+      </div>
+
+      <div class="phone-wrap" style="position:relative">
+        <div class="phone" aria-hidden="true">
+          <div class="row bar"><span>9:41</span><span>●●●</span></div>
+          <div class="row" style="justify-content:space-between;padding:0 4px 14px">
+            <div><div style="font-size:11px;color:var(--mu)">Your family</div><div style="font-size:21px">Hi there 👋</div></div>
+            <div style="width:38px;height:38px;border-radius:12px;background:var(--soft);display:grid;place-items:center">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></svg></div>
+          </div>
+          <div class="p-row">
+            <div class="p-card" style="background:var(--blue)"><small style="font-size:12px;color:var(--ink)">Family</small><b>All branches</b><small>One tree</small></div>
+            <div class="p-card" style="background:var(--cream)"><small style="font-size:12px;color:var(--ink)">Next event</small><b>Get-together</b><small>See who’s coming</small></div>
+          </div>
+          <div class="p-grid">
+            <div><span style="background:var(--lav)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M12 7v5M6 16v-2h12v2"/></svg></span>Tree</div>
+            <div><span style="background:var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M6 8.5V12a6 6 0 0 0 6 6h3.5"/></svg></span>Related?</div>
+            <div><span style="background:var(--rose)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><path d="M12 3s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12z"/></svg></span>Blood SOS</div>
+            <div><span style="background:var(--cream)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span>Photos</div>
+            <div><span style="background:var(--mint)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>Events</div>
+            <div><span style="background:var(--lilac)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 13h18M12 8S10 3 7.5 4 8 8 12 8zm0 0s2-5 4.5-4S16 8 12 8z"/></svg></span>Today</div>
+            <div><span style="background:var(--grey)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></svg></span>Add family</div>
+            <div><span style="background:var(--soft)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></svg></span>Fees</div>
+          </div>
+          <div class="p-today">
+            <div style="font-size:11px;color:var(--mu);letter-spacing:.6px">TODAY</div>
+            <div style="font-size:19px;margin-top:4px">A birthday in the family 🎂</div>
+            <div class="row" style="justify-content:space-between;margin-top:10px"><span style="font-size:12px;color:#3D4148">Send a wish in one tap</span>
+              <span style="background:var(--ink);color:#fff;border-radius:11px;padding:7px 12px;font-size:12px">Wish</span></div>
+          </div>
+        </div>
+        <div class="float" style="left:-30px;top:-22px"><span class="ic" style="background:var(--mint)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 0 0 5 0"/></svg></span><div><b style="font-weight:500">Face sign-in</b><div style="color:var(--mu);font-size:12px">No password, no code</div></div></div>
+        <div class="float" style="right:-4px;bottom:110px"><span class="ic" style="background:var(--rose)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><path d="M12 3s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12z"/></svg></span><div><b style="font-weight:500">O+ needed</b><div style="color:var(--mu);font-size:12px">Donors alerted</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" style="padding-top:60px">
+    <div class="wrap">
+      <div class="caps">Features</div>
+      <h2 style="margin-top:10px;max-width:640px">Everything a big family needs, in one place.</h2>
+      <div class="grid4">
+        <div class="feat" style="background:var(--lav)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M12 7v5M6 16v-2h12v2"/></svg></span><div><h3>Family tree</h3><p>Every generation and branch, with photos. Tap anyone to see how you’re related.</p></div></div>
+        <div class="feat" style="background:var(--mint)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 0 0 5 0"/></svg></span><div><h3>Face sign-in</h3><p>Elders open the app just by looking at the phone. No passwords to forget.</p></div></div>
+        <div class="feat" style="background:var(--cream)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 13h18M12 8S10 3 7.5 4 8 8 12 8zm0 0s2-5 4.5-4S16 8 12 8z"/></svg></span><div><h3>Birthdays &amp; remembrance</h3><p>A reminder every morning, wishes in one tap, and a candle for those we remember.</p></div></div>
+        <div class="feat" style="background:var(--blue)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><div><h3>Gatherings</h3><p>Plan get-togethers, prayers and meetings. Members say “I’m coming” in a tap.</p></div></div>
+        <div class="feat" style="background:var(--rose)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><path d="M12 3s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12z"/></svg></span><div><h3>Blood SOS</h3><p>Ask for blood and every matching donor in the family gets a message at once.</p></div></div>
+        <div class="feat" style="background:var(--lilac)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span><div><h3>Photos</h3><p>Albums from every gathering, and old family photos kept safe for the next generation.</p></div></div>
+        <div class="feat" style="background:var(--grey)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18M7 15h4"/></svg></span><div><h3>Fees &amp; receipts</h3><p>Membership fees and donations with receipts. Members see what they’ve paid.</p></div></div>
+        <div class="feat" style="background:var(--soft)"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg></span><div><h3>Committee dashboard</h3><p>Approve sign-ups and edits, add members, send messages and see the whole family at a glance.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" style="background:#FAFAFB">
+    <div class="wrap">
+      <div class="caps">How it works</div>
+      <h2 style="margin-top:10px;max-width:640px">Up and running in four simple steps.</h2>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><h3>The committee sets up the family</h3><p>Add your family name, logo, branches, committee and membership fees from the dashboard.</p></div>
+        <div class="step"><div class="n">2</div><h3>Add members with a face scan</h3><p>Scan a face, type a name and save. Vamsham warns you if the person is already in the tree.</p></div>
+        <div class="step"><div class="n">3</div><h3>Members join the app</h3><p>They scan the family QR code or enter their phone number. The committee approves each one.</p></div>
+        <div class="step"><div class="n">4</div><h3>The family stays connected</h3><p>Birthdays, gatherings, blood requests and photos reach everyone — every day, in every branch.</p></div>
+      </div>
+
+      <div class="two">
+        <div class="panel" style="background:var(--blue)">
+          <div class="caps" style="color:#3D4148">For members</div>
+          <h3 style="font-size:28px;margin-top:8px">The family app</h3>
+          <ul>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>Find anyone in the family and call or WhatsApp them</li>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>See exactly how you are related to someone</li>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>Your member card with a QR code for gatherings</li>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>Add a new baby or spouse — the committee checks it</li>
+          </ul>
+          <a class="btn dark" href="/dashboard/welcome" style="margin-top:28px">Open the family app</a>
+        </div>
+        <div class="panel" style="background:var(--cream)">
+          <div class="caps" style="color:#3D4148">For the committee</div>
+          <h3 style="font-size:28px;margin-top:8px">The dashboard</h3>
+          <ul>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>Approve sign-ups, profile edits and face scans</li>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>Members, tree, events, messages, photos and payments</li>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>Roles for president, secretary and treasurer</li>
+            <li><i><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></i>Export members and payments any time</li>
+          </ul>
+          <a class="btn dark" href="/dashboard/sign-in" style="margin-top:28px">Committee sign-in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section id="why">
+    <div class="wrap">
+      <div class="caps">Why Vamsham</div>
+      <h2 style="margin-top:10px;max-width:640px">Made for families — private, simple and safe.</h2>
+      <div class="why">
+        <div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></span><h3>Only your family</h3><p>Each family has its own private space. Only approved members can see names, phones and photos.</p></div>
+        <div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><h3>Your face stays yours</h3><p>Face sign-in keeps only a face code, never the photo — and only when the person agrees.</p></div>
+        <div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><h3>English &amp; മലയാളം</h3><p>Big, clear screens that grandparents and grandchildren can both use.</p></div>
+        <div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></span><h3>Phone and web</h3><p>Android app for members, and a web dashboard for the committee on any computer.</p></div>
+        <div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><h3>Committee checks everything</h3><p>New people and changes wait for approval, so the tree stays correct.</p></div>
+        <div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><h3>Your data, your copy</h3><p>Download members and payments to Excel whenever you like.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" style="background:#FAFAFB">
+    <div class="wrap center">
+      <div class="caps">FAQ</div>
+      <h2 style="margin-top:10px">Questions families ask</h2>
+      <div class="faq" style="text-align:left">
+        <details open><summary>Who can see our family details?<span class="pm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Only members your committee has approved. Every family has its own private space — other families on Vamsham can’t see yours.</p></details>
+        <details><summary>How does a member join?<span class="pm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Open the family app, choose “I’m new — join my family”, enter a phone number and the SMS code. The committee approves the request, and the member is in.</p></details>
+        <details><summary>Is face sign-in safe?<span class="pm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Yes. It is optional, needs the person’s agreement, and stores only a face code — not the photo. Anyone can remove their face data from Settings.</p></details>
+        <details><summary>Can elders without a smartphone be in the tree?<span class="pm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Of course. The committee adds everyone — with or without a phone — and those who passed away are kept in the tree with love.</p></details>
+        <details><summary>How do we start Vamsham for our family?<span class="pm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Get in touch with the Vamsham team. We create your family’s space and committee sign-in, then you add branches and members from the dashboard.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <div class="wrap">
+      <div class="cta-box">
+        <svg width="56" height="56" style="margin:0 auto 18px;display:block"><use href="#logo"/></svg>
+        <h2>Bring your family together.</h2>
+        <p class="lead" style="margin:14px auto 0;color:#3D4148">Open the app to find your family, or sign in to manage your family association.</p>
+        <div class="row">
+          <a class="btn dark" href="/dashboard/welcome">Open the family app</a>
+          <a class="btn" style="background:#fff" href="/dashboard/sign-in">Committee sign-in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap row">
+    <div class="row" style="gap:10px;color:var(--ink);font-weight:700;letter-spacing:2px"><svg width="28" height="28"><use href="#logo"/></svg>VAMSHAM</div>
+    <div class="row" style="gap:22px"><a href="#features">Features</a><a href="#how">How it works</a><a href="#why">Why Vamsham</a><a href="#faq">FAQ</a><a href="/dashboard/sign-in">Sign in</a></div>
+    <div>© {% now "Y" %} Vamsham</div>
+  </div>
+</footer>
+</body>
+</html>
